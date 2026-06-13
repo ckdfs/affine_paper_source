@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仿射变换框架下的 MZM 任意点偏压控制 —— 推导与数值演示</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#EEF2EC;        /* 图纸灰绿底 */
+  --panel:#F8FAF5;
+  --ink:#1E2A24;
+  --ink-soft:#51635A;
+  --grid:#D8E0D4;
+  --grid-strong:#C4CFC2;
+  --h1c:#1F6E52;          /* 一次谐波 · 松绿 */
+  --h2c:#BC4B2A;          /* 二次谐波 · 朱砂 */
+  --fit:#2E5FA3;          /* 拟合椭圆 · 钴蓝 */
+  --gold:#A8801F;         /* 基准点 · 金 */
+  --warn:#9A3B22;
+  --rule:#B9C4B6;
+  font-size:16px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
+  line-height:1.85;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:36px 36px;
+}
+main{max-width:920px;margin:0 auto;padding:2.5rem 1.2rem 5rem}
+header.doc{border-bottom:3px double var(--ink);padding-bottom:1.2rem;margin-bottom:2rem}
+.eyebrow{font-family:ui-monospace,"IBM Plex Mono",Menlo,monospace;font-size:.72rem;letter-spacing:.22em;color:var(--ink-soft);text-transform:uppercase}
+h1{font-size:1.72rem;font-weight:700;margin:.4rem 0 .3rem;letter-spacing:.02em;line-height:1.4}
+.subtitle{color:var(--ink-soft);font-size:.95rem;margin:0}
+h2{font-size:1.18rem;margin:3rem 0 .8rem;padding-left:.7rem;border-left:4px solid var(--h1c)}
+h2 .no{font-family:ui-monospace,monospace;color:var(--ink-soft);font-size:.85rem;margin-right:.55rem}
+p{margin:.7rem 0;text-align:justify}
+.rem{font-size:.9rem;color:var(--ink-soft);border-left:3px solid var(--rule);padding:.1rem 0 .1rem .8rem;margin:.9rem 0}
+.panel{
+  background:var(--panel);border:1px solid var(--grid-strong);
+  box-shadow:0 1px 0 var(--grid-strong);
+  padding:.9rem .9rem .7rem;margin:1.2rem 0 1.6rem;
+}
+.panel-cap{font-family:ui-monospace,monospace;font-size:.72rem;letter-spacing:.12em;color:var(--ink-soft);margin:0 0 .5rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+canvas{display:block;background:#FBFCF8;border:1px solid var(--grid);max-width:100%}
+.row{display:flex;gap:.9rem;flex-wrap:wrap}
+.row>div{flex:1 1 300px;min-width:280px}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:.35rem 1.1rem;margin-top:.7rem}
+.ctl{display:flex;align-items:center;gap:.5rem;font-family:ui-monospace,monospace;font-size:.74rem;color:var(--ink-soft)}
+.ctl label{flex:0 0 7.2em;white-space:nowrap}
+.ctl input[type=range]{flex:1;accent-color:var(--h1c);height:1rem}
+.ctl output{flex:0 0 4.2em;text-align:right;color:var(--ink)}
+button{
+  font-family:ui-monospace,monospace;font-size:.78rem;letter-spacing:.05em;
+  background:var(--ink);color:var(--panel);border:none;padding:.45rem .95rem;cursor:pointer
+}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+button:hover{opacity:.85}
+.btnrow{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-top:.7rem}
+.stale{display:none;font-family:ui-monospace,monospace;font-size:.74rem;color:var(--warn)}
+.stale.on{display:inline}
+.readout{
+  font-family:ui-monospace,monospace;font-size:.78rem;line-height:1.7;
+  background:#F1F4EC;border:1px dashed var(--grid-strong);padding:.55rem .8rem;margin-top:.7rem;
+  white-space:pre;overflow-x:auto
+}
+.legend{font-family:ui-monospace,monospace;font-size:.7rem;color:var(--ink-soft);margin-top:.4rem}
+.legend i{display:inline-block;width:1.4em;height:.55em;margin:0 .3em 0 .9em;vertical-align:baseline}
+.katex-display{margin:.9rem 0;overflow-x:auto;overflow-y:hidden;padding:.15rem 0}
+table.tb{border-collapse:collapse;width:100%;margin:1.1rem 0;font-size:.82rem;line-height:1.6;background:var(--panel)}
+.tb th,.tb td{border:1px solid var(--grid-strong);padding:.4rem .55rem;text-align:left;vertical-align:top}
+.tb th{background:#E5EBE1;font-weight:600;font-family:ui-monospace,"IBM Plex Mono",Menlo,monospace;font-size:.72rem;letter-spacing:.06em}
+.tb td:first-child{white-space:nowrap;font-weight:600}
+@media (max-width:640px){table.tb{display:block;overflow-x:auto;white-space:nowrap}}
+footer{margin-top:3.5rem;border-top:1px solid var(--rule);padding-top:.8rem;font-size:.8rem;color:var(--ink-soft);font-family:ui-monospace,monospace}
+@media (prefers-reduced-motion: reduce){ .motion-hint{display:block} }
+</style>
+</head>
+<body>
+<main>
+
+<header class="doc">
+  <div class="eyebrow">Technical Note · MZM Bias Control · Affine Geometry</div>
+  <h1>仿射变换框架下的马赫–曾德尔调制器任意点偏压控制</h1>
+  <p class="subtitle">谐波观测的几何化、椭圆辨识与一致增益闭环 —— 推导与交互式数值验证</p>
+</header>
+
+<p><b>摘要</b>　在导频（pilot-tone）框架下，本文证明一条<b>精确</b>结构定理：偏置相位 \(\varphi_b\) 的谐波解调观测量 \(\mathbf z=(X,Y)^{\mathsf T}\) 是单位圆 \(\mathbb S^1\) 在仿射群 \(\mathrm{Aff}(2,\mathbb R)\) 作用下的像——对任意周期导频波形与任意线性接收链均严格成立，而非小信号近似。由此，任意点偏压控制被化归为两个标准问题：(i) 由定标扫描数据作椭圆拟合以辨识仿射参数 \((A,\mathbf b)\)；(ii) 经仿射逆变换直接解调 \(\hat\varphi_b=\operatorname{atan2}\)。本文给出 \(A,\mathbf u,\mathbf b,\mathbf n\) 各元素以传统导频量（Bessel 系数、通道增益、参考相位、串扰与接收噪声）表示的闭式，证明传统正交点/零点锁定的静态误差恰为仿射元素之比值，并以统一对照表比较五种方案。下文公式推导与可视化面板并行展开，所有面板由同一组可调的非理想参量实时驱动。</p>
+
+<!-- ============ §1 ============ -->
+<h2><span class="no">§1</span>信号模型、谐波分解与解调泛函</h2>
+
+<p>设推挽式单驱 MZM 的光强传递函数（计入分光不平衡 / 有限消光比）为
+$$P_{\mathrm{out}}(t)=\tfrac{P_0}{2}\bigl[1+\eta\cos\varphi(t)\bigr],\qquad
+\eta=\tfrac{2\sqrt r}{1+r}\le1,\qquad
+\varphi(t)=\varphi_b+\xi(t),$$
+其中 \(r\) 为两臂功率分配比（理想 \(r=1,\eta=1\)），常数啁啾相位并入 \(\varphi_b=\pi V_b/V_\pi+\varphi_0\) 的定义。导频（标称 \(\xi(t)=m\sin\omega t\)，\(m=\pi V_d/V_\pi\)）注入后，光电流分解为
+$$i(t)=\rho P_{\mathrm{out}}(t)+i_x(t)+i_n(t),$$
+\(i_x\) 为<i>与导频相干</i>的确定性电学串扰（经非光学路径耦合进接收链），\(i_n\) 为随机噪声过程。锁相解调定义为两个线性泛函
+$$\mathcal L_1[f]\triangleq\overline{2f(t)\sin(\omega t+\theta_1)},\qquad
+\mathcal L_2[f]\triangleq\overline{2f(t)\cos(2\omega t+\theta_2)},$$
+上横线为 LPF 时间平均，\(\theta_1,\theta_2\) 为参考相位误差（含链路群延迟折算），通道电增益 \(G_1,G_2\)。观测量定义 \(Y\triangleq G_1\mathcal L_1[i]\)，\(X\triangleq G_2\mathcal L_2[i]\)。</p>
+
+<p>理想正弦导频下，Jacobi–Anger 展开
+$$\cos(\varphi_b+m\sin\omega t)=\Bigl[J_0(m)+2\!\sum_{k\ge1}\!J_{2k}(m)\cos 2k\omega t\Bigr]\cos\varphi_b-2\Bigl[\sum_{k\ge0}J_{2k+1}(m)\sin(2k\!+\!1)\omega t\Bigr]\sin\varphi_b$$
+给出完整谐波结构——这张表是传统导频法全部变体的"原料库"：</p>
+
+<table class="tb">
+<tr><th>频率</th><th>光电流分量</th><th>\(\varphi_b\) 依赖</th><th>传统导频法中的角色</th></tr>
+<tr><td>DC</td><td>\(\tfrac{\rho P_0}{2}\bigl[1+\eta J_0(m)\cos\varphi_b\bigr]\)</td><td>\(\cos\varphi_b\)</td><td>功率监测；本文用作规范基准（§5）</td></tr>
+<tr><td>\(\omega\)</td><td>\(-\eta\rho P_0 J_1(m)\sin\varphi_b\cdot\sin\omega t\)</td><td>\(\sin\varphi_b\)</td><td>零/峰点误差信号；幅值匹配法</td></tr>
+<tr><td>\(2\omega\)</td><td>\(\eta\rho P_0 J_2(m)\cos\varphi_b\cdot\cos2\omega t\)</td><td>\(\cos\varphi_b\)</td><td>正交点误差信号；峰/谷符号判别</td></tr>
+<tr><td>\(3\omega\)</td><td>\(-\eta\rho P_0 J_3(m)\sin\varphi_b\cdot\sin3\omega t\)</td><td>\(\sin\varphi_b\)</td><td>高阶比值法（少用）</td></tr>
+<tr><td>\(2k\omega\,/\,(2k{+}1)\omega\)</td><td>\(\propto J_n(m)\)</td><td>偶 \(\cos\) / 奇 \(\sin\)</td><td>—</td></tr>
+</table>
+
+<p>理想极限（\(\theta_i=0\)、\(\xi\) 纯正弦、\(i_x=0\)）下得到传统导频法的基本读出
+$$Y=-\eta\kappa_1\sin\varphi_b,\qquad X=\eta\kappa_2\cos\varphi_b,\qquad
+\kappa_n\triangleq G_n\,\rho P_0 J_n(m),$$
+其中 \(\kappa_1,\kappa_2\) 正是传统文献中的"一/二次谐波斜率系数"。注意一个将贯穿全文的结构事实：<b>每一阶谐波的 \(\varphi_b\) 依赖只有 \(\cos\varphi_b\) 与 \(\sin\varphi_b\) 两种</b>——偶次谐波全部携带 \(\cos\varphi_b\)，奇次全部携带 \(\sin\varphi_b\)，没有任何高次谐波引入 \(\cos2\varphi_b\) 之类的项。§4 将说明这不是正弦导频的巧合，而是相位因子分解恒等式的必然推论。</p>
+
+<div class="panel">
+  <p class="panel-cap"><span>面板 I — 传递函数、导频激励与谐波包络</span><span id="cap1"></span></p>
+  <canvas id="cv1" height="300"></canvas>
+  <div class="legend">— P(φ)<i style="background:var(--h1c)"></i>|κ₁ sin φ| (H1 包络)<i style="background:var(--h2c)"></i>|κ₂ cos φ| (H2 包络)　◆ 当前工作点（含导频摆动）　▽ 目标 φ*</div>
+  <div class="ctrls">
+    <div class="ctl"><label>m 扰动深度</label><input type="range" id="rm" min="0.1" max="2.6" step="0.01" value="1.20"><output id="om"></output></div>
+    <div class="ctl"><label>φ* 目标相位</label><input type="range" id="rphi" min="0" max="6.283" step="0.005" value="1.90"><output id="ophi"></output></div>
+  </div>
+</div>
+
+<!-- ============ §2 ============ -->
+<h2><span class="no">§2</span>传统导频法：特殊点锁定的完整解析</h2>
+
+<p><b>正交点锁定（Quad±，\(\varphi^\ast=\pi/2,\,3\pi/2\)）．</b>误差信号取二次谐波本身：\(e_{\mathrm Q}=X=\eta\kappa_2\cos\theta_2\cos\varphi_b\)，伺服驱动 \(X\to0\)。局部环路增益 \(|\,\mathrm dX/\mathrm d\varphi_b\,|=\eta\kappa_2|\sin\varphi_b|\) 在 \(\pi/2\) 处取最大值 \(\eta\kappa_2\)；两个正交点由一次谐波符号 \(\operatorname{sgn}Y\) 区分。该方案对激光功率波动具有一阶免疫——<i>过零点</i>不随 \(\rho P_0\) 的共模缩放移动；但对通道直流泄漏毫无免疫。预先借用 §4 的记号（\(A_{ij},b_X,b_Y\) 为仿射模型元素），在 \(\varphi_b=\pi/2+\delta\) 邻域线性化 \(X=A_{11}\cos\varphi_b+A_{12}\sin\varphi_b+b_X=0\)（\(\cos\varphi_b\approx-\delta,\ \sin\varphi_b\approx1\)），立刻得到静态锁定误差的闭式
+$$\Delta\varphi_{\mathrm Q}=\frac{A_{12}+b_X}{A_{11}}=\frac{A_{12}+b_X}{\eta\kappa_2\cos\theta_2}\,.$$
+文献中导频法正交点的"残余偏置误差"，其全部来源在此被组织为两个仿射元素与对角主项之比。</p>
+
+<p><b>零点 / 峰值点锁定（Null/Peak，\(\varphi^\ast=\pi,\,0\)）．</b>误差信号取一次谐波：\(e_{\mathrm N}=Y=-\eta\kappa_1\cos\theta_1\sin\varphi_b\)，增益 \(\eta\kappa_1\)；零点与峰值由二次谐波符号判别（\(X(0)=+\eta\kappa_2,\ X(\pi)=-\eta\kappa_2\)）——min-min-max 类方案的峰/谷判别正源于此。同样的线性化（\(\varphi_b=\pi+\delta\)）给出
+$$\Delta\varphi_{\mathrm N}=\frac{b_Y-A_{21}}{A_{22}}\,.$$</p>
+
+<p><b>结构性评注．</b>传统法每次只读取向量 \(\mathbf u(\varphi_b)=(\cos\varphi_b,\sin\varphi_b)^{\mathsf T}\) 的<i>一个</i>坐标，并且只工作在该坐标的过零点邻域——那里恰好同时满足：(i) 局部斜率取极大；(ii) 误差量过零，故对增益标定不敏感；(iii) 另一坐标恰可充当符号判别量。特殊点锁定的全部精巧，本质上是对"只用一维观测"这一自我限制的局部补偿；一旦离开过零点，这三项便利同时失效。</p>
+
+<!-- ============ §3 ============ -->
+<h2><span class="no">§3</span>向任意点延拓的传统路线及其结构性障碍</h2>
+
+<p><b>路线 I：幅值匹配．</b>取 \(e_{\mathrm{AM}}=Y-Y^\ast\)，参考值 \(Y^\ast=-\kappa_1^{\mathrm{nom}}\sin\varphi^\ast\) 由<i>标称</i>参数计算。三个缺陷同时出现：其一，局部增益 \(|\,\mathrm dY/\mathrm d\varphi_b\,|_{\varphi^\ast}=\eta\kappa_1\cos\theta_1|\cos\varphi^\ast|\) 在 \(\varphi^\ast\to\pi/2\) 处消失（死区）；其二，\(Y\) 在 \(\varphi\leftrightarrow\pi-\varphi\) 下不变（分支歧义，漂移越过分支即错锁）；其三，标称增益与真实增益之差不再被过零点豁免，而是被死区因子放大——对锁定条件 \(Y(\varphi)=Y^\ast\) 作一阶展开：
+$$\Delta\varphi_{\mathrm{AM}}=-\frac{A_{21}\cos\varphi^\ast+\bigl(A_{22}+\kappa_1^{\mathrm{nom}}\bigr)\sin\varphi^\ast+b_Y}{A_{22}\cos\varphi^\ast-A_{21}\sin\varphi^\ast}\,,$$
+分母主项 \(A_{22}\cos\varphi^\ast=-\eta\kappa_1\cos\theta_1\cos\varphi^\ast\)，故静态误差以 \(1/\cos\varphi^\ast\) 发散。分子中 \(\bigl(A_{22}+\kappa_1^{\mathrm{nom}}\bigr)\) 正是"标称—真实"增益失配残差：幅值匹配把对增益标定的敏感性从零（过零方案）抬升到一阶。</p>
+
+<p><b>路线 II：谐波比值法．</b>取 \(X/Y=-(\kappa_2/\kappa_1)\cot\varphi_b\)（理想），由查表反解 \(\varphi_b\)。其优点是对 \(\rho P_0\) 共模波动免疫——除法消去了公共标量。但以仿射语言审视，其隐含假设一望而知：要求 \(A\) 严格对角<i>且</i> \(\mathbf b=0\)。偏置项使比值不再是 \(\cot\varphi_b\) 的单调函数；\(Y\to0\) 邻域比值发散、噪声方差以 \(1/Y^2\) 放大；\(\cot\) 的双象限歧义仍需符号辅助。本质上，比值法试图用一次除法消去未知增益，但它只能消去<i>一个公共标量</i>，而真实失配是六维仿射群的作用——一维的对策对抗不了六维的扰动。</p>
+
+<p><b>结构性障碍（拓扑论证）．</b>上述缺陷并非工程瑕疵，而是拓扑必然：任何以<i>单个</i>标量谐波特征 \(g(\varphi_b)\) 构造的误差函数都是 \(2\pi\) 周期的光滑函数，由 Rolle 定理必在每个周期内存在临界点 \(g'(\varphi^\dagger)=0\)——\(\varphi^\dagger\) 邻域内环路增益趋零（死区），且 \(g\) 不可能在整个周期上单射（分支歧义）。与之相对，映射 \(\varphi_b\mapsto\mathbf u(\varphi_b)\) 是 \(\mathbb S^1\to\mathbb R^2\) 的<b>浸入</b>：\(\|\mathbf u'(\varphi_b)\|\equiv1\) 处处满秩，且在 \([0,2\pi)\) 上单射。二维化是消除死区与歧义的最小代价。余下的问题仅在于：真实系统给出的不是 \(\mathbf u\)，而是它的一个未知形变像——下一节证明，该形变<b>恰好且只能</b>是仿射的。</p>
+
+<!-- ============ §4 ============ -->
+<h2><span class="no">§4</span>精确仿射定理：A、u、b、n 的导频量表示</h2>
+
+<p><b>引理（相位因子分解）．</b>对<i>任意</i>波形 \(\xi(t)\)，恒等式
+$$\cos\bigl(\varphi_b+\xi(t)\bigr)=\cos\varphi_b\cdot\cos\xi(t)\;-\;\sin\varphi_b\cdot\sin\xi(t)$$
+精确成立。其含义是：偏置相位与时间依赖<b>完全因子化</b>——\(\xi(t)\) 只决定"哪一个线性映射"，\(\varphi_b\) 只决定"圆上哪一点"。§1 谐波表中"偶次谐波全携带 \(\cos\varphi_b\)、奇次全携带 \(\sin\varphi_b\)"正是该恒等式在正弦导频下的投影。</p>
+
+<p><b>定理（精确仿射性）．</b>设导频 \(\xi(t)\) 为任意周期波形（不必正弦、不必小信号），接收为任意线性链路加线性解调泛函 \(\mathcal L_1,\mathcal L_2\)。则观测严格满足
+$$\boxed{\;\mathbf z=A\,\mathbf u(\varphi_b)+\mathbf b+\mathbf n\;}\qquad
+\mathbf u(\varphi_b)=\begin{pmatrix}\cos\varphi_b\\ \sin\varphi_b\end{pmatrix},$$
+且各元素具有显式导频表示：
+$$A=\frac{\eta\rho P_0}{2}
+\begin{pmatrix}
+G_2\,\mathcal L_2[\cos\xi] & -G_2\,\mathcal L_2[\sin\xi]\\[3pt]
+G_1\,\mathcal L_1[\cos\xi] & -G_1\,\mathcal L_1[\sin\xi]
+\end{pmatrix},\qquad
+\mathbf b=\begin{pmatrix}G_2\mathcal L_2[i_x]+O_X\\[2pt] G_1\mathcal L_1[i_x]+O_Y\end{pmatrix},\qquad
+\mathbf n=\begin{pmatrix}G_2\mathcal L_2[i_n]\\[2pt] G_1\mathcal L_1[i_n]\end{pmatrix},$$
+其中 \(O_X,O_Y\) 为混频器直流失调。<i>证明</i>：把引理代入 \(i=\tfrac{\rho P_0}{2}[1+\eta\cos(\varphi_b+\xi)]+i_x+i_n\)，利用 \(\mathcal L_{1,2}\) 的线性逐项收集即得（常数项 \(\tfrac{\rho P_0}{2}\) 经 \(\mathcal L_{1,2}\) 为零）。∎　注意这里没有任何近似：仿射性不是非理想因素"凑巧"保持的性质，而是相位因子分解的必然——非理想因素改变的只是 \((A,\mathbf b)\) 的<i>取值</i>，永远改变不了模型的<i>形式</i>。这正是 §5 的辨识方案得以成立的根基。</p>
+
+<p><b>逐项展开（与传统导频量对照）．</b>取实际导频 \(\xi(t)=m\sin\omega t+\varepsilon m\sin(2\omega t+\psi)\)（\(\varepsilon\) 为导频源二次谐波失真比，\(\psi\) 为其相位），将 \(\cos\xi,\sin\xi\) 对 \(\varepsilon\) 展开至一阶并逐谐波投影（核心积分为 \(\overline{2\sin(n\omega t+\alpha)\cos(n\omega t+\beta)}=\sin(\alpha-\beta)\)），得
+$$A_{11}=\eta\kappa_2\cos\theta_2,\qquad
+A_{22}=-\eta\kappa_1\cos\theta_1,$$
+$$A_{12}=-\tfrac{\eta\rho P_0G_2}{2}\,\varepsilon m\bigl[J_0(m)\sin(\psi-\theta_2)+J_4(m)\sin(\psi+\theta_2)\bigr],$$
+$$A_{21}=-\tfrac{\eta\rho P_0G_1}{2}\,\varepsilon m\bigl[J_1(m)\sin(\theta_1-\psi)+J_3(m)\sin(\theta_1+\psi)\bigr].$$
+一个干净的结论：至 \(O(\varepsilon)\)，导频失真<b>不扰动对角元，只生成非对角元</b>——对角元的修正始于 \(O(\varepsilon^2)\)。理想极限（\(\theta_i=0,\varepsilon=0,i_x=0\)）下 \(A\to\operatorname{diag}(\eta\kappa_2,\,-\eta\kappa_1)\)，\(\mathbf b\to(O_X,O_Y)^{\mathsf T}\)，严格回到 §1 的传统表达式：<b>传统导频法的全部"斜率系数"是 \(A\) 的对角元，全部"静态偏移"是 \(\mathbf b\) 的分量</b>。</p>
+
+<table class="tb">
+<tr><th>元素</th><th>导频量闭式</th><th>物理来源</th><th>传统导频法中的对应表现</th></tr>
+<tr><td>\(\mathbf u\)</td><td>\((\cos\varphi_b,\ \sin\varphi_b)^{\mathsf T}\)</td><td>偏置相位本体</td><td>正交点方案读 \(\cos\) 坐标、零/峰点方案读 \(\sin\) 坐标——各取其一，仅用其过零段</td></tr>
+<tr><td>\(A_{11}\)</td><td>\(\eta\kappa_2\cos\theta_2=\eta G_2\rho P_0J_2(m)\cos\theta_2\)</td><td>H2 解调斜率（消光比 × 增益 × Bessel × 参考相位余弦）</td><td>正交点环路增益</td></tr>
+<tr><td>\(A_{22}\)</td><td>\(-\eta\kappa_1\cos\theta_1\)</td><td>H1 解调斜率</td><td>零/峰点环路增益</td></tr>
+<tr><td>\(A_{12},A_{21}\)</td><td>上式 \(O(\varepsilon)\) 项</td><td>导频波形 \(2\omega\) 失真经 Bessel 谱混频泄入相邻谐波</td><td>正交/零点静态误差中"随 \(\psi\) 变号"的分量</td></tr>
+<tr><td>\(\mathbf b\)</td><td>\(\bigl(G_2\mathcal L_2[i_x]+O_X,\ G_1\mathcal L_1[i_x]+O_Y\bigr)^{\mathsf T}\)</td><td>与导频相干的电学串扰、混频器失调</td><td>锁定点平移：\(\Delta\varphi_{\mathrm Q},\Delta\varphi_{\mathrm N}\) 之分子</td></tr>
+<tr><td>\(\mathbf n\)</td><td>\(\bigl(G_2\mathcal L_2[i_n],\ G_1\mathcal L_1[i_n]\bigr)^{\mathsf T}\)，\(\sigma_{Y}^2=G_1^2\bigl(2q\bar I+\tfrac{4k_BTF}{R_T}+\mathrm{RIN}\cdot\bar I^2\bigr)B_{\mathrm{eq}}\)（\(X\) 同理）</td><td>散粒/热/RIN 经解调落入 LPF 等效带宽 \(B_{\mathrm{eq}}\) 的部分</td><td>锁定抖动方差</td></tr>
+</table>
+
+<p><b>\(\mathbf b\) 与 \(\mathbf n\) 的边界．</b>传统分析常把两者混称"噪声与干扰"，仿射框架强制将其分离，且分离标准是可操作的：与导频<i>相干</i>（同频锁相）的确定性分量进入 \(\mathbf b\)——可辨识、可经仿射逆变换<i>完全消除</i>；与导频<i>非相干</i>的随机过程进入 \(\mathbf n\)——不可辨识，只能统计抑制（增大 \(B_{\mathrm{eq}}^{-1}\)、优化 \(m\)，见 §7）。这一分离正是仿射法与传统法精度差异的来源：传统法把 \(\mathbf b\) 当作不可消除的误差下限承受，仿射法把它当作 6 个待辨识参数中的 2 个处理掉。</p>
+
+<p><b>几何推论与适用边界．</b>无噪情形下 \(\mathbf z\) 落在椭圆 \((\mathbf z-\mathbf b)^{\mathsf T}M(\mathbf z-\mathbf b)=1\)，\(M\triangleq(AA^{\mathsf T})^{-1}\succ0\)。仿射性的精确成立依赖两个线性假设，须诚实声明其边界：(i) \(i\) 对 \(P\) 线性——PD/TIA 非线性会在 \(i\) 中引入 \(\cos^2(\varphi_b+\xi)\) 类项，经倍角公式产生 \(\cos2\varphi_b,\sin2\varphi_b\) 依赖，构成<i>非仿射</i>残差（小信号下为二阶）；(ii) 损耗与 \(\varphi_b\) 无关——若调制器存在偏压相关吸收（部分 InP 器件），\(P\) 获得乘性因子 \(T(\varphi_b)\)，严格破坏仿射性；LiNbO₃ 器件通常可忽略。此外 \(m\) 的慢漂移使 \(A\) 缓变，由 §8 的重定标机制处理。</p>
+
+<p class="rem">仿真参数化对照：面板 II 滑杆 \((g_X,g_Y,\delta,\varepsilon,b_x,b_y)\) 是定理参数化的一个代表元——\(g_X\leftrightarrow G_2\cos\theta_2\)、\((g_Y,\delta)\leftrightarrow\) \(G_1\) 与 \(\theta_1\) 的增益/剪切组合、\(\varepsilon\leftrightarrow A_{12}/\kappa_1\) 归一化交叉耦合、\((b_x,b_y)\leftrightarrow\mathbf b\)。面板 II 下方的数值读出给出"理论 \(A\)（由滑杆正向计算）"与"\(\hat A\)（由定标反演）"的并排比较及 Frobenius 相对误差——定理与辨识算法在此闭合验证。</p>
+
+<div class="panel">
+  <p class="panel-cap"><span>面板 II — 谐波相平面（左）与解调刻度盘（右）</span><span><span class="stale" id="stale">⚠ 标定已过期：解调矩阵与当前系统失配</span></span></p>
+  <div class="row">
+    <div><canvas id="cv2" height="340"></canvas></div>
+    <div style="flex:0 1 340px"><canvas id="cv3" height="340"></canvas></div>
+  </div>
+  <div class="legend">· 定标采样<i style="background:var(--fit)"></i>拟合椭圆　＋ b̂ 中心　● φ=π 基准点(规范回归)　◆ 实时观测 z　刻度盘：长针 φ̂，短爪 φ 真值，▽ φ*</div>
+  <div class="ctrls">
+    <div class="ctl"><label>g_X 增益</label><input type="range" id="rgX" min="0.5" max="1.6" step="0.01" value="1.18"><output id="ogX"></output></div>
+    <div class="ctl"><label>g_Y 增益</label><input type="range" id="rgY" min="0.5" max="1.6" step="0.01" value="0.88"><output id="ogY"></output></div>
+    <div class="ctl"><label>δ 非正交/°</label><input type="range" id="rdel" min="-25" max="25" step="0.5" value="10"><output id="odel"></output></div>
+    <div class="ctl"><label>ε 交叉耦合</label><input type="range" id="reps" min="-0.3" max="0.3" step="0.005" value="0.10"><output id="oeps"></output></div>
+    <div class="ctl"><label>b_x 偏置</label><input type="range" id="rbx" min="-0.1" max="0.1" step="0.002" value="0.030"><output id="obx"></output></div>
+    <div class="ctl"><label>b_y 偏置</label><input type="range" id="rby" min="-0.1" max="0.1" step="0.002" value="-0.022"><output id="oby"></output></div>
+    <div class="ctl"><label>σ 噪声</label><input type="range" id="rsig" min="0" max="0.02" step="0.0005" value="0.005"><output id="osig"></output></div>
+  </div>
+  <div class="btnrow">
+    <button id="btnCal">执行定标扫描并拟合</button>
+    <span class="legend" id="calMsg"></span>
+  </div>
+  <div class="readout" id="ro"></div>
+</div>
+
+<!-- ============ §4 ============ -->
+<h2><span class="no">§5</span>可辨识性、规范固定与定标算法</h2>
+
+<p><b>可辨识性．</b>椭圆由 5 个独立参数确定，而 \((A,\mathbf b)\) 含 6 个自由度。差额恰为 \(\mathbb S^1\) 的稳定子：对任意 \(R\in O(2)\)，\(A\mapsto AR\) 不改变像集。因此由几何数据只能将 \(A\) 辨识到右乘正交阵的等价类，对应解调相位的歧义 \(\hat\varphi_b\mapsto\pm\hat\varphi_b+\varphi_c\)。该规范自由度须由<i>非几何</i>信息固定，而系统恰好免费提供两条：直流通道极小值给出绝对基准 \(\varphi_b=\pi\)（消去 \(\varphi_c\)），定标扫描的已知单调方向给出定向（消去反射 \(\pm\)）。</p>
+<p><b>算法．</b>① 对偏压作一次满周期慢扫描，记录 \(\{\mathbf z_i,\bar i_i\}_{i=1}^N\)；② 坐标中心化/尺度归一后，按代数最小二乘拟合二次曲线 \(ax^2+bxy+cy^2+dx+ey=1\)（要求 \(4ac-b^2>0\)；噪声较大时可换用 Fitzgibbon 约束拟合以保证椭圆性）；③ 由驻点方程得中心 \(\hat{\mathbf b}\)，平移后得 \(M\succ0\)，取对称平方根 \(M^{1/2}\) 并以扫描方向定向（消去反射）；④ 旋转规范由直流通道整体回归固定：记预规范辐角 \(\theta_i\)，则 \(\bar i_i=C_0+C_1\cos(\theta_i-\varphi_c)\) 对 \((1,\cos\theta_i,\sin\theta_i)\) 是线性模型，最小二乘给出 \(\hat\varphi_c\)，且 \(\operatorname{Var}(\hat\varphi_c)\propto N^{-1}\)。值得强调：若以直流极小的 argmin 定基准，则因极小值是二阶驻点（局部平坦），定位方差被噪声严重放大——回归方案利用整条曲线，避开了这一病态。最终
+$$B\;\triangleq\;R(-\hat\varphi_c)\,F\,M^{1/2},\qquad \hat A=B^{-1},$$
+其中 \(F\in\{I,\operatorname{diag}(1,-1)\}\) 由轨道环绕方向选定（\(m>2.405\) 时 \(J_0\) 变号，由已知扰动深度的符号约定消解）。至此解调器完全确定：
+$$\hat{\mathbf u}=B(\mathbf z-\hat{\mathbf b}),\qquad \hat\varphi_b=\operatorname{atan2}(\hat u_y,\hat u_x).$$</p>
+<p class="rem">注：上式与干涉测量中的 Heydemann 椭圆校正同构；本方案的实质是将该校正从位移干涉仪移植到 MZM 偏压域，并与闭环控制律联立。另一处须诚实声明的细节：导频失真同样污染规范基准本身——由 §4 引理对 DC 分量展开，\(\bar i=\tfrac{\rho P_0}{2}\bigl[1+\eta\bigl(J_0(m)\cos\varphi_b-\varepsilon mJ_2(m)\sin\psi\cdot\sin\varphi_b\bigr)\bigr]\)，即 DC 曲线相对真实 \(\varphi_b\) 整体相移 \(\delta\varphi_c\approx\varepsilon mJ_2(m)\sin\psi/J_0(m)\)。规范回归会如实继承该偏移，它构成本方案<i>绝对</i>相位精度的下限之一（<i>相对</i>跟踪精度不受影响）；如需消除，可对 DC 序列作含正交项的全谐波拟合，或以真实输出功率极小点复核。本仿真未注入该项。</p>
+
+<!-- ============ §5 ============ -->
+<h2><span class="no">§6</span>解调、闭环线性化与方案对比</h2>
+
+<p>取误差信号 \(e=\operatorname{wrap}_{(-\pi,\pi]}(\hat\varphi_b-\varphi^\ast)\)。在无模型失配时 \(e=\varphi_b-\varphi^\ast\) <i>恒等</i>成立——误差对状态严格线性，且与目标点 \(\varphi^\ast\) 无关。又因执行机构 \(\partial\varphi_b/\partial V_b=\pi/V_\pi\) 为常数，整个回路成为增益处处一致的一阶线性伺服：同一组 PID 参数对任意目标点给出相同的带宽与稳定裕度。作为对照，单谐波幅值锁定 \(e_{\mathrm{H1}}=Y-Y^\ast\) 的局部增益 \(\propto\cos\varphi^\ast\) 在正交点附近消失，并在 \(\varphi\leftrightarrow\pi-\varphi\) 分支间存在错锁风险；下面的面板对两种方案施加同一漂移序列以作受控比较。</p>
+
+<p>综合 §2–§4 的全部闭式，五种方案在统一记号下对照如下（静态误差均以仿射元素表示）：</p>
+
+<table class="tb">
+<tr><th>方案</th><th>误差信号</th><th>可锁点集</th><th>环路增益</th><th>静态误差</th><th>歧义性</th><th>功率波动免疫</th></tr>
+<tr><td>正交点 H2 过零</td><td>\(X\)</td><td>\(\{\pi/2,\,3\pi/2\}\)</td><td>\(\eta\kappa_2\)</td><td>\(\dfrac{A_{12}+b_X}{A_{11}}\)</td><td>半周期（需 \(\operatorname{sgn}Y\)）</td><td>一阶免疫（过零）</td></tr>
+<tr><td>零/峰点 H1 过零</td><td>\(Y\)</td><td>\(\{0,\,\pi\}\)</td><td>\(\eta\kappa_1\)</td><td>\(\dfrac{b_Y-A_{21}}{A_{22}}\)</td><td>半周期（需 \(\operatorname{sgn}X\)）</td><td>一阶免疫（过零）</td></tr>
+<tr><td>幅值匹配</td><td>\(Y-Y^\ast\)</td><td>\(\varphi^\ast\) 远离死区</td><td>\(\eta\kappa_1|\cos\varphi^\ast|\)</td><td>\(\Delta\varphi_{\mathrm{AM}}\)（§3，\(\propto1/\cos\varphi^\ast\) 发散）</td><td>\(\varphi\leftrightarrow\pi-\varphi\)</td><td>无（一阶敏感）</td></tr>
+<tr><td>谐波比值法</td><td>\(X/Y-\cot\varphi^\ast\)</td><td>\(Y\) 非小邻域</td><td>随 \(\varphi^\ast\) 复杂变化</td><td>由 \(\mathbf b\) 主导（不可消）</td><td>双象限</td><td>共模标量免疫</td></tr>
+<tr><td><b>仿射法（本文）</b></td><td>\(\operatorname{wrap}(\hat\varphi_b-\varphi^\ast)\)</td><td>\([0,2\pi)\) 全集</td><td>\(1\cdot\pi/V_\pi\)（与 \(\varphi^\ast\) 无关）</td><td>\(0\)（模型内；模型外见 §4 边界）</td><td>无（四象限 atan2）</td><td>\(A\) 的缩放被反演吸收</td></tr>
+</table>
+
+<p class="rem">读表方式：前两行说明传统特殊点方案的优点（最大增益、过零免疫）以何种代价换得——点集只有两个元素；中间两行说明朴素延拓为何失败——增益、静态误差、歧义三项至少损失其一；末行说明仿射法付出的对价是一次定标与持续激励问题（§8）。没有免费的午餐，但代价可以从"运行时性能"移到"一次性辨识"。</p>
+
+<div class="panel">
+  <p class="panel-cap"><span>面板 III — 同源漂移下的闭环跟踪误差（mrad）</span><span id="cap4"></span></p>
+  <canvas id="cv4" height="280"></canvas>
+  <div class="legend"><i style="background:var(--h1c)"></i>仿射解调 + 积分控制<i style="background:var(--h2c)"></i>单谐波(H1)幅值锁定(标称增益)</div>
+  <div class="ctrls">
+    <div class="ctl"><label>漂移强度</label><input type="range" id="rdrift" min="0" max="3" step="0.05" value="1.0"><output id="odrift"></output></div>
+    <div class="ctl"><label>环路增益 G</label><input type="range" id="rG" min="0.02" max="0.5" step="0.01" value="0.18"><output id="oG"></output></div>
+  </div>
+  <div class="btnrow">
+    <button class="ghost" id="btnRun">暂停</button>
+    <button class="ghost" id="btnKick">注入 +0.6 rad 扰动</button>
+    <span class="legend" id="rms"></span>
+  </div>
+</div>
+
+<!-- ============ §6 ============ -->
+<h2><span class="no">§7</span>噪声传播、条件数与扰动深度设计</h2>
+
+<p>由 §4，\(\mathbf n\) 的两个分量是散粒、热与 RIN 噪声经 \(\mathcal L_{1},\mathcal L_2\) 落入 LPF 等效带宽 \(B_{\mathrm{eq}}\) 的部分；因两路解调采样<i>不相交</i>的谱片（\(B_{\mathrm{eq}}<\omega/2\) 时 \(\omega\pm B_{\mathrm{eq}}\) 与 \(2\omega\pm B_{\mathrm{eq}}\) 无交叠），\(n_X,n_Y\) 近似独立，\(\Sigma_n=\operatorname{diag}(\sigma_X^2,\sigma_Y^2)\)。对 \(\mathbf z=A\mathbf u+\mathbf b+\mathbf n\) 作一阶摄动，沿切向 \(\mathbf t(\varphi)=(-\sin\varphi,\cos\varphi)^{\mathsf T}\) 得相位估计方差的一般式与各向同性退化式
+$$\sigma_{\hat\varphi}^2(\varphi)=\mathbf t^{\mathsf T}A^{-1}\Sigma_n A^{-\mathsf T}\mathbf t
+\;\xrightarrow{\Sigma_n=\sigma^2 I}\;\sigma^2\,\mathbf t^{\mathsf T}M\,\mathbf t
+\;\le\;\frac{\sigma^2}{\sigma_{\min}^2(A)},\qquad
+\kappa(A)=\sqrt{\frac{\lambda_{\max}(M)}{\lambda_{\min}(M)}}.$$
+理想链路中 \(\kappa(A)=\kappa_1/\kappa_2=J_1(m)/J_2(m)\xrightarrow{m\ll1}4/m\)：扰动深度越小，椭圆越扁，H2 通道的噪声放大越剧烈（\(\propto 1/J_2\approx 8/m^2\)）。另一方面，导频本身造成与 \(m^2\) 同阶的调制损伤（EVM/消光劣化）。二者的折中给出 \(m\) 的设计准则——这一权衡在仿射框架下由单一标量 \(\kappa(A)\) 显式刻画，面板 IV 给出 \(J_1,J_2,\kappa\) 随 \(m\) 的全貌。与传统法对照：传统正交/零点方案的锁定抖动为 \(\sigma_Y/(\eta\kappa_1)\) 或 \(\sigma_X/(\eta\kappa_2)\)——正是上式在 \(\varphi=\) 特殊点处的取值；仿射法没有改变特殊点处的噪声底，它改变的是<i>其余所有点</i>的可达性与噪声有界性。</p>
+<p class="rem">注：插入式估计 \(\hat\varphi=\operatorname{atan2}(B(\mathbf z-\mathbf b))\) 是一致估计但非有效估计；该问题的 Fisher 信息为 \(\sigma^{-2}\|A\mathbf t\|^2\)，将 \(\mathbf z\) 按马氏度量正交投影回椭圆可达 Cramér–Rao 下界，但在 \(\kappa(A)\) 适中时两者差异为二阶，工程上通常不必。</p>
+
+<div class="panel">
+  <p class="panel-cap"><span>面板 IV — J₁(m)、J₂(m) 与条件数 κ(A)=J₁/J₂</span><span id="cap5"></span></p>
+  <canvas id="cv5" height="260"></canvas>
+  <div class="legend"><i style="background:var(--h1c)"></i>J₁(m)<i style="background:var(--h2c)"></i>J₂(m)<i style="background:var(--fit)"></i>κ=J₁/J₂（右轴, 对数）　│ 当前 m</div>
+</div>
+
+<!-- ============ §7 ============ -->
+<h2><span class="no">§8</span>在线自适应、局限与推广</h2>
+
+<p><b>持续激励问题．</b>闭环稳态下 \(\mathbf z\) 收敛于椭圆上一点，\((A,\mathbf b)\) 不再可观——这是所有基于辨识的方案共有的持续激励缺失，须直言而非回避。可行策略：(i) 周期性微幅定标弧（利用温漂瞬态本身即为天然激励）；(ii) 以递推最小二乘/Kalman 只在数据张成方向上更新锥参数，并对未激励子空间施加遗忘因子下限；(iii) 监测残差 \(\bigl|(\mathbf z-\hat{\mathbf b})^{\mathsf T}\hat M(\mathbf z-\hat{\mathbf b})-1\bigr|\) 作为失配告警，超限触发重定标。可在面板 II 中改动任一非理想参量体验"标定过期"的失配效应，再重新拟合恢复。</p>
+<p><b>工程衔接．</b>该方案对既有 H1/H2 双谐波锁定固件（STM32 平台）是纯软件升级：锁相前端不变，新增一次开机定标扫描、一个 2×2 矩阵乘加与一次 atan2 查表，每控制周期的额外开销在 Cortex-M 上可忽略；定标参数 \((\hat A,\hat{\mathbf b})\) 仅 6 个标量。</p>
+<p><b>推广．</b>对 DP-MZM / IQ 调制器，三路偏置相位使理想观测流形由 \(\mathbb S^1\) 升为环面 \(\mathbb T^2\!\times\!\mathbb S^1\) 的嵌入像，多音导频下的观测仍是该流形的仿射像；定标由椭圆拟合升格为低维二次流形拟合，规范自由度相应扩大为各因子圆的旋转——框架逐字保持，这是后续工作自然的延伸方向。</p>
+
+<footer>仿射框架 MZM 任意点偏压控制 · 推导—仿真一体化技术札记 · 所有面板共享同一组系统参量，定标与闭环均按 §4–§5 算法逐样本数值执行。</footer>
+</main>
+
+<script>
+"use strict";
+const TAU=Math.PI*2;
+const wrapPi=x=>{x=(x+Math.PI)%TAU;if(x<0)x+=TAU;return x-Math.PI;};
+const wrap2pi=x=>{x%=TAU;return x<0?x+TAU:x;};
+function randn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);}
+function besselJ(n,x){let t=1;for(let i=1;i<=n;i++)t*=(x/2)/i;let s=t;for(let k=1;k<60;k++){t*=-(x*x/4)/(k*(k+n));s+=t;if(Math.abs(t)<1e-17)break;}return s;}
+
+/* ---------- 系统参量 ---------- */
+const P={m:1.20,RP:1,gX:1.18,gY:0.88,delta:10*Math.PI/180,eps:0.10,bx:0.030,by:-0.022,sigma:0.005,
+         phiRef:1.90,drift:1.0,G:0.18};
+const k1=()=>P.RP*besselJ(1,P.m), k2=()=>P.RP*besselJ(2,P.m);
+
+function measureZ(phi,noisy=true){
+  const c=Math.cos(phi),s=Math.sin(phi);
+  let X=P.bx+P.gX*k2()*c+P.eps*k1()*s;
+  let Y=P.by-P.gY*k1()*(s*Math.cos(P.delta)+c*Math.sin(P.delta));
+  if(noisy){X+=P.sigma*randn();Y+=P.sigma*randn();}
+  return [X,Y];
+}
+const measureDC=phi=>0.5*P.RP*(1+besselJ(0,P.m)*Math.cos(phi))+0.6*P.sigma*randn();
+
+/* ---------- 线性代数小工具 ---------- */
+function solveN(S,r){ // 高斯消元(部分选主元), 就地
+  const n=r.length;
+  for(let c=0;c<n;c++){
+    let p=c;for(let i=c+1;i<n;i++)if(Math.abs(S[i][c])>Math.abs(S[p][c]))p=i;
+    [S[c],S[p]]=[S[p],S[c]];[r[c],r[p]]=[r[p],r[c]];
+    if(Math.abs(S[c][c])<1e-14)return null;
+    for(let i=c+1;i<n;i++){const f=S[i][c]/S[c][c];for(let j=c;j<n;j++)S[i][j]-=f*S[c][j];r[i]-=f*r[c];}
+  }
+  const x=new Array(n);
+  for(let i=n-1;i>=0;i--){let s=r[i];for(let j=i+1;j<n;j++)s-=S[i][j]*x[j];x[i]=s/S[i][i];}
+  return x;
+}
+function eig2(M){ // 对称2x2
+  const a=M[0][0],b=M[0][1],c=M[1][1];
+  const tr=a+c,dd=Math.sqrt(Math.max((a-c)*(a-c)+4*b*b,0));
+  const l1=(tr+dd)/2,l2=(tr-dd)/2;
+  let v1;
+  if(Math.abs(b)>1e-14)v1=[b,l1-a];else v1=(a>=c)?[1,0]:[0,1];
+  const n1=Math.hypot(v1[0],v1[1]);v1=[v1[0]/n1,v1[1]/n1];
+  const v2=[-v1[1],v1[0]];
+  return {l1,l2,v1,v2};
+}
+const mul2=(M,v)=>[M[0][0]*v[0]+M[0][1]*v[1],M[1][0]*v[0]+M[1][1]*v[1]];
+const mat2mul=(A,B)=>[[A[0][0]*B[0][0]+A[0][1]*B[1][0],A[0][0]*B[0][1]+A[0][1]*B[1][1]],
+                      [A[1][0]*B[0][0]+A[1][1]*B[1][0],A[1][0]*B[0][1]+A[1][1]*B[1][1]]];
+function inv2(M){const d=M[0][0]*M[1][1]-M[0][1]*M[1][0];return [[M[1][1]/d,-M[0][1]/d],[-M[1][0]/d,M[0][0]/d]];}
+
+/* ---------- 定标:扫描 + 椭圆拟合 + 规范固定 ---------- */
+let cal=null;
+function calibrate(){
+  const N=360,zs=[],dcs=[];
+  for(let i=0;i<N;i++){const phi=i/N*TAU;zs.push(measureZ(phi));dcs.push(measureDC(phi));}
+  // 归一化
+  let mx=0,my=0;zs.forEach(z=>{mx+=z[0];my+=z[1];});mx/=N;my/=N;
+  let sc=0;zs.forEach(z=>{sc+=Math.hypot(z[0]-mx,z[1]-my);});sc/=N;if(sc<1e-12)sc=1;
+  const S=Array.from({length:5},()=>new Array(5).fill(0)),r=new Array(5).fill(0);
+  zs.forEach(z=>{
+    const x=(z[0]-mx)/sc,y=(z[1]-my)/sc,row=[x*x,x*y,y*y,x,y];
+    for(let i=0;i<5;i++){r[i]+=row[i];for(let j=0;j<5;j++)S[i][j]+=row[i]*row[j];}
+  });
+  const th=solveN(S,r);
+  if(!th){return fail("法方程奇异");}
+  const [a,b,c,d,e]=th,det=4*a*c-b*b;
+  if(det<=0)return fail("拟合非椭圆 (4ac−b²≤0)");
+  const cx=(b*e-2*c*d)/det,cy=(b*d-2*a*e)/det;
+  const kq=1+ -(a*cx*cx+b*cx*cy+c*cy*cy+d*cx+e*cy);   // kq = -F(c0), F=...-1
+  if(kq<=0)return fail("中心化常数非正");
+  let M=[[a/kq,b/(2*kq)],[b/(2*kq),c/kq]];
+  const c0=[mx+sc*cx,my+sc*cy];
+  M=[[M[0][0]/(sc*sc),M[0][1]/(sc*sc)],[M[1][0]/(sc*sc),M[1][1]/(sc*sc)]];
+  const {l1,l2,v1,v2}=eig2(M);
+  if(l2<=0)return fail("M 非正定");
+  // B0 = M^{1/2}
+  const s1=Math.sqrt(l1),s2=Math.sqrt(l2);
+  let B=[[s1*v1[0]*v1[0]+s2*v2[0]*v2[0], s1*v1[0]*v1[1]+s2*v2[0]*v2[1]],
+         [s1*v1[0]*v1[1]+s2*v2[0]*v2[1], s1*v1[1]*v1[1]+s2*v2[1]*v2[1]]];
+  // 定向
+  const us=zs.map(z=>mul2(B,[z[0]-c0[0],z[1]-c0[1]]));
+  let cr=0;for(let i=0;i<N;i++){const u=us[i],w=us[(i+1)%N];cr+=u[0]*w[1]-u[1]*w[0];}
+  if(cr<0){B=[[B[0][0],B[0][1]],[-B[1][0],-B[1][1]]];us.forEach(u=>u[1]*=-1);}
+  // 规范固定(旋转):直流序列对 (1,cosθ,sinθ) 作整体回归。
+  // DC_i = C0 + C1·cos(θ_i − φc),其中 θ_i 为预规范辐角,φc 为待求规范角。
+  // 相比取 DC 极小的 argmin(平坦驻点,定位方差大),回归利用全部 N 个样本,
+  // Var(φ̂c) ∝ 1/N。m>2.405 时 J0 变号(C1<0),由已知扰动深度的符号约定消解。
+  const thArr=us.map(u=>Math.atan2(u[1],u[0]));
+  const S3=Array.from({length:3},()=>new Array(3).fill(0)),r3=new Array(3).fill(0);
+  for(let i=0;i<N;i++){
+    const row=[1,Math.cos(thArr[i]),Math.sin(thArr[i])];
+    for(let a2=0;a2<3;a2++){r3[a2]+=row[a2]*dcs[i];for(let b2=0;b2<3;b2++)S3[a2][b2]+=row[a2]*row[b2];}
+  }
+  const cf=solveN(S3,r3);
+  if(!cf)return fail("规范回归奇异");
+  const sgn=besselJ(0,P.m)>=0?1:-1;
+  const phc=Math.atan2(sgn*cf[2],sgn*cf[1]);
+  const dphi=-phc;
+  const R=[[Math.cos(dphi),-Math.sin(dphi)],[Math.sin(dphi),Math.cos(dphi)]];
+  B=mat2mul(R,B);
+  const Ahat=inv2(B);
+  const zPi=[c0[0]-Ahat[0][0],c0[1]-Ahat[1][0]]; // 模型预测的 φ=π 点(供面板标注)
+  cal={c0,B,Ahat,cond:Math.sqrt(l1/l2),pts:zs,zPi,stale:false};
+  document.getElementById('stale').classList.remove('on');
+  document.getElementById('calMsg').textContent=`N=360 样本拟合完成 · 规范角 φc=${phc.toFixed(4)} rad`;
+  updateReadout();
+  return true;
+  function fail(msg){document.getElementById('calMsg').textContent='定标失败:'+msg;return false;}
+}
+const demodAngle=z=>{const u=mul2(cal.B,[z[0]-cal.c0[0],z[1]-cal.c0[1]]);return wrap2pi(Math.atan2(u[1],u[0]));};
+
+/* ---------- 闭环仿真 ---------- */
+const loop={phiA:0,phiN:0,t:0,run:true,bufA:[],bufN:[],cap:520,lastZ:[0,0]};
+function resetLoop(){loop.phiA=P.phiRef+0.4;loop.phiN=P.phiRef+0.4;loop.bufA=[];loop.bufN=[];}
+function stepLoop(){
+  loop.t++;
+  const d=P.drift*(0.004*randn()+0.0022*Math.sin(loop.t*0.045));
+  loop.phiA+=d;loop.phiN+=d;
+  // 仿射通道
+  const z=measureZ(loop.phiA);loop.lastZ=z;
+  if(cal){
+    const e=wrapPi(demodAngle(z)-P.phiRef);
+    loop.phiA-=P.G*e;
+  }
+  loop.bufA.push(1000*wrapPi(loop.phiA-P.phiRef));
+  // 单谐波(H1)标称锁定
+  const z2=measureZ(loop.phiN);
+  const k1n=k1(),slope=-k1n*Math.cos(P.phiRef),Yref=-k1n*Math.sin(P.phiRef);
+  const sl=(slope>=0?1:-1)*Math.max(Math.abs(slope),0.08*k1n);
+  let e2=(z2[1]-Yref)/sl;e2=Math.max(-1,Math.min(1,e2));
+  loop.phiN-=P.G*e2;
+  loop.bufN.push(1000*wrapPi(loop.phiN-P.phiRef));
+  if(loop.bufA.length>loop.cap){loop.bufA.shift();loop.bufN.shift();}
+}
+
+/* ---------- 绘图基建 ----------
+   画布尺寸协议:
+   - 设计高度在首次访问时从 height 属性读取一次并缓存(此后该属性会被
+     cv.height=h*dpr 改写,绝不能再次读取——这是先前版本拉长bug的根因);
+   - 宽度取自父容器,且只在 (宽度|高度|dpr) 实际变化时才改写画布尺寸,
+     并同时写入显式的 style.width/height(px),切断 flex min-content 反馈;
+   - 每帧仅 clearRect,不重建位图。 */
+const panels={};
+function panel(id){
+  let p=panels[id];
+  if(!p){
+    const cv=document.getElementById(id);
+    p=panels[id]={cv,ctx:cv.getContext('2d'),designH:(+cv.getAttribute('height'))||300,w:0,h:0,dpr:0};
+  }
+  const host=p.cv.parentElement;
+  const w=Math.max(220,Math.floor((host.clientWidth||320)-2));
+  const h=p.designH,dpr=Math.min(window.devicePixelRatio||1,3);
+  if(p.w!==w||p.h!==h||p.dpr!==dpr){
+    p.w=w;p.h=h;p.dpr=dpr;
+    p.cv.width=Math.round(w*dpr);p.cv.height=Math.round(h*dpr);
+    p.cv.style.width=w+'px';p.cv.style.height=h+'px';
+  }
+  p.ctx.setTransform(p.dpr,0,0,p.dpr,0,0);
+  p.ctx.clearRect(0,0,p.w,p.h);
+  return {ctx:p.ctx,w:p.w,h:p.h};
+}
+function grid(ctx,w,h){
+  ctx.save();
+  ctx.strokeStyle='#E4EAE0';ctx.lineWidth=1;ctx.beginPath();
+  for(let x=0;x<=w;x+=12){ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,h);}
+  for(let y=0;y<=h;y+=12){ctx.moveTo(0,y+.5);ctx.lineTo(w,y+.5);}
+  ctx.stroke();
+  ctx.strokeStyle='#D2DCCE';ctx.beginPath();
+  for(let x=0;x<=w;x+=60){ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,h);}
+  for(let y=0;y<=h;y+=60){ctx.moveTo(0,y+.5);ctx.lineTo(w,y+.5);}
+  ctx.stroke();ctx.restore();
+}
+const C={ink:'#1E2A24',soft:'#51635A',h1:'#1F6E52',h2:'#BC4B2A',fit:'#2E5FA3',gold:'#A8801F'};
+const MONO='11px ui-monospace,Menlo,monospace';
+
+/* ---------- 面板 I:传递函数 ---------- */
+let visT=0;
+function draw1(){
+  const {ctx,w,h}=panel('cv1');grid(ctx,w,h);
+  const L=46,Rm=14,T=16,Bm=30,pw=w-L-Rm,ph=h-T-Bm;
+  const X=phi=>L+phi/TAU*pw, Y=p=>T+(1-p)*ph;
+  // 轴
+  ctx.strokeStyle=C.soft;ctx.lineWidth=1;
+  ctx.strokeRect(L+.5,T+.5,pw,ph);
+  ctx.fillStyle=C.soft;ctx.font=MONO;ctx.textAlign='center';
+  [['0',0],['π/2',Math.PI/2],['π',Math.PI],['3π/2',3*Math.PI/2],['2π',TAU]].forEach(([s,v])=>{
+    ctx.fillText(s,X(v),h-10);
+    ctx.beginPath();ctx.moveTo(X(v),T+ph);ctx.lineTo(X(v),T+ph+4);ctx.stroke();
+  });
+  ctx.save();ctx.translate(14,T+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('P/P0 · 包络',0,0);ctx.restore();
+  // 包络
+  const K1=k1(),K2=k2(),scl=0.95;
+  function curve(f,col,wd,dash){
+    ctx.strokeStyle=col;ctx.lineWidth=wd;ctx.setLineDash(dash||[]);ctx.beginPath();
+    for(let i=0;i<=320;i++){const phi=i/320*TAU,p=f(phi);if(i)ctx.lineTo(X(phi),Y(p));else ctx.moveTo(X(phi),Y(p));}
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  curve(phi=>scl*Math.abs(K1*Math.sin(phi)),C.h1,1.4,[5,4]);
+  curve(phi=>scl*Math.abs(K2*Math.cos(phi)),C.h2,1.4,[5,4]);
+  curve(phi=>0.5*(1+Math.cos(phi)),C.ink,2);
+  // 目标
+  const xr=X(wrap2pi(P.phiRef));
+  ctx.fillStyle=C.gold;ctx.beginPath();ctx.moveTo(xr,T+2);ctx.lineTo(xr-5,T-7+2);ctx.lineTo(xr+5,T-7+2);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=C.gold;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(xr,T);ctx.lineTo(xr,T+ph);ctx.stroke();ctx.setLineDash([]);
+  // 工作点 + 导频摆动
+  const phiW=wrap2pi(loop.phiA),phiI=phiW+P.m*Math.sin(visT);
+  const pI=0.5*(1+Math.cos(phiI));
+  ctx.strokeStyle=C.h1;ctx.lineWidth=2.4;ctx.beginPath();
+  for(let i=0;i<=40;i++){const ph2=(phiW-P.m)+(2*P.m)*i/40;const px=X(Math.min(Math.max(ph2,0),TAU));if(i)ctx.lineTo(px,Y(0.5*(1+Math.cos(ph2))));else ctx.moveTo(px,Y(0.5*(1+Math.cos(ph2))));}
+  ctx.globalAlpha=.35;ctx.stroke();ctx.globalAlpha=1;
+  ctx.fillStyle=C.ink;
+  const xi=X(Math.min(Math.max(phiI,0),TAU));
+  ctx.beginPath();ctx.arc(xi,Y(pI),4.5,0,TAU);ctx.fill();
+  document.getElementById('cap1').textContent=`J1=${K1.toFixed(3)}  J2=${K2.toFixed(3)}  φ=${phiW.toFixed(3)} rad`;
+}
+
+/* ---------- 面板 II:相平面 ---------- */
+function draw2(){
+  const {ctx,w,h}=panel('cv2');grid(ctx,w,h);
+  // 数据范围
+  const pts=cal?cal.pts:Array.from({length:120},(_,i)=>measureZ(i/120*TAU));
+  let xmin=1e9,xmax=-1e9,ymin=1e9,ymax=-1e9;
+  pts.forEach(z=>{xmin=Math.min(xmin,z[0]);xmax=Math.max(xmax,z[0]);ymin=Math.min(ymin,z[1]);ymax=Math.max(ymax,z[1]);});
+  const cx=(xmin+xmax)/2,cy=(ymin+ymax)/2;
+  const span=Math.max(xmax-xmin,ymax-ymin)*0.62+1e-6;
+  const s=Math.min(w,h)/2/span*0.92;
+  const X=x=>w/2+(x-cx)*s, Y=y=>h/2-(y-cy)*s;
+  // 轴
+  ctx.strokeStyle=C.soft;ctx.lineWidth=1;ctx.beginPath();
+  ctx.moveTo(X(0),0);ctx.lineTo(X(0),h);ctx.moveTo(0,Y(0));ctx.lineTo(w,Y(0));ctx.stroke();
+  ctx.fillStyle=C.soft;ctx.font=MONO;ctx.textAlign='left';
+  ctx.fillText('X = L₂ω[i] ∝ cos φ',8,Y(0)-6);
+  ctx.save();ctx.translate(X(0)+6,12);ctx.fillText('Y = Lω[i] ∝ −sin φ',0,0);ctx.restore();
+  // 定标散点
+  ctx.fillStyle='rgba(30,42,36,.34)';
+  pts.forEach(z=>{ctx.fillRect(X(z[0])-1,Y(z[1])-1,2,2);});
+  if(cal){
+    // 拟合椭圆
+    ctx.strokeStyle=C.fit;ctx.lineWidth=1.8;ctx.beginPath();
+    for(let i=0;i<=240;i++){const th=i/240*TAU,u=[Math.cos(th),Math.sin(th)],z=mul2(cal.Ahat,u);
+      const px=X(z[0]+cal.c0[0]),py=Y(z[1]+cal.c0[1]);if(i)ctx.lineTo(px,py);else ctx.moveTo(px,py);}
+    ctx.stroke();
+    // 中心 b̂
+    ctx.strokeStyle=C.fit;ctx.beginPath();
+    ctx.moveTo(X(cal.c0[0])-6,Y(cal.c0[1]));ctx.lineTo(X(cal.c0[0])+6,Y(cal.c0[1]));
+    ctx.moveTo(X(cal.c0[0]),Y(cal.c0[1])-6);ctx.lineTo(X(cal.c0[0]),Y(cal.c0[1])+6);ctx.stroke();
+    // 基准:模型预测的 φ=π 点
+    const zf=cal.zPi;
+    ctx.fillStyle=C.gold;ctx.beginPath();ctx.arc(X(zf[0]),Y(zf[1]),5,0,TAU);ctx.fill();
+    ctx.fillStyle=C.soft;ctx.fillText('φ=π',X(zf[0])+8,Y(zf[1])+4);
+  }
+  // 实时观测
+  const z=loop.lastZ;
+  ctx.fillStyle=C.h1;ctx.beginPath();ctx.arc(X(z[0]),Y(z[1]),5,0,TAU);ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=1.2;ctx.stroke();
+}
+
+/* ---------- 面板 II-右:刻度盘(签名元素) ---------- */
+function draw3(){
+  const {ctx,w,h}=panel('cv3');grid(ctx,w,h);
+  const cx=w/2,cy=h/2,R=Math.min(w,h)/2-26;
+  ctx.translate(cx,cy);
+  // 盘面
+  ctx.fillStyle='#F5F8F1';ctx.beginPath();ctx.arc(0,0,R+12,0,TAU);ctx.fill();
+  ctx.strokeStyle=C.ink;ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.stroke();
+  // 刻度: 数学角约定, φ 逆时针, 0 在右
+  ctx.strokeStyle=C.soft;ctx.fillStyle=C.soft;ctx.font=MONO;ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let d=0;d<360;d+=5){
+    const a=d*Math.PI/180,maj=d%45===0,mid=d%15===0;
+    const r1=R,r0=R-(maj?12:mid?8:4);
+    ctx.lineWidth=maj?1.5:1;
+    ctx.beginPath();ctx.moveTo(r0*Math.cos(a),-r0*Math.sin(a));ctx.lineTo(r1*Math.cos(a),-r1*Math.sin(a));ctx.stroke();
+  }
+  [['0',0],['π/2',90],['π',180],['3π/2',270]].forEach(([s,d])=>{
+    const a=d*Math.PI/180,r=R+16;ctx.fillText(s,r*Math.cos(a),-r*Math.sin(a));
+  });
+  // 目标楔
+  const aT=P.phiRef;
+  ctx.fillStyle=C.gold;
+  ctx.beginPath();
+  ctx.moveTo((R+2)*Math.cos(aT),-(R+2)*Math.sin(aT));
+  ctx.lineTo((R+11)*Math.cos(aT+0.05),-(R+11)*Math.sin(aT+0.05));
+  ctx.lineTo((R+11)*Math.cos(aT-0.05),-(R+11)*Math.sin(aT-0.05));
+  ctx.closePath();ctx.fill();
+  // 真值短爪
+  const aTr=wrap2pi(loop.phiA);
+  ctx.strokeStyle=C.h2;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0.55*R*Math.cos(aTr),-0.55*R*Math.sin(aTr));ctx.lineTo(0.72*R*Math.cos(aTr),-0.72*R*Math.sin(aTr));ctx.stroke();
+  // 解调长针
+  if(cal){
+    const aH=demodAngle(loop.lastZ);
+    ctx.strokeStyle=C.h1;ctx.lineWidth=2.6;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(-0.12*R*Math.cos(aH),0.12*R*Math.sin(aH));
+    ctx.lineTo(0.9*R*Math.cos(aH),-0.9*R*Math.sin(aH));ctx.stroke();
+    ctx.fillStyle=C.ink;ctx.beginPath();ctx.arc(0,0,4,0,TAU);ctx.fill();
+    ctx.fillStyle=C.ink;ctx.font='13px ui-monospace,monospace';ctx.textAlign='center';
+    ctx.fillText('φ̂ = '+aH.toFixed(4)+' rad',0,R*0.42);
+  }else{
+    ctx.fillStyle=C.soft;ctx.textAlign='center';ctx.fillText('待定标',0,0);
+  }
+}
+
+/* ---------- 面板 III:闭环误差 ---------- */
+function draw4(){
+  const {ctx,w,h}=panel('cv4');grid(ctx,w,h);
+  const L=52,Rm=10,T=12,Bm=24,pw=w-L-Rm,ph=h-T-Bm;
+  const lim=160; // ±mrad
+  const X=i=>L+i/(loop.cap-1)*pw, Y=v=>T+ph/2-(Math.max(-lim,Math.min(lim,v)))/lim*ph/2;
+  ctx.strokeStyle=C.soft;ctx.strokeRect(L+.5,T+.5,pw,ph);
+  ctx.fillStyle=C.soft;ctx.font=MONO;ctx.textAlign='right';
+  [[lim,'+'+lim],[0,'0'],[-lim,'−'+lim]].forEach(([v,s])=>{ctx.fillText(s,L-6,Y(v)+4);});
+  ctx.save();ctx.translate(14,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillText('误差 / mrad',0,0);ctx.restore();
+  ctx.strokeStyle='#C8D2C4';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(L,Y(0));ctx.lineTo(L+pw,Y(0));ctx.stroke();ctx.setLineDash([]);
+  function trace(buf,col){
+    if(buf.length<2)return;
+    ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.beginPath();
+    const off=loop.cap-buf.length;
+    buf.forEach((v,i)=>{const px=X(i+off),py=Y(v);if(i)ctx.lineTo(px,py);else ctx.moveTo(px,py);});
+    ctx.stroke();
+  }
+  trace(loop.bufN,C.h2);
+  trace(loop.bufA,C.h1);
+  const rms=buf=>{const n=Math.min(buf.length,300);if(!n)return 0;let s=0;for(let i=buf.length-n;i<buf.length;i++)s+=buf[i]*buf[i];return Math.sqrt(s/n);};
+  document.getElementById('rms').textContent=
+    `RMS(近300样本) 仿射 ${rms(loop.bufA).toFixed(1)} mrad · 单谐波 ${rms(loop.bufN).toFixed(1)} mrad`;
+}
+
+/* ---------- 面板 IV:Bessel 与条件数 ---------- */
+function draw5(){
+  const {ctx,w,h}=panel('cv5');grid(ctx,w,h);
+  const L=46,Rm=46,T=14,Bm=28,pw=w-L-Rm,ph=h-T-Bm;
+  const mMax=3,jMax=0.62,kLogMin=Math.log10(1),kLogMax=Math.log10(100);
+  const X=m=>L+m/mMax*pw, Yj=v=>T+(1-v/jMax)*ph, Yk=k=>T+(1-(Math.log10(Math.max(k,1))-kLogMin)/(kLogMax-kLogMin))*ph;
+  ctx.strokeStyle=C.soft;ctx.strokeRect(L+.5,T+.5,pw,ph);
+  ctx.fillStyle=C.soft;ctx.font=MONO;ctx.textAlign='center';
+  for(let m=0;m<=3;m+=0.5){ctx.fillText(m.toFixed(1),X(m),h-8);}
+  ctx.textAlign='right';[0,0.2,0.4,0.6].forEach(v=>ctx.fillText(v.toFixed(1),L-5,Yj(v)+4));
+  ctx.textAlign='left';[1,10,100].forEach(k=>ctx.fillText('κ='+k,L+pw+4,Yk(k)+4));
+  function cur(f,Yax,col,dash){
+    ctx.strokeStyle=col;ctx.lineWidth=1.8;ctx.setLineDash(dash||[]);ctx.beginPath();
+    for(let i=1;i<=240;i++){const m=i/240*mMax,v=f(m);const px=X(m),py=Yax(v);if(i>1)ctx.lineTo(px,py);else ctx.moveTo(px,py);}
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  cur(m=>besselJ(1,m),Yj,C.h1);
+  cur(m=>besselJ(2,m),Yj,C.h2);
+  cur(m=>besselJ(1,m)/Math.max(besselJ(2,m),1e-9),Yk,C.fit,[6,4]);
+  // 当前 m
+  ctx.strokeStyle=C.gold;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(X(P.m),T);ctx.lineTo(X(P.m),T+ph);ctx.stroke();
+  const kap=besselJ(1,P.m)/besselJ(2,P.m);
+  document.getElementById('cap5').textContent=`当前 m=${P.m.toFixed(2)} → κ(A)≈${kap.toFixed(2)}  (小m近似 4/m=${(4/P.m).toFixed(2)})`;
+}
+
+/* ---------- 数值面板 ---------- */
+function updateReadout(){
+  const el=document.getElementById('ro');
+  if(!cal){el.textContent='尚未定标';return;}
+  const A=cal.Ahat,b=cal.c0;
+  // 理论 A:由当前滑杆参量按 §4 定理正向计算(仿真参数化代表元)
+  const At=[[P.gX*k2(), P.eps*k1()],
+            [-P.gY*k1()*Math.sin(P.delta), -P.gY*k1()*Math.cos(P.delta)]];
+  const bt=[P.bx,P.by];
+  let num=0,den=0;
+  for(let r=0;r<2;r++)for(let c=0;c<2;c++){num+=(A[r][c]-At[r][c])**2;den+=At[r][c]**2;}
+  const relF=100*Math.sqrt(num/den);
+  const phiTrue=wrap2pi(loop.phiA), phiHat=demodAngle(measureZ(phiTrue,false));
+  const f=v=>v.toFixed(4).padStart(8);
+  el.textContent=
+`A理论 = [ ${f(At[0][0])}  ${f(At[0][1])} ]    Â定标 = [ ${f(A[0][0])}  ${f(A[0][1])} ]    ‖Â−A‖F/‖A‖F = ${relF.toFixed(2)}%${cal.stale?'  (标定已过期)':''}
+        [ ${f(At[1][0])}  ${f(At[1][1])} ]            [ ${f(A[1][0])}  ${f(A[1][1])} ]
+b理论 = [ ${bt[0].toFixed(4)}, ${bt[1].toFixed(4)} ]    b̂ = [ ${b[0].toFixed(4)}, ${b[1].toFixed(4)} ]    κ(Â) = ${cal.cond.toFixed(3)}
+无噪自检: φ=${phiTrue.toFixed(4)} → φ̂=${phiHat.toFixed(4)}  (Δ=${(1000*wrapPi(phiHat-phiTrue)).toFixed(2)} mrad)`;
+}
+
+/* ---------- 控件绑定 ---------- */
+function bind(id,key,fmt,scale,markStale){
+  const r=document.getElementById('r'+id),o=document.getElementById('o'+id);
+  const show=()=>{o.textContent=fmt(+r.value);};
+  r.addEventListener('input',()=>{
+    P[key]=(+r.value)*(scale||1);show();
+    if(markStale&&cal){cal.stale=true;document.getElementById('stale').classList.add('on');}
+  });
+  P[key]=(+r.value)*(scale||1);show();
+}
+bind('m','m',v=>v.toFixed(2),1,true);
+bind('phi','phiRef',v=>v.toFixed(2),1,false);
+bind('gX','gX',v=>v.toFixed(2),1,true);
+bind('gY','gY',v=>v.toFixed(2),1,true);
+bind('del','delta',v=>v.toFixed(1)+'°',Math.PI/180,true);
+bind('eps','eps',v=>v.toFixed(3),1,true);
+bind('bx','bx',v=>v.toFixed(3),1,true);
+bind('by','by',v=>v.toFixed(3),1,true);
+bind('sig','sigma',v=>v.toFixed(4),1,false);
+bind('drift','drift',v=>v.toFixed(2),1,false);
+bind('G','G',v=>v.toFixed(2),1,false);
+
+document.getElementById('btnCal').addEventListener('click',()=>{calibrate();});
+document.getElementById('btnRun').addEventListener('click',e=>{
+  loop.run=!loop.run;e.target.textContent=loop.run?'暂停':'继续';
+});
+document.getElementById('btnKick').addEventListener('click',()=>{loop.phiA+=0.6;loop.phiN+=0.6;});
+
+/* ---------- 主循环 ---------- */
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let frame=0;
+function tick(){
+  if(loop.run){const steps=reduced?1:5;for(let i=0;i<steps;i++)stepLoop();visT+=0.22;}
+  frame++;
+  draw1();draw2();draw3();draw4();
+  if(frame%20===0){draw5();updateReadout();}
+  requestAnimationFrame(tick);
+}
+window.addEventListener('resize',()=>{draw5();});
+document.addEventListener('DOMContentLoaded',()=>{
+  if(window.renderMathInElement)renderMathInElement(document.body,{
+    delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],
+    throwOnError:false});
+});
+calibrate();resetLoop();draw5();tick();
+</script>
+</body>
+</html>
