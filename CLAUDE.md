@@ -72,7 +72,16 @@ build/              # generated, git-ignored (captured sim stdout etc.)
 6. **PDF visual check.** Use `pdftoppm -png -r 90 paper_zh.pdf out` then read the
    PNG. poppler lacks the Adobe-GB1 pack, so **CJK glyphs render blank** — that is
    a viewer limitation, not a PDF defect. Layout, math, tables, and figures are
-   still inspectable.
+   still inspectable. (At higher dpi poppler floods stderr with Adobe-GB1 errors;
+   ignore them.)
+
+## Git
+
+Solo-authored paper repo: **commit directly to `main`** — do not create a feature
+branch (the usual "branch-first" default is unwanted here). Commit only when asked;
+**never push** unless explicitly asked. Group related work into a few logical
+commits rather than one giant blob. The LF→CRLF warnings on commit are normal on
+Windows and harmless.
 
 ## What "good" looks like
 
