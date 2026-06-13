@@ -1,0 +1,29 @@
+# LaTeX intermediate build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.xdv
+*.nav
+*.snm
+*.vrb
+
+# Compiled paper outputs (regenerate with latexmk)
+paper.pdf
+paper_zh.pdf
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
