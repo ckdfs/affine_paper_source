@@ -12,10 +12,11 @@
 PY   ?= python
 MAIN ?= paper_zh.tex
 
-.PHONY: all figs pdf check verify clean help
+.PHONY: all figs exp-figs pdf check verify clean help
 
 help:
-	@echo "make figs   - regenerate figs/*.pdf and capture sim stdout"
+	@echo "make figs   - regenerate matplotlib figs/*.pdf and capture sim stdout"
+	@echo "make exp-figs - re-export experiment-link PDFs from the (hand-edited) .vsdx (needs Visio)"
 	@echo "make pdf    - compile $(MAIN) with latexmk -xelatex"
 	@echo "make all    - figs + pdf"
 	@echo "make check  - run the doctor (refs/cites/figs/number reconciliation)"
@@ -25,6 +26,13 @@ help:
 
 figs:
 	$(PY) scripts/build.py figs
+
+# fig_exp_mzm/dpmzm are HAND-MAINTAINED editable Visio drawings (figs/*.vsdx),
+# not matplotlib. `exp-figs` only re-exports their PDFs from the .vsdx; it does
+# not touch the .vsdx. (To rebuild them from scratch -- discarding manual edits --
+# run scripts/build_exp_link.ps1 by hand.) Intentionally outside `figs`/`verify`.
+exp-figs:
+	pwsh -NoProfile -File scripts/export_exp_link.ps1
 
 pdf:
 	$(PY) scripts/build.py pdf --tex $(MAIN)

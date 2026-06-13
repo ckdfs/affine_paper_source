@@ -6,7 +6,8 @@ Bilingual manuscript + Python figure scripts + HTML derivation notes.
 ## TL;DR commands
 
 ```bash
-make figs     # regenerate figs/*.pdf  (+ capture sim stdout to build/sim_output.txt)
+make figs     # regenerate matplotlib figs/*.pdf  (+ capture sim stdout to build/sim_output.txt)
+make exp-figs # re-export the 2 Visio experiment figures' PDFs from the hand-edited .vsdx (needs Visio)
 make pdf      # compile paper_zh.tex with latexmk -xelatex
 make check    # doctor: refs / cites / figure files / NUMBER RECONCILIATION
 make verify   # figs + pdf + check  (the full "regenerate and validate" loop)
@@ -31,10 +32,12 @@ scripts/
                       #   + the [V] validation suite at the very end
   make_extra_figs.py  # fig_gauge/mcdp/sweep
   make_algo_figs.py   # fig_acq/flow/recal/step
-  build_exp_link.ps1  # fig_exp_mzm / fig_exp_dpmzm — EDITABLE VISIO, NOT matplotlib
-                      #   (Visio COM reuses device shapes from a .vsdx stencil;
-                      #    *.vsdx sources live in figs/. make_figs does NOT touch
-                      #    these two PDFs — run this script to regenerate them.)
+  export_exp_link.ps1 # ROUTINE: re-export figs/fig_exp_{mzm,dpmzm}.pdf from the
+                      #   hand-edited .vsdx (reads .vsdx, writes .pdf; `make exp-figs`).
+  build_exp_link.ps1  # DESTRUCTIVE: rebuild those .vsdx+.pdf from scratch via Visio
+                      #   COM (device stencil). OVERWRITES manual edits — run only to
+                      #   start over. The figs/*.vsdx are the hand-maintained source;
+                      #   make_figs.py never touches these two figures.
   build.py            # orchestrator (interpreter detection + stdout capture)
   check.py            # read-only doctor
   paper_metrics.json  # THE NUMBER CONTRACT (see below)
