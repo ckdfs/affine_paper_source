@@ -24,6 +24,9 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
+# Build scaffold artifacts (captured sim stdout etc.; regenerate with build.py)
+build/
+
 # OS / editor
 .DS_Store
 Thumbs.db
