@@ -412,77 +412,8 @@ for _ in range(200):
 db = np.sort(db)
 print(f'[V] DPMZM noisy-cal demod bias: median={db[100]:.1f} mrad  P95={db[190]:.1f} mrad')
 
-# ---- Fig (experiment): measurement link, drawn in the style of published
-#      bias-control / RoF setups (component symbols, one optical line, a top
-#      RF-source box and a bottom bias-control block with dashed bias lines) ----
-from matplotlib.patches import FancyBboxPatch, Polygon, Arc
-PUR = '#6E5AA0'
-LB, LG, LK, LP, GRY = '#E7EEF7', '#EAF3E6', '#E9F1ED', '#F0EAF7', '#F2F4F1'
-def rbox(ax, x, y, w, h, t, fc, fs=7.0, ec=INK, tc=INK):
-    ax.add_patch(FancyBboxPatch((x, y), w, h,
-                 boxstyle='round,pad=0,rounding_size=0.12', fc=fc, ec=ec, lw=1.1, zorder=3))
-    ax.text(x+w/2, y+h/2, t, ha='center', va='center', fontsize=fs, color=tc, zorder=4)
-def hexmod(ax, x, y, w, h, t, fc):
-    d = 0.18*w
-    ax.add_patch(Polygon([(x, y+h/2), (x+d, y+h), (x+w-d, y+h), (x+w, y+h/2),
-                          (x+w-d, y), (x+d, y)], closed=True, fc=fc, ec=INK, lw=1.3, zorder=3))
-    ax.text(x+w/2, y+h/2, t, ha='center', va='center', fontsize=7.5, weight='bold', zorder=4)
-def pcsym(ax, cx, cy, r=0.17, n=3):
-    for i in range(n):
-        ax.add_patch(Arc((cx-(n-1)*r+2*i*r, cy), 2*r, 2.1*r, theta1=205, theta2=515,
-                         ec=INK, lw=1.2, zorder=4))
-def pdsym(ax, cx, cy, s=0.30, col=INK):
-    # photodiode for a downward beam: flat top receives light, apex points down
-    ax.add_patch(Polygon([(cx-s, cy+s), (cx+s, cy+s), (cx, cy-s)], closed=True,
-                 fc='white', ec=col, lw=1.3, zorder=4))
-    ax.plot([cx-0.7*s, cx+0.7*s], [cy-s, cy-s], color=col, lw=1.7, zorder=4)
-def oline(ax, pts, col=BLU, lw=2.3, arrow=False):
-    xs, ys = zip(*pts); ax.plot(xs, ys, color=col, lw=lw, solid_capstyle='round', zorder=1)
-    if arrow:
-        ax.annotate('', xy=pts[-1], xytext=pts[-2],
-                    arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, mutation_scale=13), zorder=2)
-def eline(ax, pts, col=INK, lw=1.1, ls='-', arrow=True):
-    xs, ys = zip(*pts); ax.plot(xs, ys, color=col, lw=lw, ls=ls, zorder=1)
-    if arrow:
-        ax.annotate('', xy=pts[-1], xytext=pts[-2],
-                    arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, ls=ls, mutation_scale=11), zorder=2)
-
-fig, ax = plt.subplots(figsize=(2*CW, 3.1))
-ax.set_xlim(0, 15.4); ax.set_ylim(0, 8); ax.set_aspect('equal'); ax.axis('off')
-yc = 4.7
-# --- optical chain: laser -> PC -> DPMZM -> tap -> output ---
-rbox(ax, 0.3, yc-0.55, 1.6, 1.1, 'Laser', LB)
-oline(ax, [(1.9, yc), (2.18, yc)])
-pcsym(ax, 2.55, yc); ax.text(2.55, yc-0.6, 'PC', fontsize=6.0, ha='center')
-oline(ax, [(2.95, yc), (3.5, yc)])
-hexmod(ax, 3.5, yc-0.9, 2.8, 1.8, 'DPMZM\n(DUT)', LK)
-oline(ax, [(6.3, yc), (7.4, yc)])
-ax.plot(7.4, yc, 'o', ms=4, mfc=BLU, mec=BLU, zorder=4); ax.text(7.4, yc+0.34, 'tap', fontsize=6.0, ha='center')
-oline(ax, [(7.4, yc), (9.35, yc)], arrow=True); ax.text(8.35, yc+0.32, '$>$90%', fontsize=6.0, ha='center')
-rbox(ax, 9.45, yc-0.55, 2.0, 1.1, 'to receiver /\npayload', GRY, fs=6.5)
-# --- monitor: tap -> PD -> bias control ---
-pdsym(ax, 7.4, 3.1, s=0.34)
-oline(ax, [(7.4, yc), (7.4, 3.44)])                       # ends at PD flat top
-ax.text(7.68, 4.05, '$<$10%', fontsize=6.0, ha='left')
-ax.text(7.85, 3.1, 'PD', fontsize=6.5, ha='left', va='center')
-eline(ax, [(7.4, 2.76), (7.4, 2.35), (6.3, 2.35)])        # PD -> bias control (above text)
-ax.text(8.3, 2.7, 'open-loop $V_b$ sweep via PD\n$\\Rightarrow$ phase ref $\\hat\\varphi(V_b)$',
-        fontsize=5.8, style='italic', ha='left', va='center', color='#666')
-# --- bias control block + dashed bias lines into the modulator ---
-rbox(ax, 3.5, 1.05, 2.8, 1.45,
-     'Bias control (STM32G474)\nlock-in 1/3 tones $+$ IMD\naffine inverse $\\cdot$ PI $\\cdot$ DAC', LP, fs=6.2)
-for xb in (4.2, 4.9, 5.6):
-    eline(ax, [(xb, 2.5), (xb, yc-0.9)], col=PUR, ls=(0, (4, 2)))
-ax.text(4.05, 3.05, '$V_b+$dither\n$\\omega_1,\\omega_2,\\omega_3$', fontsize=6.0, color=PUR, ha='right', va='center')
-# --- RF source (top) feeding the RF port ---
-rbox(ax, 3.55, 6.45, 2.7, 1.0, 'RF source: two-tone / 16-QAM\n(off for clean validation)', LG, fs=6.0)
-eline(ax, [(4.9, 6.45), (4.9, yc+0.9)])
-# --- temperature chamber enclosure (red dashed box; explained in caption) ---
-ax.add_patch(Rectangle((3.2, yc-1.2), 3.4, 2.4, fill=False, ec=RED, lw=1.0, ls=(0, (5, 3)), zorder=2))
-# --- legend ---
-lx, ly = 0.4, 1.7
-oline(ax, [(lx, ly), (lx+0.7, ly)]); ax.text(lx+0.85, ly, 'optical', fontsize=6.0, va='center')
-eline(ax, [(lx, ly-0.55), (lx+0.7, ly-0.55)], arrow=False); ax.text(lx+0.85, ly-0.55, 'electrical', fontsize=6.0, va='center')
-eline(ax, [(lx, 0.6), (lx+0.7, 0.6)], col=PUR, ls=(0, (4, 2)), arrow=False); ax.text(lx+0.85, 0.6, 'bias $+$ dither', fontsize=6.0, va='center')
-plt.savefig('figs/fig_exp_setup.pdf', bbox_inches='tight'); plt.close()
-print('[exp] wrote figs/fig_exp_setup.pdf')
+# ---- Experiment measurement-link diagrams ----
+# figs/fig_exp_mzm.pdf and figs/fig_exp_dpmzm.pdf are NOT produced here. They are
+# editable Visio drawings (figs/fig_exp_mzm.vsdx, fig_exp_dpmzm.vsdx) built from
+# the photonics device stencil; regenerate with `pwsh scripts/build_exp_link.ps1`.
+# This script must not write those two PDFs, or it would clobber the Visio export.

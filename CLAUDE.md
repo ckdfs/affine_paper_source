@@ -28,10 +28,13 @@ paper.tex           # English version — LAGS the Chinese (missing the algorith
 figs/*.pdf          # rendered figures, committed on purpose (see RNG rule below)
 scripts/
   make_figs.py        # fig_arch/ellipse/bessel/mzmloop/torus/obs/dploop/ahat
-                      #   + fig_exp_setup (experiment link diagram)
                       #   + the [V] validation suite at the very end
   make_extra_figs.py  # fig_gauge/mcdp/sweep
   make_algo_figs.py   # fig_acq/flow/recal/step
+  build_exp_link.ps1  # fig_exp_mzm / fig_exp_dpmzm — EDITABLE VISIO, NOT matplotlib
+                      #   (Visio COM reuses device shapes from a .vsdx stencil;
+                      #    *.vsdx sources live in figs/. make_figs does NOT touch
+                      #    these two PDFs — run this script to regenerate them.)
   build.py            # orchestrator (interpreter detection + stdout capture)
   check.py            # read-only doctor
   paper_metrics.json  # THE NUMBER CONTRACT (see below)
