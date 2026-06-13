@@ -238,7 +238,7 @@ def gn(z,est,iters=2,Am=None,bm=None):
     return est
 def sigmin(Am,p,rows):
     J=(Am@dfeat(p))[rows]
-    return np.sqrt(max(np.linalg.eigvalsh(J.T@J)[0],0))
+    return np.linalg.svd(J,compute_uv=False)[-1]   # smallest singular value (robust)
 
 # ---- Fig 5: intensity map with Klein points ----
 f1=np.linspace(0,4*np.pi,240); f2=np.linspace(0,4*np.pi,240)
@@ -343,11 +343,146 @@ for k in range(60):
     errs.append(abs(np.angle(np.exp(1j*(np.arctan2(u[1],u[0])-phi))))*1e3)
 errs=np.sort(errs)
 print(f'[MC] MZM noisy-cal demod error: median={errs[30]:.2f} mrad  P95={errs[57]:.2f} mrad')
-# GN cold-ish start recovery
-mx=0
-for k in range(40):
-    p=rng.uniform(0.3,5.8,3); z=measure_dp(p,noisy=False)
-    rec=gn(z,p+np.array([0.3,-0.3,0.3]),10)
-    mx=max(mx,np.linalg.norm(rec-p))
-print(f'[GN] zero-noise recovery from 0.3 rad offsets: max={mx*1e3:.2e} mrad')
 print('figures done:',sorted(os.listdir('figs')))
+
+# ================= consolidated validation suite for Table II =================
+# Everything below is post-processing only: all figures are already written, so
+# these extra rng draws do NOT perturb any figure. Each print maps to one row of
+# the results table; numbers are reported, never hard-coded into the manuscript.
+print('--- validation suite (Table II) ---')
+
+# (V1) single-MZM true affine matrix implied by P1 (same algebra as Theorem 1)
+k1m, k2m = jv(1, P1['m']), jv(2, P1['m'])
+A11 =  P1['gX']*k2m;                       A12 = P1['eps']*k1m
+A21 = -P1['gY']*k1m*np.sin(P1['delta']);   A22 = -P1['gY']*k1m*np.cos(P1['delta'])
+Atrue2 = np.array([[A11, A12], [A21, A22]])
+sv2 = np.linalg.svd(Atrue2, compute_uv=False)
+print(f'[V] MZM kappa(A) true={sv2[0]/sv2[-1]:.2f}  ideal J1/J2={k1m/k2m:.2f}')
+
+# (V2) MZM zero-noise closure: noiseless calibration + noiseless full-cycle sweep
+P1z = dict(P1); P1z['sigma'] = 0.0
+calz = calibrate_mzm(P1z, N=720)
+ph_dense = np.linspace(0, 2*np.pi, 2000, endpoint=False)
+Xz, Yz = measure_mzm(ph_dense, P1z, noisy=False)
+uz = calz['B'] @ np.stack([Xz-calz['c0'][0], Yz-calz['c0'][1]])
+ez = np.abs(np.angle(np.exp(1j*(np.arctan2(uz[1], uz[0]) - ph_dense))))*1e3
+# recovered forward matrix A_hat = B^{-1}; align O(2) gauge against Atrue2
+Ahat_mzm = np.linalg.inv(calz['B'])
+relA = min(np.linalg.norm(Ahat_mzm@np.diag([s,1]) - Atrue2)/np.linalg.norm(Atrue2)
+           for s in (1, -1))
+print(f'[V] MZM zero-noise demod error: max={ez.max():.2e} mrad  median={np.median(ez):.2e} mrad')
+print(f'[V] MZM zero-noise A_hat vs A Frobenius rel error: {relA*100:.2e} %')
+
+# (V3) DPMZM Jacobian: analytic dfeat vs central finite difference
+fd_err = 0.0
+for _ in range(20):
+    p = rng.uniform(0, 4*np.pi, 3); h = 1e-6
+    Jfd = np.stack([(feat(p+h*np.eye(3)[k]) - feat(p-h*np.eye(3)[k]))/(2*h)
+                    for k in range(3)], axis=1)
+    fd_err = max(fd_err, np.max(np.abs(dfeat(p) - Jfd)))
+print(f'[V] DPMZM dfeat vs finite-difference: max={fd_err:.1e}')
+
+# (V4) Klein invariance Phi o T1 = Phi  (T1: phi1+2pi, phi3+pi)
+kl = 0.0
+for _ in range(50):
+    p = rng.uniform(0, 4*np.pi, 3)
+    kl = max(kl, np.linalg.norm(feat(p+np.array([2*np.pi,0,np.pi])) - feat(p)))
+print(f'[V] DPMZM Klein invariance ||Phi o T1 - Phi||: max={kl:.1e}')
+
+# (V5) DPMZM zero-noise identification (no measurement noise) + exact-model GN
+Fz = np.stack([np.concatenate([feat(p),[1]]) for p in
+               np.outer(np.arange(3000), np.array([0.04241,0.05317,0.06789]))])
+Zz = np.stack([Atrue@feat(p)+btrue for p in
+               np.outer(np.arange(3000), np.array([0.04241,0.05317,0.06789]))])
+THz = np.linalg.solve(Fz.T@Fz, Fz.T@Zz)
+relF0 = np.linalg.norm(THz[:12].T - Atrue)/np.linalg.norm(Atrue)*100
+gn_rec = 0.0
+for _ in range(40):
+    p = rng.uniform(0.3, 5.8, 3); z = Atrue@feat(p)+btrue   # exact model, no noise
+    rec = gn(z, p+np.array([0.3,-0.3,0.3]), 10, Am=Atrue, bm=btrue)
+    gn_rec = max(gn_rec, np.linalg.norm(rec-p))
+print(f'[V] DPMZM zero-noise identification relF={relF0:.1e} %  exact-model GN recovery max={gn_rec*1e3:.1e} mrad')
+
+# (V6) DPMZM noisy-calibration demod bias (model = Ah,bh from noisy sweep)
+db = []
+for _ in range(200):
+    p = rng.uniform(0.3, 5.8, 3); z = Atrue@feat(p)+btrue   # clean readout
+    rec = gn(z, p+0.15*rng.standard_normal(3), 3)           # default Am=Ah,bm=bh
+    db.append(np.linalg.norm(rec-p)*1e3)
+db = np.sort(db)
+print(f'[V] DPMZM noisy-cal demod bias: median={db[100]:.1f} mrad  P95={db[190]:.1f} mrad')
+
+# ---- Fig (experiment): measurement link, drawn in the style of published
+#      bias-control / RoF setups (component symbols, one optical line, a top
+#      RF-source box and a bottom bias-control block with dashed bias lines) ----
+from matplotlib.patches import FancyBboxPatch, Polygon, Arc
+PUR = '#6E5AA0'
+LB, LG, LK, LP, GRY = '#E7EEF7', '#EAF3E6', '#E9F1ED', '#F0EAF7', '#F2F4F1'
+def rbox(ax, x, y, w, h, t, fc, fs=7.0, ec=INK, tc=INK):
+    ax.add_patch(FancyBboxPatch((x, y), w, h,
+                 boxstyle='round,pad=0,rounding_size=0.12', fc=fc, ec=ec, lw=1.1, zorder=3))
+    ax.text(x+w/2, y+h/2, t, ha='center', va='center', fontsize=fs, color=tc, zorder=4)
+def hexmod(ax, x, y, w, h, t, fc):
+    d = 0.18*w
+    ax.add_patch(Polygon([(x, y+h/2), (x+d, y+h), (x+w-d, y+h), (x+w, y+h/2),
+                          (x+w-d, y), (x+d, y)], closed=True, fc=fc, ec=INK, lw=1.3, zorder=3))
+    ax.text(x+w/2, y+h/2, t, ha='center', va='center', fontsize=7.5, weight='bold', zorder=4)
+def pcsym(ax, cx, cy, r=0.17, n=3):
+    for i in range(n):
+        ax.add_patch(Arc((cx-(n-1)*r+2*i*r, cy), 2*r, 2.1*r, theta1=205, theta2=515,
+                         ec=INK, lw=1.2, zorder=4))
+def pdsym(ax, cx, cy, s=0.30, col=INK):
+    # photodiode for a downward beam: flat top receives light, apex points down
+    ax.add_patch(Polygon([(cx-s, cy+s), (cx+s, cy+s), (cx, cy-s)], closed=True,
+                 fc='white', ec=col, lw=1.3, zorder=4))
+    ax.plot([cx-0.7*s, cx+0.7*s], [cy-s, cy-s], color=col, lw=1.7, zorder=4)
+def oline(ax, pts, col=BLU, lw=2.3, arrow=False):
+    xs, ys = zip(*pts); ax.plot(xs, ys, color=col, lw=lw, solid_capstyle='round', zorder=1)
+    if arrow:
+        ax.annotate('', xy=pts[-1], xytext=pts[-2],
+                    arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, mutation_scale=13), zorder=2)
+def eline(ax, pts, col=INK, lw=1.1, ls='-', arrow=True):
+    xs, ys = zip(*pts); ax.plot(xs, ys, color=col, lw=lw, ls=ls, zorder=1)
+    if arrow:
+        ax.annotate('', xy=pts[-1], xytext=pts[-2],
+                    arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, ls=ls, mutation_scale=11), zorder=2)
+
+fig, ax = plt.subplots(figsize=(2*CW, 3.1))
+ax.set_xlim(0, 15.4); ax.set_ylim(0, 8); ax.set_aspect('equal'); ax.axis('off')
+yc = 4.7
+# --- optical chain: laser -> PC -> DPMZM -> tap -> output ---
+rbox(ax, 0.3, yc-0.55, 1.6, 1.1, 'Laser', LB)
+oline(ax, [(1.9, yc), (2.18, yc)])
+pcsym(ax, 2.55, yc); ax.text(2.55, yc-0.6, 'PC', fontsize=6.0, ha='center')
+oline(ax, [(2.95, yc), (3.5, yc)])
+hexmod(ax, 3.5, yc-0.9, 2.8, 1.8, 'DPMZM\n(DUT)', LK)
+oline(ax, [(6.3, yc), (7.4, yc)])
+ax.plot(7.4, yc, 'o', ms=4, mfc=BLU, mec=BLU, zorder=4); ax.text(7.4, yc+0.34, 'tap', fontsize=6.0, ha='center')
+oline(ax, [(7.4, yc), (9.35, yc)], arrow=True); ax.text(8.35, yc+0.32, '$>$90%', fontsize=6.0, ha='center')
+rbox(ax, 9.45, yc-0.55, 2.0, 1.1, 'to receiver /\npayload', GRY, fs=6.5)
+# --- monitor: tap -> PD -> bias control ---
+pdsym(ax, 7.4, 3.1, s=0.34)
+oline(ax, [(7.4, yc), (7.4, 3.44)])                       # ends at PD flat top
+ax.text(7.68, 4.05, '$<$10%', fontsize=6.0, ha='left')
+ax.text(7.85, 3.1, 'PD', fontsize=6.5, ha='left', va='center')
+eline(ax, [(7.4, 2.76), (7.4, 2.35), (6.3, 2.35)])        # PD -> bias control (above text)
+ax.text(8.3, 2.7, 'open-loop $V_b$ sweep via PD\n$\\Rightarrow$ phase ref $\\hat\\varphi(V_b)$',
+        fontsize=5.8, style='italic', ha='left', va='center', color='#666')
+# --- bias control block + dashed bias lines into the modulator ---
+rbox(ax, 3.5, 1.05, 2.8, 1.45,
+     'Bias control (STM32G474)\nlock-in 1/3 tones $+$ IMD\naffine inverse $\\cdot$ PI $\\cdot$ DAC', LP, fs=6.2)
+for xb in (4.2, 4.9, 5.6):
+    eline(ax, [(xb, 2.5), (xb, yc-0.9)], col=PUR, ls=(0, (4, 2)))
+ax.text(4.05, 3.05, '$V_b+$dither\n$\\omega_1,\\omega_2,\\omega_3$', fontsize=6.0, color=PUR, ha='right', va='center')
+# --- RF source (top) feeding the RF port ---
+rbox(ax, 3.55, 6.45, 2.7, 1.0, 'RF source: two-tone / 16-QAM\n(off for clean validation)', LG, fs=6.0)
+eline(ax, [(4.9, 6.45), (4.9, yc+0.9)])
+# --- temperature chamber enclosure (red dashed box; explained in caption) ---
+ax.add_patch(Rectangle((3.2, yc-1.2), 3.4, 2.4, fill=False, ec=RED, lw=1.0, ls=(0, (5, 3)), zorder=2))
+# --- legend ---
+lx, ly = 0.4, 1.7
+oline(ax, [(lx, ly), (lx+0.7, ly)]); ax.text(lx+0.85, ly, 'optical', fontsize=6.0, va='center')
+eline(ax, [(lx, ly-0.55), (lx+0.7, ly-0.55)], arrow=False); ax.text(lx+0.85, ly-0.55, 'electrical', fontsize=6.0, va='center')
+eline(ax, [(lx, 0.6), (lx+0.7, 0.6)], col=PUR, ls=(0, (4, 2)), arrow=False); ax.text(lx+0.85, 0.6, 'bias $+$ dither', fontsize=6.0, va='center')
+plt.savefig('figs/fig_exp_setup.pdf', bbox_inches='tight'); plt.close()
+print('[exp] wrote figs/fig_exp_setup.pdf')
