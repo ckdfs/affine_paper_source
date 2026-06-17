@@ -1,0 +1,7 @@
+# QA render artifacts (regenerate via PowerPoint COM export / qa_render.py)
+qa/
+qa_png/
+qa_contact.png
+
+# Per-formula LaTeX intermediates (regenerate from formulas.json via render_math_assets.py)
+math/*.tex

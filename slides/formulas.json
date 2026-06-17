@@ -1,0 +1,524 @@
+{
+  "formulas": [
+    {
+      "id": "mzm",
+      "latex": "P_{\\mathrm{out}}(t)=\\tfrac{P_0}{2}\\bigl[1+\\eta\\cos\\varphi(t)\\bigr],\\quad \\eta=\\tfrac{2\\sqrt{r}}{1+r}\\le 1",
+      "mode": "display"
+    },
+    {
+      "id": "lockin",
+      "latex": "\\mathcal{L}_1[f]=\\overline{2f(t)\\sin(\\omega t+\\theta_1)},\\quad \\mathcal{L}_2[f]=\\overline{2f(t)\\cos(2\\omega t+\\theta_2)}",
+      "mode": "display"
+    },
+    {
+      "id": "ideal",
+      "latex": "Y=-\\eta\\kappa_1\\sin\\varphi_b,\\quad X=\\eta\\kappa_2\\cos\\varphi_b,\\quad \\kappa_n=G_n\\rho P_0 J_n(m)",
+      "mode": "display"
+    },
+    {
+      "id": "sQN",
+      "latex": "\\Delta\\varphi_{\\mathrm{Q}}=\\frac{A_{12}+b_X}{A_{11}},\\qquad \\Delta\\varphi_{\\mathrm{N}}=\\frac{b_Y-A_{21}}{A_{22}}",
+      "mode": "display"
+    },
+    {
+      "id": "sAM",
+      "latex": "\\Delta\\varphi_{\\mathrm{AM}}=-\\frac{A_{21}\\cos\\varphi^\\ast+(A_{22}+\\kappa_1^{\\mathrm{nom}})\\sin\\varphi^\\ast+b_Y}{A_{22}\\cos\\varphi^\\ast-A_{21}\\sin\\varphi^\\ast}",
+      "mode": "display"
+    },
+    {
+      "id": "ratio",
+      "latex": "X/Y=-(\\kappa_2/\\kappa_1)\\cot\\varphi_b",
+      "mode": "display"
+    },
+    {
+      "id": "lemma",
+      "latex": "\\cos(\\varphi_b+\\xi(t))=\\cos\\varphi_b\\cos\\xi(t)-\\sin\\varphi_b\\sin\\xi(t)",
+      "mode": "display"
+    },
+    {
+      "id": "affine",
+      "latex": "\\mathbf{z}=A\\,\\mathbf{u}(\\varphi_b)+\\mathbf{b}+\\mathbf{n},\\qquad \\mathbf{u}=(\\cos\\varphi_b,\\sin\\varphi_b)^{\\mathsf{T}}",
+      "mode": "display"
+    },
+    {
+      "id": "Amat",
+      "latex": "A=\\frac{\\eta\\rho P_0}{2}\\begin{pmatrix}G_2\\mathcal{L}_2[\\cos\\xi] & -G_2\\mathcal{L}_2[\\sin\\xi]\\\\[2pt] G_1\\mathcal{L}_1[\\cos\\xi] & -G_1\\mathcal{L}_1[\\sin\\xi]\\end{pmatrix}",
+      "mode": "display"
+    },
+    {
+      "id": "bnvec",
+      "latex": "\\mathbf{b}=\\begin{pmatrix}G_2\\mathcal{L}_2[i_x]+O_X\\\\[2pt] G_1\\mathcal{L}_1[i_x]+O_Y\\end{pmatrix},\\quad \\mathbf{n}=\\begin{pmatrix}G_2\\mathcal{L}_2[i_n]\\\\[2pt] G_1\\mathcal{L}_1[i_n]\\end{pmatrix}",
+      "mode": "display"
+    },
+    {
+      "id": "Adiag",
+      "latex": "A_{11}=\\eta\\kappa_2\\cos\\theta_2,\\qquad A_{22}=-\\eta\\kappa_1\\cos\\theta_1",
+      "mode": "display"
+    },
+    {
+      "id": "ellipse",
+      "latex": "(\\mathbf{z}-\\mathbf{b})^{\\mathsf{T}}M(\\mathbf{z}-\\mathbf{b})=1,\\qquad M\\triangleq(AA^{\\mathsf{T}})^{-1}\\succ0",
+      "mode": "display"
+    },
+    {
+      "id": "demod",
+      "latex": "B\\triangleq R(-\\hat\\varphi_c)\\,F\\,M^{1/2},\\qquad \\hat\\varphi_b=\\operatorname{atan2}\\!\\bigl(B(\\mathbf{z}-\\hat{\\mathbf{b}})\\bigr)",
+      "mode": "display"
+    },
+    {
+      "id": "var",
+      "latex": "\\sigma^2_{\\hat\\varphi}(\\varphi)=\\mathbf{t}^{\\mathsf{T}}A^{-1}\\Sigma_n A^{-\\mathsf{T}}\\mathbf{t}\\;\\xrightarrow{\\;\\Sigma_n=\\sigma^2 I\\;}\\;\\sigma^2\\,\\mathbf{t}^{\\mathsf{T}}(A^{\\mathsf{T}}A)^{-1}\\mathbf{t}\\le\\frac{\\sigma^2}{\\sigma^2_{\\min}(A)}",
+      "mode": "display"
+    },
+    {
+      "id": "kappa",
+      "latex": "\\kappa(A)=\\sqrt{\\lambda_{\\max}(M)/\\lambda_{\\min}(M)},\\qquad \\kappa(A)=J_1(m)/J_2(m)\\to 4/m",
+      "mode": "display"
+    },
+    {
+      "id": "dpfield",
+      "latex": "E_{\\mathrm{out}}=\\frac{E_{\\mathrm{in}}}{2}\\Bigl[\\cos\\tfrac{\\Theta_1}{2}+e^{j\\Theta_3}\\cos\\tfrac{\\Theta_2}{2}\\Bigr],\\quad \\Theta_i=\\varphi_i+\\xi_i(t)",
+      "mode": "display"
+    },
+    {
+      "id": "dppower",
+      "latex": "P_{\\mathrm{out}}=\\frac{P_0}{8}\\bigl[2+\\cos\\Theta_1+\\cos\\Theta_2\\bigr]+\\frac{P_0}{2}\\cos\\tfrac{\\Theta_1}{2}\\cos\\tfrac{\\Theta_2}{2}\\cos\\Theta_3",
+      "mode": "display"
+    },
+    {
+      "id": "klein",
+      "latex": "T_1:(\\varphi_1+2\\pi,\\ \\varphi_2,\\ \\varphi_3+\\pi),\\qquad T_2:(\\varphi_1,\\ \\varphi_2+2\\pi,\\ \\varphi_3+\\pi)",
+      "mode": "display"
+    },
+    {
+      "id": "feature",
+      "latex": "\\Phi(\\boldsymbol{\\varphi})=\\bigl(\\cos\\varphi_1,\\sin\\varphi_1,\\cos\\varphi_2,\\sin\\varphi_2,\\ \\mathbf{v}_1\\!\\otimes\\!\\mathbf{v}_2\\!\\otimes\\!\\mathbf{v}_3\\bigr),\\ \\ \\mathbf{v}_1=(c_1,s_1),\\ \\mathbf{v}_2=(c_2,s_2),\\ \\mathbf{v}_3=(C_3,S_3)",
+      "mode": "display"
+    },
+    {
+      "id": "dpaffine",
+      "latex": "\\mathbf{z}=A\\,\\Phi(\\boldsymbol{\\varphi})+\\mathbf{b}+\\mathbf{n},\\qquad A\\in\\mathbb{R}^{K\\times 12}",
+      "mode": "display"
+    },
+    {
+      "id": "jac",
+      "latex": "\\mathcal{J}(\\boldsymbol{\\varphi})=A\\,D\\Phi(\\boldsymbol{\\varphi})\\in\\mathbb{R}^{K\\times 3},\\qquad \\sigma_{\\min}(\\mathcal{J})>0",
+      "mode": "display"
+    },
+    {
+      "id": "regress",
+      "latex": "[\\hat A\\,|\\,\\hat{\\mathbf{b}}]=\\Bigl(\\sum_k \\mathbf{z}_k\\tilde\\Phi_k^{\\mathsf{T}}\\Bigr)\\Bigl(\\sum_k \\tilde\\Phi_k\\tilde\\Phi_k^{\\mathsf{T}}\\Bigr)^{-1},\\quad \\tilde\\Phi=\\begin{pmatrix}\\Phi\\\\1\\end{pmatrix}",
+      "mode": "display"
+    },
+    {
+      "id": "gn",
+      "latex": "\\hat{\\boldsymbol{\\varphi}}\\leftarrow\\hat{\\boldsymbol{\\varphi}}+(\\mathcal{J}^{\\mathsf{T}}\\mathcal{J}+\\lambda I)^{-1}\\mathcal{J}^{\\mathsf{T}}\\bigl[\\mathbf{z}-\\hat A\\Phi(\\hat{\\boldsymbol{\\varphi}})-\\hat{\\mathbf{b}}\\bigr]",
+      "mode": "display"
+    },
+    {
+      "id": "covcrb",
+      "latex": "\\Sigma_{\\hat{\\boldsymbol{\\varphi}}}=(\\mathcal{J}^{\\mathsf{T}}\\Sigma_n^{-1}\\mathcal{J})^{-1}",
+      "mode": "display"
+    },
+    {
+      "id": "parentnoise",
+      "latex": "\\sigma^2_{\\hat\\varphi_3}\\approx\\frac{\\sigma^2}{\\bigl[j_1^{(1)}j_1^{(2)}J_0(m_3)\\bigr]^2}\\approx\\Bigl(\\frac{16}{m_1 m_2}\\Bigr)^{2}\\sigma^2",
+      "mode": "display"
+    },
+    {
+      "id": "appL",
+      "latex": "\\begin{aligned}\\mathcal{L}_1[\\cos\\xi]&=-\\varepsilon m\\bigl[J_1\\sin(\\theta_1-\\psi)+J_3\\sin(\\theta_1+\\psi)\\bigr],\\\\ \\mathcal{L}_2[\\sin\\xi]&=\\varepsilon m\\bigl[J_0\\sin(\\psi-\\theta_2)+J_4\\sin(\\psi+\\theta_2)\\bigr]\\end{aligned}",
+      "mode": "display"
+    },
+    {
+      "id": "Aoff",
+      "latex": "\\begin{aligned}A_{12}&=-\\tfrac{\\eta\\rho P_0 G_2}{2}\\varepsilon m\\bigl[J_0(m)\\sin(\\psi-\\theta_2)+J_4(m)\\sin(\\psi+\\theta_2)\\bigr],\\\\ A_{21}&=-\\tfrac{\\eta\\rho P_0 G_1}{2}\\varepsilon m\\bigl[J_1(m)\\sin(\\theta_1-\\psi)+J_3(m)\\sin(\\theta_1+\\psi)\\bigr]\\end{aligned}",
+      "mode": "display"
+    },
+    {
+      "id": "dphic",
+      "latex": "\\delta\\varphi_c\\approx\\varepsilon m J_2(m)\\sin\\psi/J_0(m)",
+      "mode": "display"
+    },
+    {
+      "id": "hm_dc",
+      "latex": "\\tfrac{\\rho P_0}{2}\\bigl[1+\\eta J_0(m)\\cos\\varphi_b\\bigr]",
+      "mode": "display"
+    },
+    {
+      "id": "hm_w",
+      "latex": "-\\eta\\rho P_0 J_1(m)\\sin\\varphi_b",
+      "mode": "display"
+    },
+    {
+      "id": "hm_2w",
+      "latex": "+\\eta\\rho P_0 J_2(m)\\cos\\varphi_b",
+      "mode": "display"
+    },
+    {
+      "id": "hm_3w",
+      "latex": "-\\eta\\rho P_0 J_3(m)\\sin\\varphi_b",
+      "mode": "display"
+    },
+    {
+      "id": "dep_c",
+      "latex": "\\cos\\varphi_b",
+      "mode": "display"
+    },
+    {
+      "id": "dep_s",
+      "latex": "\\sin\\varphi_b",
+      "mode": "display"
+    },
+    {
+      "id": "sQ",
+      "latex": "\\dfrac{A_{12}+b_X}{A_{11}}",
+      "mode": "display"
+    },
+    {
+      "id": "sN",
+      "latex": "\\dfrac{b_Y-A_{21}}{A_{22}}",
+      "mode": "display"
+    },
+    {
+      "id": "ch_y1",
+      "latex": "-\\tfrac14 J_1^{(1)}\\sin\\varphi_1-j_1^{(1)}j_0^{(2)}J_0(m_3)\\,s_1c_2C_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_x1",
+      "latex": "+\\tfrac14 J_2^{(1)}\\cos\\varphi_1+j_2^{(1)}j_0^{(2)}J_0(m_3)\\,c_1c_2C_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_y2",
+      "latex": "-\\tfrac14 J_1^{(2)}\\sin\\varphi_2-j_0^{(1)}j_1^{(2)}J_0(m_3)\\,c_1s_2C_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_x2",
+      "latex": "+\\tfrac14 J_2^{(2)}\\cos\\varphi_2+j_0^{(1)}j_2^{(2)}J_0(m_3)\\,c_1c_2C_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_y3",
+      "latex": "-j_0^{(1)}j_0^{(2)}J_1(m_3)\\,c_1c_2S_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_x3",
+      "latex": "+j_0^{(1)}j_0^{(2)}J_2(m_3)\\,c_1c_2C_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_zm",
+      "latex": "+j_1^{(1)}j_1^{(2)}J_0(m_3)\\,s_1s_2C_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_z13",
+      "latex": "+j_1^{(1)}j_0^{(2)}J_1(m_3)\\,s_1c_2S_3",
+      "mode": "display"
+    },
+    {
+      "id": "ch_z23",
+      "latex": "+j_0^{(1)}j_1^{(2)}J_1(m_3)\\,c_1s_2S_3",
+      "mode": "display"
+    },
+    {
+      "id": "mke5707777c126",
+      "latex": "\\varphi_b",
+      "mode": "inline"
+    },
+    {
+      "id": "mk9d6f16154b2a",
+      "latex": "\\varphi\\leftrightarrow\\pi-\\varphi",
+      "mode": "inline"
+    },
+    {
+      "id": "mkbba172e28fbf",
+      "latex": "\\sin\\varphi",
+      "mode": "inline"
+    },
+    {
+      "id": "mk5dfd0b83b35a",
+      "latex": "\\mathbf{z}=A\\mathbf{u}(\\varphi_b)+\\mathbf{b}+\\mathbf{n}",
+      "mode": "inline"
+    },
+    {
+      "id": "mk18dc8499fdc1",
+      "latex": "\\mathbb{T}^3",
+      "mode": "inline"
+    },
+    {
+      "id": "mkf3b0f5a1a81d",
+      "latex": "\\varphi(t)=\\varphi_b+\\xi(t)",
+      "mode": "inline"
+    },
+    {
+      "id": "mk0d5d7e064688",
+      "latex": "\\xi(t)=m\\sin\\omega t",
+      "mode": "inline"
+    },
+    {
+      "id": "mk09d7d636922b",
+      "latex": "m=\\pi V_d/V_\\pi",
+      "mode": "inline"
+    },
+    {
+      "id": "mk9bca46f78abd",
+      "latex": "\\theta_1,\\theta_2",
+      "mode": "inline"
+    },
+    {
+      "id": "mk662f27874b4f",
+      "latex": "Y=G_1\\mathcal{L}_1[i]",
+      "mode": "inline"
+    },
+    {
+      "id": "mka1014bc8415a",
+      "latex": "X=G_2\\mathcal{L}_2[i]",
+      "mode": "inline"
+    },
+    {
+      "id": "mk6781228e0a0a",
+      "latex": "A_{ij}",
+      "mode": "inline"
+    },
+    {
+      "id": "mk81a2c99bbb7f",
+      "latex": "b_X",
+      "mode": "inline"
+    },
+    {
+      "id": "mk9034328c35af",
+      "latex": "b_Y",
+      "mode": "inline"
+    },
+    {
+      "id": "mkc45bdb2573f9",
+      "latex": "\\propto\\eta\\kappa_1|\\cos\\varphi^\\ast|",
+      "mode": "inline"
+    },
+    {
+      "id": "mk57cec4137b61",
+      "latex": "Y",
+      "mode": "inline"
+    },
+    {
+      "id": "mk7fc56270e7a7",
+      "latex": "A",
+      "mode": "inline"
+    },
+    {
+      "id": "mk4ee650068516",
+      "latex": "\\mathbf{b}=0",
+      "mode": "inline"
+    },
+    {
+      "id": "mk81dfa0d93f54",
+      "latex": "Y\\to0",
+      "mode": "inline"
+    },
+    {
+      "id": "mk90f3c40f09b6",
+      "latex": "1/Y^2",
+      "mode": "inline"
+    },
+    {
+      "id": "mk42e5a084e2ad",
+      "latex": "\\varphi_b\\mapsto\\mathbf{u}(\\varphi_b)",
+      "mode": "inline"
+    },
+    {
+      "id": "mk033641feb3e9",
+      "latex": "\\mathbb{S}^1\\to\\mathbb{R}^2",
+      "mode": "inline"
+    },
+    {
+      "id": "mk6bbb8ba206c1",
+      "latex": "\\|\\mathbf{u}'\\|\\equiv1",
+      "mode": "inline"
+    },
+    {
+      "id": "mka496e90b231e",
+      "latex": "[0,2\\pi)",
+      "mode": "inline"
+    },
+    {
+      "id": "mkcadee1986e5f",
+      "latex": "\\rho P_0/2",
+      "mode": "inline"
+    },
+    {
+      "id": "mkd1ebf8eb1b29",
+      "latex": "O_X,O_Y",
+      "mode": "inline"
+    },
+    {
+      "id": "mk69146ecd7f1c",
+      "latex": "\\xi=m\\sin\\omega t+\\varepsilon m\\sin(2\\omega t+\\psi)",
+      "mode": "inline"
+    },
+    {
+      "id": "mk87ed5611afc0",
+      "latex": "A\\to\\operatorname{diag}(\\eta\\kappa_2,-\\eta\\kappa_1)",
+      "mode": "inline"
+    },
+    {
+      "id": "mkba38380d4c4f",
+      "latex": "\\mathbf{b}",
+      "mode": "inline"
+    },
+    {
+      "id": "mke15c02a49fcc",
+      "latex": "\\mathbf{n}",
+      "mode": "inline"
+    },
+    {
+      "id": "mke8fae117227e",
+      "latex": "M\\triangleq(AA^{\\mathsf{T}})^{-1}\\succ0",
+      "mode": "inline"
+    },
+    {
+      "id": "mk9f541e7a918b",
+      "latex": "R\\in O(2)",
+      "mode": "inline"
+    },
+    {
+      "id": "mk2c0c3deb047f",
+      "latex": "A\\mapsto AR",
+      "mode": "inline"
+    },
+    {
+      "id": "mkfd90a978d07c",
+      "latex": "\\hat\\varphi_b\\mapsto\\pm\\hat\\varphi_b+\\varphi_c",
+      "mode": "inline"
+    },
+    {
+      "id": "mk349d3fc8b5fd",
+      "latex": "{\\sim}42",
+      "mode": "inline"
+    },
+    {
+      "id": "mk02ebb8be13c5",
+      "latex": "{\\sim}2",
+      "mode": "inline"
+    },
+    {
+      "id": "mk54e20c97f40e",
+      "latex": "\\sigma=0.005",
+      "mode": "inline"
+    },
+    {
+      "id": "mka2ab7d71a0f0",
+      "latex": "\\sigma",
+      "mode": "inline"
+    },
+    {
+      "id": "mkea377e191d6d",
+      "latex": "A=\\operatorname{diag}(\\eta\\kappa_2,-\\eta\\kappa_1)",
+      "mode": "inline"
+    },
+    {
+      "id": "mk675c394a1375",
+      "latex": "\\kappa(A)=J_1(m)/J_2(m)\\to4/m",
+      "mode": "inline"
+    },
+    {
+      "id": "mk0d05ded8fb01",
+      "latex": "\\sigma_{\\min}(A)",
+      "mode": "inline"
+    },
+    {
+      "id": "mk65813dc30166",
+      "latex": "\\kappa(A)",
+      "mode": "inline"
+    },
+    {
+      "id": "mkb2173d30ed7f",
+      "latex": "\\cos(\\varphi_i/2)",
+      "mode": "inline"
+    },
+    {
+      "id": "mk1b74c1cac63f",
+      "latex": "V_4=\\{\\mathrm{id},T_1,T_2,T_1T_2\\}",
+      "mode": "inline"
+    },
+    {
+      "id": "mkeef99a5ef132",
+      "latex": "\\widetilde{\\mathbb{T}}^3/V_4",
+      "mode": "inline"
+    },
+    {
+      "id": "mk5e9848dc59b7",
+      "latex": "A=A_0",
+      "mode": "inline"
+    },
+    {
+      "id": "mk23fcb7469040",
+      "latex": "13\\times13",
+      "mode": "inline"
+    },
+    {
+      "id": "mk007f4bc05b74",
+      "latex": "\\varphi_i(k)=k\\Delta_i",
+      "mode": "inline"
+    },
+    {
+      "id": "mkfd95aa222f11",
+      "latex": "\\sigma_{\\min}(\\mathcal{J})",
+      "mode": "inline"
+    },
+    {
+      "id": "mk5ae5d4b80092",
+      "latex": "(8/m)^2\\sigma^2",
+      "mode": "inline"
+    },
+    {
+      "id": "mkb1291cbaa4c9",
+      "latex": "\\propto1/m^2",
+      "mode": "inline"
+    },
+    {
+      "id": "mk0a3e6e809576",
+      "latex": "m\\approx0.13",
+      "mode": "inline"
+    },
+    {
+      "id": "mk05f76facf174",
+      "latex": "\\varphi_b=\\pi V_b/V_\\pi+\\varphi_0",
+      "mode": "inline"
+    },
+    {
+      "id": "mkc2524f04c9df",
+      "latex": "\\kappa_n",
+      "mode": "inline"
+    },
+    {
+      "id": "mk36e392bf4d5f",
+      "latex": "1/G",
+      "mode": "inline"
+    },
+    {
+      "id": "mk7683ca00baee",
+      "latex": "\\approx5.6",
+      "mode": "inline"
+    },
+    {
+      "id": "mk95cd24450423",
+      "latex": "\\approx6.2",
+      "mode": "inline"
+    },
+    {
+      "id": "mkb68bb69eacd2",
+      "latex": "m=\\pi A_p/V_\\pi\\approx0.13",
+      "mode": "inline"
+    },
+    {
+      "id": "mk2f10f792dd92",
+      "latex": "\\kappa(A)\\approx30",
+      "mode": "inline"
+    }
+  ]
+}
