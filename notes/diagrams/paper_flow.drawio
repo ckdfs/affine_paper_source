@@ -1,0 +1,77 @@
+<mxfile host="app.diagrams.net" agent="claude-code" version="24.0.0">
+  <diagram id="affine-paper-flow" name="思路流程图(A4纵向)">
+    <mxGraphModel dx="1000" dy="1400" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="ca" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f6ff;strokeColor=#6c8ebf;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="20" y="374" width="783" height="224" as="geometry" /></mxCell>
+        <mxCell id="cb" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaf7f3;strokeColor=#3aa18c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="20" y="610" width="783" height="224" as="geometry" /></mxCell>
+
+        <mxCell id="title" value="MZM / DPMZM 任意点偏压控制 —— 论文思路流程图" style="text;html=1;align=center;fontSize=19;fontStyle=1;fontColor=#1f2933;" vertex="1" parent="1"><mxGeometry x="20" y="6" width="787" height="28" as="geometry" /></mxCell>
+
+        <mxCell id="leg1" value="问题 / 局限" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="20" y="40" width="150" height="20" as="geometry" /></mxCell>
+        <mxCell id="leg2" value="核心思想" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffd966;strokeColor=#d6b656;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="178" y="40" width="150" height="20" as="geometry" /></mxCell>
+        <mxCell id="leg3" value="定理 / 分析" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="336" y="40" width="150" height="20" as="geometry" /></mxCell>
+        <mxCell id="leg4" value="方法 / 算法" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="494" y="40" width="150" height="20" as="geometry" /></mxCell>
+        <mxCell id="leg5" value="验证 / 实验" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="652" y="40" width="150" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="s1" value="【问题】MZM 偏压随温漂 / 电荷 / 光折变缓慢漂移 → 需业务不中断的在线闭环控制" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="174" y="68" width="480" height="42" as="geometry" /></mxCell>
+        <mxCell id="s2" value="【需求】不止特殊点；微波光子 / SSB / IQ / 光计算 要求锁定在传递曲线任意点" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="174" y="116" width="480" height="42" as="geometry" /></mxCell>
+        <mxCell id="s3" value="【传统】单标量谐波（幅值匹配 / 比值）外推到任意点 → 三类结构性问题" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="174" y="164" width="440" height="44" as="geometry" /></mxCell>
+        <mxCell id="d3a" value="① 死区：增益 → 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbe1df;strokeColor=#b85450;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="646" y="158" width="156" height="26" as="geometry" /></mxCell>
+        <mxCell id="d3b" value="② 分支歧义 φ↔π−φ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbe1df;strokeColor=#b85450;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="646" y="188" width="156" height="26" as="geometry" /></mxCell>
+        <mxCell id="d3c" value="③ 标定误差 → 静差" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fbe1df;strokeColor=#b85450;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="646" y="218" width="156" height="26" as="geometry" /></mxCell>
+        <mxCell id="s4" value="【根源】把二维相位（S¹ 上位置）压成单一标量；命题1 拓扑障碍（Rolle）：必有零增益点、不可单射" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="174" y="250" width="480" height="50" as="geometry" /></mxCell>
+        <mxCell id="s5" value="【核心思想】恢复完整二维观测 = 利用导频解调观测的“仿射结构”" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffd966;strokeColor=#d6b656;fontSize=14;fontStyle=1;align=center;" vertex="1" parent="1"><mxGeometry x="164" y="312" width="500" height="50" as="geometry" /></mxCell>
+
+        <mxCell id="ah" value="①  单 MZM 理论（S¹）" style="text;html=1;align=left;fontSize=13;fontStyle=1;fontColor=#2f5b86;" vertex="1" parent="1"><mxGeometry x="36" y="380" width="400" height="20" as="geometry" /></mxCell>
+        <mxCell id="a1" value="引理：cos(φ_b+ξ) = cosφ_b·cosξ − sinφ_b·sinξ（偏置与导频因子化）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="194" y="406" width="440" height="38" as="geometry" /></mxCell>
+        <mxCell id="a2" value="定理1（精确仿射）：z = A·u(φ_b) + b + n，u=(cosφ_b,sinφ_b)ᵀ；线性非理想只改 (A,b)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1"><mxGeometry x="174" y="450" width="480" height="56" as="geometry" /></mxCell>
+        <mxCell id="a3" value="自标定：椭圆辨识 → 规范固定 → atan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="34" y="520" width="180" height="64" as="geometry" /></mxCell>
+        <mxCell id="a4" value="一致增益闭环（算法1）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="224" y="520" width="180" height="64" as="geometry" /></mxCell>
+        <mxCell id="a5" value="统一解释传统方案（表2）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="414" y="520" width="180" height="64" as="geometry" /></mxCell>
+        <mxCell id="a6" value="噪声 / 导频深度 κ(A) 选 m" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="604" y="520" width="180" height="64" as="geometry" /></mxCell>
+
+        <mxCell id="bh" value="②  DPMZM 推广（T³）" style="text;html=1;align=left;fontSize=13;fontStyle=1;fontColor=#1f7a68;" vertex="1" parent="1"><mxGeometry x="36" y="616" width="400" height="20" as="geometry" /></mxCell>
+        <mxCell id="b1" value="半角结构 → 子轴 4π 周期、Klein 四元群 V₄ 构型等价" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="194" y="642" width="440" height="40" as="geometry" /></mxCell>
+        <mxCell id="b2" value="定理2（精确仿射）：z = A·Φ(φ) + b + n，Φ : T³ → ℝ¹²（自项 + 半角张量块）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;fontStyle=1;align=center;" vertex="1" parent="1"><mxGeometry x="174" y="688" width="480" height="54" as="geometry" /></mxCell>
+        <mxCell id="b3" value="可观测性：标准点秩退化（父轴失明）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="34" y="756" width="180" height="64" as="geometry" /></mxCell>
+        <mxCell id="b4" value="加 IMD 通道恢复满秩（命题2）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="224" y="756" width="180" height="64" as="geometry" /></mxCell>
+        <mxCell id="b5" value="准周期扫描线性回归标定" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="414" y="756" width="180" height="64" as="geometry" /></mxCell>
+        <mxCell id="b6" value="热启动高斯–牛顿解调（算法3）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;" vertex="1" parent="1"><mxGeometry x="604" y="756" width="180" height="64" as="geometry" /></mxCell>
+
+        <mxCell id="salgo" value="【统一控制算法（算法2/3）】标定 → 运行（解调 → PI → 残差监测）→ 残差越限触发微幅弧重定标" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="134" y="850" width="560" height="48" as="geometry" /></mxCell>
+        <mxCell id="snum" value="【数值验证】零噪声闭合到精度；含噪 mrad 级；任意点静差较多环基线降 1–2 个数量级" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="134" y="906" width="560" height="48" as="geometry" /></mxCell>
+        <mxCell id="sexp" value="【实验验证计划（待实测）】TLS1000 + PP-10G + SDS824X + DG922 PC 仪器闭环，逐项对照仿真" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="134" y="962" width="560" height="48" as="geometry" /></mxCell>
+        <mxCell id="sdisc" value="【讨论 / 结论】适用边界：接收链非线性、偏压相关吸收、持续激励；展望嵌套 / 偏振复用 + 半参数化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="134" y="1018" width="560" height="48" as="geometry" /></mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="s1" target="s2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="s2" target="s3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="s3" target="s4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="s4" target="s5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="s5" target="a1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="a1" target="a2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" value="推广 S¹→T³" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#d6822b;strokeWidth=2.5;fontSize=11;fontColor=#b35d00;fontStyle=1;" edge="1" parent="1" source="a2" target="b1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="b2" target="salgo"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="salgo" target="snum"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="snum" target="sexp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="sexp" target="sdisc"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;strokeColor=#b85450;strokeWidth=1;" edge="1" parent="1" source="s3" target="d3a"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;strokeColor=#b85450;strokeWidth=1;" edge="1" parent="1" source="s3" target="d3b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=open;dashed=1;strokeColor=#b85450;strokeWidth=1;" edge="1" parent="1" source="s3" target="d3c"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#5f8c46;strokeWidth=1.2;" edge="1" parent="1" source="a2" target="a3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#5f8c46;strokeWidth=1.2;" edge="1" parent="1" source="a3" target="a4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;strokeWidth=1.2;" edge="1" parent="1" source="a2" target="a5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#5f8c46;strokeWidth=1.2;" edge="1" parent="1" source="a2" target="a6"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;strokeWidth=1.2;" edge="1" parent="1" source="b2" target="b3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e20" value="恢复" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#6c8ebf;strokeWidth=1.2;fontSize=10;fontColor=#3a5e86;" edge="1" parent="1" source="b3" target="b4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e21" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#5f8c46;strokeWidth=1.2;" edge="1" parent="1" source="b2" target="b5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e22" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#5f8c46;strokeWidth=1.2;" edge="1" parent="1" source="b5" target="b6"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

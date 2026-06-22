@@ -1,0 +1,71 @@
+<mxfile host="app.diagrams.net" agent="claude-code" version="24.0.0">
+  <diagram id="affine-paper-algorithm" name="算法流程图(A4纵向)">
+    <mxGraphModel dx="1000" dy="1400" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="lane_cal" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef7f0;strokeColor=#3aa18c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="16" y="42" width="795" height="556" as="geometry" /></mxCell>
+        <mxCell id="lane_run" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eafaf4;strokeColor=#2f8f7c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="16" y="606" width="795" height="548" as="geometry" /></mxCell>
+
+        <mxCell id="title" value="单 MZM / DPMZM 偏压控制算法流程（算法 1/2/3）" style="text;html=1;align=center;fontSize=18;fontStyle=1;fontColor=#1f2933;" vertex="1" parent="1"><mxGeometry x="16" y="8" width="795" height="26" as="geometry" /></mxCell>
+
+        <mxCell id="cal_hdr" value="标定阶段 · 算法2（上电或重定标触发，一次性）" style="text;html=1;align=left;fontSize=14;fontStyle=1;fontColor=#1f7a68;" vertex="1" parent="1"><mxGeometry x="32" y="48" width="600" height="22" as="geometry" /></mxCell>
+        <mxCell id="run_hdr" value="运行阶段 · 算法3（每控制周期；含残差监测与重定标触发）" style="text;html=1;align=left;fontSize=14;fontStyle=1;fontColor=#1f7a68;" vertex="1" parent="1"><mxGeometry x="32" y="612" width="600" height="22" as="geometry" /></mxCell>
+
+        <mxCell id="colA" value="单 MZM 分支（椭圆几何 / atan）" style="text;html=1;align=center;fontSize=11;fontStyle=2;fontColor=#2f5b86;" vertex="1" parent="1"><mxGeometry x="24" y="210" width="256" height="16" as="geometry" /></mxCell>
+        <mxCell id="colB" value="DPMZM 分支（特征回归 / 高斯–牛顿）" style="text;html=1;align=center;fontSize=11;fontStyle=2;fontColor=#1f7a68;" vertex="1" parent="1"><mxGeometry x="548" y="210" width="256" height="16" as="geometry" /></mxCell>
+
+        <mxCell id="entry" value="上电 / 重定标触发" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="304" y="72" width="220" height="38" as="geometry" /></mxCell>
+        <mxCell id="c1" value="预扫描估计各轴 V_π（DPMZM 子轴 4π）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="294" y="120" width="240" height="42" as="geometry" /></mxCell>
+        <mxCell id="c2" value="满 / 准周期扫描，记录 {z_k, ī_k}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="284" y="170" width="260" height="46" as="geometry" /></mxCell>
+        <mxCell id="dec_c" value="单 MZM？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe599;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="346" y="230" width="136" height="58" as="geometry" /></mxCell>
+
+        <mxCell id="c3a" value="中心化归一 → 椭圆拟合 → 中心 b̂、M≻0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="24" y="296" width="256" height="46" as="geometry" /></mxCell>
+        <mxCell id="c4a" value="B₀=M^½；环绕方向定反射 F" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="24" y="350" width="256" height="42" as="geometry" /></mxCell>
+        <mxCell id="c5a" value="直流回归定 φ_c；B=R(−φ_c)·F·B₀" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="24" y="400" width="256" height="46" as="geometry" /></mxCell>
+
+        <mxCell id="c3b" value="构造 Φ̃；解 13×13 法方程 → [Â | b̂]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4ede8;strokeColor=#2f8f7c;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="548" y="296" width="256" height="46" as="geometry" /></mxCell>
+        <mxCell id="c4b" value="逐轴直流回归定原点；V₄ 消歧" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4ede8;strokeColor=#2f8f7c;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="548" y="350" width="256" height="42" as="geometry" /></mxCell>
+
+        <mxCell id="c6" value="自检 ‖z − ÂΦ − b̂‖ &lt; ε_cal ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe599;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="312" y="450" width="216" height="58" as="geometry" /></mxCell>
+        <mxCell id="c7" value="记录残差统计 → 阈值 ρ_th = μ + k·σ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="300" y="524" width="240" height="44" as="geometry" /></mxCell>
+
+        <mxCell id="r1" value="读锁相输出 z_k" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="304" y="636" width="220" height="42" as="geometry" /></mxCell>
+        <mxCell id="dec_r" value="单 MZM？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe599;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="346" y="694" width="136" height="58" as="geometry" /></mxCell>
+        <mxCell id="r2a" value="û=B(z−b̂)；φ̂=atan(û_y,û_x)；ρ=|‖û‖−1|" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="24" y="700" width="256" height="48" as="geometry" /></mxCell>
+        <mxCell id="r2b" value="热启动 2 步阻尼高斯–牛顿 → φ̂；ρ=‖z−ÂΦ−b̂‖" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4ede8;strokeColor=#2f8f7c;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="548" y="700" width="256" height="48" as="geometry" /></mxCell>
+        <mxCell id="r3" value="e=wrap(φ̂−φ*)；PI：V←V−G·e·V_π/π → DAC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="287" y="770" width="260" height="48" as="geometry" /></mxCell>
+        <mxCell id="r4" value="残差 EWMA：ρ̄ ← (1−λ)ρ̄ + λρ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="297" y="830" width="240" height="42" as="geometry" /></mxCell>
+        <mxCell id="dec_re" value="ρ̄ &gt; ρ_th&lt;br&gt;连续 M 周期？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe599;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="334" y="888" width="164" height="74" as="geometry" /></mxCell>
+        <mxCell id="r5" value="保持当前 V，执行微幅弧重定标&lt;br&gt;（DPMZM 优先激励 s₁s₂ 子空间）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;align=center;" vertex="1" parent="1"><mxGeometry x="520" y="898" width="284" height="54" as="geometry" /></mxCell>
+        <mxCell id="run_note" value="全周期代价 &lt; 10³ 次乘加，适合 Cortex-M 级控制器" style="text;html=1;align=left;fontSize=11;fontStyle=2;fontColor=#666666;" vertex="1" parent="1"><mxGeometry x="24" y="1124" width="500" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="ec0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="entry" target="c1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="c1" target="c2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="c2" target="dec_c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec3" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#3a5e86;strokeWidth=1.3;fontSize=11;fontColor=#2f5b86;" edge="1" parent="1" source="dec_c" target="c3a"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec4" value="否 · DPMZM" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#2f8f7c;strokeWidth=1.3;fontSize=11;fontColor=#1f7a68;" edge="1" parent="1" source="dec_c" target="c3b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#3a5e86;strokeWidth=1.3;" edge="1" parent="1" source="c3a" target="c4a"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#3a5e86;strokeWidth=1.3;" edge="1" parent="1" source="c4a" target="c5a"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#2f8f7c;strokeWidth=1.3;" edge="1" parent="1" source="c3b" target="c4b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#3a5e86;strokeWidth=1.3;" edge="1" parent="1" source="c5a" target="c6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#2f8f7c;strokeWidth=1.3;" edge="1" parent="1" source="c4b" target="c6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec10" value="否 · 重扫" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#b85450;strokeWidth=1.2;fontSize=11;fontColor=#b85450;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="c6" target="c2"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="180" y="479" /><mxPoint x="180" y="193" /></Array></mxGeometry></mxCell>
+        <mxCell id="ec11" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.3;fontSize=11;" edge="1" parent="1" source="c6" target="c7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec12" value="进入运行阶段" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=2;fontSize=11;fontColor=#444444;" edge="1" parent="1" source="c7" target="r1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="er1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="r1" target="dec_r"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er2" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#3a5e86;strokeWidth=1.3;fontSize=11;fontColor=#2f5b86;" edge="1" parent="1" source="dec_r" target="r2a"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er3" value="否 · DPMZM" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#2f8f7c;strokeWidth=1.3;fontSize=11;fontColor=#1f7a68;" edge="1" parent="1" source="dec_r" target="r2b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#3a5e86;strokeWidth=1.3;" edge="1" parent="1" source="r2a" target="r3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#2f8f7c;strokeWidth=1.3;" edge="1" parent="1" source="r2b" target="r3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="r3" target="r4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="r4" target="dec_re"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er8" value="否 · 下一周期" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#333333;strokeWidth=1.3;fontSize=11;fontColor=#444444;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="dec_re" target="r1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="250" y="925" /><mxPoint x="250" y="657" /></Array></mxGeometry></mxCell>
+        <mxCell id="er9" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;strokeWidth=1.3;fontSize=11;fontColor=#b85450;" edge="1" parent="1" source="dec_re" target="r5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="er10" value="重定标 → 回标定阶段" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;strokeColor=#d6822b;strokeWidth=2.2;fontSize=11;fontColor=#b35d00;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="r5" target="c2"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="788" y="925" /><mxPoint x="788" y="193" /></Array></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

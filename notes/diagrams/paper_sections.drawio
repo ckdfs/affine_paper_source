@@ -1,0 +1,52 @@
+<mxfile host="app.diagrams.net" agent="claude-code" version="24.0.0">
+  <diagram id="affine-paper-sections" name="章节结构图(A4横向)">
+    <mxGraphModel dx="1422" dy="820" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="g1bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e6;strokeColor=#d79b00;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="24" y="90" width="212" height="706" as="geometry" /></mxCell>
+        <mxCell id="g2bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fc;strokeColor=#6c8ebf;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="248" y="90" width="212" height="706" as="geometry" /></mxCell>
+        <mxCell id="g3bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef7ec;strokeColor=#3aa18c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="472" y="90" width="212" height="706" as="geometry" /></mxCell>
+        <mxCell id="g4bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3eefb;strokeColor=#9673a6;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="696" y="90" width="212" height="706" as="geometry" /></mxCell>
+        <mxCell id="g5bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#777777;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="920" y="90" width="212" height="706" as="geometry" /></mxCell>
+
+        <mxCell id="title" value="MZM / DPMZM 任意点偏压控制的精确仿射框架 —— 章节结构图" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#1f2933;" vertex="1" parent="1"><mxGeometry x="24" y="6" width="1108" height="30" as="geometry" /></mxCell>
+
+        <mxCell id="pre1" value="摘要：导频解调观测 = 偏置流形的精确仿射像；任意点控制 = 标定 + 相位反演" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffd966;strokeColor=#d6b656;fontSize=12;align=center;" vertex="1" parent="1"><mxGeometry x="24" y="44" width="460" height="40" as="geometry" /></mxCell>
+        <mxCell id="pre2" value="关键词：MZM、DPMZM、偏压控制、导频、仿射辨识、可观测性" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff5d6;strokeColor=#d6b656;fontSize=12;align=center;" vertex="1" parent="1"><mxGeometry x="500" y="44" width="300" height="40" as="geometry" /></mxCell>
+        <mxCell id="pre3" value="符号：φ_b 偏置；ξ/m 导频；u·z·A·b 仿射；Φ:T³→ℝ¹²；J 雅可比；V₄ Klein" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;align=center;" vertex="1" parent="1"><mxGeometry x="816" y="44" width="316" height="40" as="geometry" /></mxCell>
+
+        <mxCell id="g1h" value="立题 与 动机（I）" style="text;html=1;align=center;fontSize=14;fontStyle=1;fontColor=#995c00;" vertex="1" parent="1"><mxGeometry x="32" y="96" width="196" height="22" as="geometry" /></mxCell>
+        <mxCell id="g2h" value="单 MZM 理论（II–V）" style="text;html=1;align=center;fontSize=14;fontStyle=1;fontColor=#2f5b86;" vertex="1" parent="1"><mxGeometry x="256" y="96" width="196" height="22" as="geometry" /></mxCell>
+        <mxCell id="g3h" value="DPMZM 推广（VI–VIII）" style="text;html=1;align=center;fontSize=14;fontStyle=1;fontColor=#1f7a68;" vertex="1" parent="1"><mxGeometry x="480" y="96" width="196" height="22" as="geometry" /></mxCell>
+        <mxCell id="g4h" value="算法 与 验证（IX–XI）" style="text;html=1;align=center;fontSize=14;fontStyle=1;fontColor=#6c4f8c;" vertex="1" parent="1"><mxGeometry x="704" y="96" width="196" height="22" as="geometry" /></mxCell>
+        <mxCell id="g5h" value="讨论 与 附录（XII–XIII,A）" style="text;html=1;align=center;fontSize=14;fontStyle=1;fontColor=#555555;" vertex="1" parent="1"><mxGeometry x="928" y="96" width="196" height="22" as="geometry" /></mxCell>
+
+        <mxCell id="n_intro" value="I  引言&lt;br&gt;&lt;br&gt;• 背景：LiNbO₃/InP 偏压漂移，需在线控制&lt;br&gt;• 痛点：标量谐波法到任意点 → 死区 / 歧义 / 标定静差&lt;br&gt;&lt;br&gt;━ 六项贡献 ━&lt;br&gt;① 单 MZM 精确仿射定理&lt;br&gt;② 统一解释传统方案&lt;br&gt;③ 自标定任意点控制&lt;br&gt;④ DPMZM 12 维特征映射&lt;br&gt;⑤ IMD 通道可观测性解释&lt;br&gt;⑥ 标定 / 解调算法" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=8;" vertex="1" parent="1"><mxGeometry x="38" y="124" width="184" height="658" as="geometry" /></mxCell>
+
+        <mxCell id="n2II" value="II  信号模型与传统锁定&lt;br&gt;• MZM 传函、锁相 L₁/L₂&lt;br&gt;• 谐波结构（表1）&lt;br&gt;• 特殊点静差、命题1&lt;br&gt;• 任意点传统路线" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="262" y="124" width="184" height="150" as="geometry" /></mxCell>
+        <mxCell id="n2III" value="III  单 MZM 精确仿射定理&lt;br&gt;• 引理1 因子分解&lt;br&gt;• 定理1 z=A·u(φ)+b+n&lt;br&gt;• O(ε) 非对角（附录A）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="262" y="290" width="184" height="150" as="geometry" /></mxCell>
+        <mxCell id="n2IV" value="IV  可辨识性 / 标定 / 闭环&lt;br&gt;• 规范自由度 O(2)&lt;br&gt;• 四步标定、atan 解调&lt;br&gt;• 一致增益闭环（算法1）&lt;br&gt;• 方案对照（表2）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="262" y="456" width="184" height="150" as="geometry" /></mxCell>
+        <mxCell id="n2V" value="V  噪声与导频深度&lt;br&gt;• 相位方差 σ²&lt;br&gt;• 条件数 κ(A)、选 m&lt;br&gt;• 设计曲线（图Bessel）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="262" y="622" width="184" height="150" as="geometry" /></mxCell>
+
+        <mxCell id="n3VI" value="VI  推广至 DPMZM（T³）&lt;br&gt;• 场模型半角结构&lt;br&gt;• 4π 周期、Klein V₄&lt;br&gt;• 九通道（表3）&lt;br&gt;• 12 维 Φ、定理2&lt;br&gt;• 结构对应（表4）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#3aa18c;strokeWidth=2;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="486" y="124" width="184" height="205" as="geometry" /></mxCell>
+        <mxCell id="n3VII" value="VII  可观测性与 IMD 通道&lt;br&gt;• 雅可比秩 σ_min(J)&lt;br&gt;• 命题2 标准点不可观&lt;br&gt;• IMD 恢复满秩&lt;br&gt;• 残余奇点 (π,π,0)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="486" y="345" width="184" height="205" as="geometry" /></mxCell>
+        <mxCell id="n3VIII" value="VIII  T³ 标定与 GN 解调&lt;br&gt;• 准周期扫描回归（13×13）&lt;br&gt;• 热启动阻尼 GN&lt;br&gt;• 父轴噪声地板" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="486" y="566" width="184" height="205" as="geometry" /></mxCell>
+
+        <mxCell id="n4IX" value="IX  偏压控制算法设计&lt;br&gt;• 两阶段流程（图flow）&lt;br&gt;• 算法2 标定&lt;br&gt;• 算法3 运行&lt;br&gt;• 残差监测 + 重定标&lt;br&gt;• 参数整定" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="710" y="124" width="184" height="205" as="geometry" /></mxCell>
+        <mxCell id="n4X" value="X  数值验证&lt;br&gt;• 仿真设置、表5&lt;br&gt;• 零噪声闭合&lt;br&gt;• 含噪 mrad 级&lt;br&gt;• 闭环对比基线&lt;br&gt;• 可观测性热图&lt;br&gt;• 算法级动态" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="710" y="345" width="184" height="205" as="geometry" /></mxCell>
+        <mxCell id="n4XI" value="XI  实验验证计划（待实测）&lt;br&gt;• 测量链路&lt;br&gt;• 相位真值评定&lt;br&gt;• 7 阶段流程&lt;br&gt;• 测试矩阵（表6/7）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="710" y="566" width="184" height="205" as="geometry" /></mxCell>
+
+        <mxCell id="n5XII" value="XII  讨论&lt;br&gt;• 持续激励&lt;br&gt;• 漂移时间尺度&lt;br&gt;• DP-QPSK&lt;br&gt;• 硬件实现&lt;br&gt;• 适用边界、展望" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#777777;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="934" y="124" width="184" height="205" as="geometry" /></mxCell>
+        <mxCell id="n5XIII" value="XIII  结论&lt;br&gt;• 仿射像 → 特殊点解释&lt;br&gt;• → 任意点控制&lt;br&gt;• DPMZM 秩条件&lt;br&gt;• 适用边界" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#777777;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="934" y="345" width="184" height="205" as="geometry" /></mxCell>
+        <mxCell id="n5A" value="附录 A  导频失真首阶元素&lt;br&gt;• 式 (Aeps)&lt;br&gt;• 基准相移 δφ_c" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eeeeee;strokeColor=#999999;fontSize=13;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="934" y="566" width="184" height="205" as="geometry" /></mxCell>
+
+        <mxCell id="es1" value="阅读主线" style="endArrow=classic;html=1;strokeColor=#d6822b;strokeWidth=2;fontSize=11;fontColor=#b35d00;" edge="1" parent="1" source="g1bg" target="g2bg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="es2" style="endArrow=classic;html=1;strokeColor=#d6822b;strokeWidth=2;" edge="1" parent="1" source="g2bg" target="g3bg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="es3" style="endArrow=classic;html=1;strokeColor=#d6822b;strokeWidth=2;" edge="1" parent="1" source="g3bg" target="g4bg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="es4" style="endArrow=classic;html=1;strokeColor=#d6822b;strokeWidth=2;" edge="1" parent="1" source="g4bg" target="g5bg"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

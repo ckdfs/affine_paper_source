@@ -42,6 +42,8 @@ scripts/
   check.py            # read-only doctor
   paper_metrics.json  # THE NUMBER CONTRACT (see below)
 notes/*.html        # MZM / DPMZM affine derivations (source of truth for the math)
+notes/diagrams/*.drawio # reading/review aids (思路/章节/算法/实验 flowcharts);
+                    #   each laid out as one A4 page. NOT paper figures — not in figs/.
 build/              # generated, git-ignored (captured sim stdout etc.)
 ```
 
