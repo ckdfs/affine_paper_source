@@ -1,0 +1,73 @@
+{
+  "calib_headline": {
+    "accepted": true,
+    "kappa_A": 45.242,
+    "method": "phase-ref",
+    "n_avg": 4,
+    "n_blocks": 16,
+    "pilot_v": 0.15,
+    "selfcheck_median_mrad": 27.28,
+    "selfcheck_p95_mrad": 106.195,
+    "v0_V": 1.6764,
+    "vpi_V": 4.98
+  },
+  "calib_v0_V": 1.8212,
+  "calib_vpi_V": 5.1441,
+  "drift_diagnostic": {
+    "iters": 100,
+    "latency_cyc": 6,
+    "n_avg": 4,
+    "n_blocks": 16,
+    "post_rms_mrad": 396.1,
+    "pre_rms_mrad": 109.5,
+    "recal_at": 56,
+    "recovered": true,
+    "step_at": 50,
+    "thr": 0.1028583750274793
+  },
+  "kappa_A": 45.242,
+  "lock_affine_rms_mrad": 246,
+  "lock_diagnostic": {
+    "accepted": false,
+    "gain": 0.25,
+    "iters": 40,
+    "lock_affine_rms_mrad": 154.0,
+    "lock_h1match_rms_mrad": 2312.1,
+    "n_avg": 1,
+    "n_blocks": 16,
+    "n_grid": 4
+  },
+  "lock_h1match_rms_mrad": 1241,
+  "lock_headline": {
+    "accepted": true,
+    "gain": 0.3,
+    "iters": 26,
+    "lock_affine_rms_map_xcheck_mrad": 342.3,
+    "lock_affine_rms_mrad": 245.5,
+    "lock_h1match_rms_mrad": 1241.1,
+    "n_avg": 1,
+    "n_blocks": 16,
+    "n_grid": 16
+  },
+  "recal_latency_cyc": 6,
+  "recal_post_rms_mrad": 396,
+  "selfcheck_median_mrad": 27.28,
+  "selfcheck_p95_mrad": 106.195,
+  "stability_diagnostic": {
+    "bad_acq": 0,
+    "dmm_max_mrad": 632.0,
+    "dmm_rms_mrad": 487.3,
+    "duration_h": 3.0,
+    "n_samples": 6078,
+    "recal_events": 0,
+    "vdrift_V": 0.985
+  },
+  "stability_dmm_rms_mrad": 487.3,
+  "stability_recal_events_3h": 0,
+  "v0_V": 0.4142,
+  "v0_fit_V": 0.4142,
+  "vpi_V": 5.2776,
+  "vpi_dir_split_V": 0.161,
+  "vpi_down_V": 5.1971,
+  "vpi_up_V": 5.3581
+}
