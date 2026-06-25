@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Doctor / verifier for the affine-framework paper. Read-only.
 
-Runs four families of checks and prints a PASS/WARN/FAIL report:
+Runs five families of checks and prints a PASS/WARN/FAIL report:
 
   1. Cross-reference integrity   -- every \\ref/\\eqref target has a \\label;
                                     flags labels that are never referenced.
@@ -12,6 +12,9 @@ Runs four families of checks and prints a PASS/WARN/FAIL report:
                                     occurs literally in the .tex AND is
                                     reproduced (within tol) by the captured
                                     simulation stdout (build/sim_output.txt).
+  5. Experiment reconciliation   -- if data/exp/results.json exists, every
+                                    measured single-MZM metric present there
+                                    must also be reflected in tab:exp.
   (+) LaTeX log scan             -- Overfull \\hbox and undefined references,
                                     if <tex>.log is present.
 
@@ -167,6 +170,78 @@ def check_metrics(tex: str, use_sim: bool) -> None:
                           f"-- update paper_metrics.json AND the .tex")
 
 
+def _exp_cell(tex: str, label_substr: str) -> str | None:
+    for line in tex.splitlines():
+        if label_substr in line and "&" in line and r"\\" in line:
+            parts = line.split("&")
+            if len(parts) >= 3:
+                return parts[-1].split(r"\\", 1)[0].strip()
+    return None
+
+
+def _numbers_in_latex_cell(cell: str) -> list[float]:
+    pat = re.compile(
+        r"[-+]?(?:\d+\.\d+|\d+)(?:\s*(?:e|E|\\times\s*10\^)\s*"
+        r"\{?[-+]?\d+\}?)?")
+    vals = []
+    for m in pat.finditer(cell):
+        s = m.group(0).replace(" ", "")
+        s = re.sub(r"\\times10\^\{?([-+]?\d+)\}?", r"e\1", s)
+        try:
+            vals.append(float(s))
+        except ValueError:
+            pass
+    return vals
+
+
+def check_experiment_results(tex: str) -> None:
+    print("[5] experiment reconciliation (data/exp/results.json)")
+    rpath = os.path.join(REPO, "data", "exp", "results.json")
+    if not os.path.exists(rpath):
+        _emit("ok", "no real experiment results yet -- tab:exp may retain 待测")
+        return
+    try:
+        results = json.loads(read(rpath))
+    except json.JSONDecodeError as e:
+        _emit("FAIL", f"data/exp/results.json is invalid JSON: {e}")
+        return
+    specs = [
+        ("selfcheck_median_mrad", "标定自检残差", 0.05, "mrad"),
+        ("lock_affine_rms_mrad", "任意点锁定~rms", 0.1, "mrad"),
+        ("kappa_A", "噪声地板", 0.01, ""),
+        ("settle_cycles", "捕获整定时间", 0.5, "cycles"),
+        ("recal_latency_cyc", "漂移突变检测延迟", 0.5, "cycles"),
+        ("recal_post_rms_mrad", "漂移突变检测延迟", 0.1, "mrad"),
+        ("stability_recal_events_3h", "$3$~h 长期稳定性", 0.5, "events"),
+    ]
+    checked = 0
+    for key, row, tol, unit in specs:
+        if key not in results:
+            continue
+        checked += 1
+        cell = _exp_cell(tex, row)
+        if cell is None:
+            _emit("FAIL", f"{key}: cannot find tab:exp row containing {row!r}")
+            continue
+        if "待测" in cell or "计划" in cell:
+            _emit("FAIL", f"{key}: results.json has a value but tab:exp still says {cell!r}")
+            continue
+        try:
+            exp = float(results[key])
+        except (TypeError, ValueError):
+            _emit("FAIL", f"{key}: value is not numeric -> {results[key]!r}")
+            continue
+        nums = _numbers_in_latex_cell(cell)
+        if any(abs(v - exp) <= tol for v in nums):
+            suffix = f" {unit}" if unit else ""
+            _emit("ok", f"{key}: tab:exp contains {exp:g}{suffix}")
+        else:
+            _emit("FAIL", f"{key}: tab:exp cell {cell!r} does not contain "
+                          f"{exp:g} within tol {tol:g}")
+    if checked == 0:
+        _emit("ok", "results file exists but has no table headline metrics yet")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -182,6 +257,7 @@ def main() -> int:
     check_cites(tex)
     check_figs(tex)
     check_metrics(tex, use_sim=not a.no_sim)
+    check_experiment_results(tex)
     check_log(a.tex)
     print(f"\nsummary: {G}{'no fails' if not _fails else ''}{X}"
           f"{R}{_fails} FAIL{X} / {Y}{_warns} WARN{X}")

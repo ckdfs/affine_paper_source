@@ -7,7 +7,7 @@ Bilingual manuscript + Python figure scripts + HTML derivation notes.
 
 ```bash
 make figs     # regenerate matplotlib figs/*.pdf  (+ capture sim stdout to build/sim_output.txt)
-make exp-figs # re-export the 2 Visio experiment figures' PDFs from the hand-edited .vsdx (needs Visio)
+make exp-figs # render experiment figures figs/fig_exp*.pdf from measured data/exp/ (matplotlib)
 make pdf      # compile paper_zh.tex with latexmk -xelatex
 make check    # doctor: refs / cites / figure files / NUMBER RECONCILIATION
 make verify   # figs + pdf + check  (the full "regenerate and validate" loop)
@@ -27,20 +27,27 @@ paper_zh.tex        # PRIMARY manuscript (the one we maintain)
 paper.tex           # English version — LAGS the Chinese (missing the algorithm
                     #   and experiment sections). Do not touch unless asked to sync.
 figs/*.pdf          # rendered figures, committed on purpose (see RNG rule below)
+data/exp/           # measured single-MZM bench data, committed: vpi.csv, calib.npz,
+                    #   lock_sweep.npz, pilot_depth.csv, drift.npz, stability.npz,
+                    #   results.json (the EXPERIMENT number contract; see check.py [5])
 scripts/
   make_figs.py        # fig_arch/ellipse/bessel/mzmloop/torus/obs/dploop/ahat
                       #   + the [V] validation suite at the very end
   make_extra_figs.py  # fig_gauge/mcdp/sweep
   make_algo_figs.py   # fig_acq/flow/recal/step
-  export_exp_link.ps1 # ROUTINE: re-export figs/fig_exp_{mzm,dpmzm}.pdf from the
-                      #   hand-edited .vsdx (reads .vsdx, writes .pdf; `make exp-figs`).
-  build_exp_link.ps1  # DESTRUCTIVE: rebuild those .vsdx+.pdf from scratch via Visio
-                      #   COM (device stencil). OVERWRITES manual edits — run only to
-                      #   start over. The figs/*.vsdx are the hand-maintained source;
-                      #   make_figs.py never touches these two figures.
-  build.py            # orchestrator (interpreter detection + stdout capture)
-  check.py            # read-only doctor
-  paper_metrics.json  # THE NUMBER CONTRACT (see below)
+  make_exp_figs.py    # EXPERIMENT figs (fig_exp0-3, fig_expkappa, and the
+                      #   fig_exp_mzm/dpmzm schematics) from data/exp/; `make exp-figs`.
+                      #   Offline; a figure whose data is absent is skipped.
+  measure_bench.py    # hardware-in-loop bench driver: stages bringup/vpi/calib/lock/
+                      #   pilot/drift/stability via the /biasboard /dm858e /sds824xhd
+                      #   skills; PC affine + baseline controllers. `--sim` -> build/exp_sim/.
+  exp_common.py       # shared experiment math (ellipse cal, phase truth, IO); numpy-only
+  export_exp_link.ps1 # LEGACY: Visio .vsdx -> fig_exp_{mzm,dpmzm}.pdf (`make exp-figs-vsdx`).
+                      #   Superseded — those two figs now come from make_exp_figs.py.
+  build_exp_link.ps1  # LEGACY/DESTRUCTIVE: rebuild the .vsdx from scratch via Visio COM.
+  build.py            # orchestrator (interpreter detection; figs/exp-figs/pdf/all)
+  check.py            # read-only doctor (incl. [5] experiment reconciliation)
+  paper_metrics.json  # THE SIMULATION NUMBER CONTRACT (see below)
 notes/*.html        # MZM / DPMZM affine derivations (source of truth for the math)
 notes/diagrams/*.drawio # reading/review aids (思路/章节/算法/实验 flowcharts);
                     #   each laid out as one A4 page. NOT paper figures — not in figs/.
@@ -73,15 +80,19 @@ build/              # generated, git-ignored (captured sim stdout etc.)
    → update `expect` in the JSON and the `tex` literal in the manuscript → add a
    reproducing print in the relevant script if one is missing → `make check`.
 
-5. **Never fabricate experimental data.** Section `sec:exp` is a *plan* with
-   placeholder figures (`\placeholderbox`) and "待测" cells. Strengthen the plan,
-   metrics, and methodology, but do not invent measured numbers.
+5. **Never fabricate experimental data.** `sec:exp` now reports REAL single-MZM
+   bench measurements (calibration, arbitrary-point lock vs baseline, κ(m), 3h
+   stability, recal recovery) backfilled from `data/exp/` and gated by
+   `check.py [5]`; the DPMZM rows remain plan/`\placeholderbox`. Only backfill
+   values that were actually measured and clear the quality gate — never invent
+   numbers, and keep unmeasured cells "待测"/"计划". The measurement driver
+   (`measure_bench.py --sim`) writes only to `build/exp_sim/`, never `data/exp/`.
 
-6. **PDF visual check.** Use `pdftoppm -png -r 90 paper_zh.pdf out` then read the
-   PNG. poppler lacks the Adobe-GB1 pack, so **CJK glyphs render blank** — that is
-   a viewer limitation, not a PDF defect. Layout, math, tables, and figures are
-   still inspectable. (At higher dpi poppler floods stderr with Adobe-GB1 errors;
-   ignore them.)
+6. **PDF visual check.** `pdftoppm -png -r 110 paper_zh.pdf out` then read the PNG.
+   Fonts now load **by filename** (kpathsea-searched), so `make pdf` works on
+   macOS/Linux as well as Windows, Fandol is embedded, and **CJK renders correctly
+   in poppler** (the old Adobe-GB1 blank-glyph issue is gone). Layout, math,
+   tables and figures are all inspectable.
 
 ## Git
 
@@ -104,5 +115,6 @@ Windows and harmless.
 ## Persisted facts
 
 Longer-lived, cross-session notes live in the user memory under
-`~/.claude/projects/.../memory/` (`affine-paper-build-env`,
-`affine-paper-results-table`). This file is the in-repo, self-contained summary.
+`~/.claude/projects/.../memory/` (e.g. `affine-paper-experiment-bench` — bench
+results, κ/drift limits, and the measurement pitfalls). This file is the in-repo,
+self-contained summary.

@@ -75,6 +75,17 @@ def run_figs() -> int:
     return 0
 
 
+def run_exp_figs() -> int:
+    """Render the EXPERIMENT figures (figs/fig_exp*.pdf, fig_expkappa.pdf) from
+    the measured data in data/exp/ via make_exp_figs.py. Offline, no hardware;
+    figures with missing data are skipped. Separate from run_figs() because it
+    reads measured data, not the fixed-seed simulation (no sim stdout capture)."""
+    py = figure_python()
+    print(f"[build] experiment-figure interpreter: {py}")
+    return subprocess.run([py, os.path.join("scripts", "make_exp_figs.py")],
+                          cwd=REPO).returncode
+
+
 def run_pdf(tex: str) -> int:
     print(f"[build] latexmk -xelatex {tex}")
     return subprocess.run(
@@ -84,10 +95,12 @@ def run_pdf(tex: str) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("target", choices=["figs", "pdf", "all"])
+    ap.add_argument("target", choices=["figs", "exp-figs", "pdf", "all"])
     ap.add_argument("--tex", default="paper_zh.tex", help="manuscript to compile (pdf/all)")
     a = ap.parse_args()
     rc = 0
+    if a.target == "exp-figs":
+        return run_exp_figs()
     if a.target in ("figs", "all"):
         rc = run_figs()
         if rc:

@@ -12,11 +12,11 @@
 PY   ?= python
 MAIN ?= paper_zh.tex
 
-.PHONY: all figs exp-figs pdf check verify clean help
+.PHONY: all figs exp-figs exp-figs-vsdx pdf check verify clean help
 
 help:
 	@echo "make figs   - regenerate matplotlib figs/*.pdf and capture sim stdout"
-	@echo "make exp-figs - re-export experiment-link PDFs from the (hand-edited) .vsdx (needs Visio)"
+	@echo "make exp-figs - render experiment figures (figs/fig_exp*.pdf) from data/exp/"
 	@echo "make pdf    - compile $(MAIN) with latexmk -xelatex"
 	@echo "make all    - figs + pdf"
 	@echo "make check  - run the doctor (refs/cites/figs/number reconciliation)"
@@ -27,11 +27,17 @@ help:
 figs:
 	$(PY) scripts/build.py figs
 
-# fig_exp_mzm/dpmzm are HAND-MAINTAINED editable Visio drawings (figs/*.vsdx),
-# not matplotlib. `exp-figs` only re-exports their PDFs from the .vsdx; it does
-# not touch the .vsdx. (To rebuild them from scratch -- discarding manual edits --
-# run scripts/build_exp_link.ps1 by hand.) Intentionally outside `figs`/`verify`.
+# Experiment figures (fig_exp0-3, fig_expkappa, and the fig_exp_mzm/dpmzm
+# schematics) are rendered by make_exp_figs.py from the measured data in
+# data/exp/. Offline; a figure whose data is absent is skipped. Kept separate
+# from `figs` (the fixed-seed simulation scripts) and from `verify`.
 exp-figs:
+	$(PY) scripts/build.py exp-figs
+
+# LEGACY: fig_exp_mzm/dpmzm were once hand-edited Visio drawings (figs/*.vsdx)
+# re-exported here; they are now generated programmatically by `make exp-figs`.
+# Retained for reference -- run by hand only if reverting to the Visio source.
+exp-figs-vsdx:
 	pwsh -NoProfile -File scripts/export_exp_link.ps1
 
 pdf:
