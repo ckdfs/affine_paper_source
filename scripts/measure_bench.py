@@ -19,6 +19,9 @@ unmeasured stays "待测"):
   lock      stage 2: >=16 phi* grid, affine vs H1-match baseline -> lock_sweep
   pilot     stage 3: sweep pilot amplitude Ap -> kappa(A), residual vs phi
   drift     stage 4: inject step, residual-triggered recal -> latency, recovery
+  rf        stage 5: arbitrary-point lock robustness under an applied out-of-band
+            RF drive (DG922pro 50 MHz on the MZM RF port, FSV30 verifies the tone
+            at DE2) -> lock rms RF-on vs RF-off + J0(m_RF) harmonic fading
 
   --sim     replace the bench with an analytic MZM model; writes ONLY to
             build/exp_sim/ (gitignored).  For tooling validation, NOT the paper.
@@ -46,6 +49,24 @@ PILOT_V = 0.10             # default pilot amplitude (V on the bias line)
 CH = "A"                   # default MZM bias DAC channel
 BIAS_LIMIT = 9.0           # keep |bias|+|pilot| < 10 V (board clips otherwise)
 ACQ_FREQS = (PILOT_HZ, H2_HZ)
+RF_HZ = 50e6               # default applied RF tone (stage 5 robustness)
+RF_CH = 1                  # DG922pro channel feeding the MZM RF port
+
+
+def dbm_to_vpp(dbm: float, load_ohm: float = 50.0) -> float:
+    """Sine power in dBm (into load_ohm) -> peak-to-peak volts (DG922pro units)."""
+    vrms = np.sqrt(1e-3 * 10 ** (dbm / 10.0) * load_ohm)
+    return float(2.0 * np.sqrt(2.0) * vrms)
+
+
+def vpp_to_dbm(vpp: float, load_ohm: float = 50.0) -> float:
+    vrms = vpp / (2.0 * np.sqrt(2.0))
+    return float(10.0 * np.log10((vrms ** 2 / load_ohm) / 1e-3))
+
+
+def rf_depth(vpp: float, vpi: float) -> float:
+    """RF modulation depth m_RF = pi * V_peak / Vpi for a Vpp sine drive."""
+    return float(np.pi * (vpp / 2.0) / vpi)
 
 SKILL_ROOTS = (
     "/Users/ckdfs/.cc-switch/skills",
@@ -86,6 +107,18 @@ def open_scope():
     return SDS824XHD()
 
 
+def open_siggen():
+    _skill("dg922pro")
+    from dg922pro import DG922Pro
+    return DG922Pro()
+
+
+def open_specan():
+    _skill("fsv30")
+    from fsv30 import FSV30
+    return FSV30()
+
+
 # --------------------------------------------------------------------------- #
 #  observation vector  z = (X = comp@2k, Y = comp@1k)                          #
 # --------------------------------------------------------------------------- #
@@ -121,16 +154,28 @@ def read_dc(dmm):
 
 def prepare_mzm_frontend(board, pilot_v):
     """Configure the real board once for repeated MZM points. Subsequent points
-    only update gen bias and run acq, avoiding acq_run_mzm's per-point reset."""
+    only update gen bias and run acq, avoiding acq_run_mzm's per-point reset.
+
+    The acq_add commands occasionally get dropped on the USB-serial link right
+    after a prior run, leaving the board with zero acq frequencies (then acq_run
+    raises "no acquisition frequencies").  Verify they registered via acq_show and
+    retry a couple of times so every stage is robust to that flaky drop."""
     if isinstance(board, SimBoard):
         return
-    board.gen_reset()
-    board.gen_bias(CH, 0.0)
-    board.gen_pilot(CH, PILOT_HZ, pilot_v)
-    board.acq_reset()
-    for f in ACQ_FREQS:
-        board.acq_add(f)
-    time.sleep(0.4)
+    for _ in range(3):
+        board.gen_reset()
+        board.gen_bias(CH, 0.0)
+        board.gen_pilot(CH, PILOT_HZ, pilot_v)
+        board.acq_reset()
+        for f in ACQ_FREQS:
+            board.acq_add(f)
+        time.sleep(0.4)
+        try:
+            if f"freqs: {len(ACQ_FREQS)}" in board.acq_show():
+                return
+        except Exception:
+            return                     # acq_show unsupported -> assume it took
+    print("[warn] prepare_mzm_frontend: acq freqs not confirmed after retries")
 
 
 def acq_point_prepared(board, dmm, bias, pilot_v, n_blocks):
@@ -199,16 +244,24 @@ class SimBoard:
     def __init__(self, seed=7):
         self.rng = np.random.default_rng(seed)
         self._gx, self._gy = 1.0, 1.0
+        self._j0 = 1.0          # out-of-band RF fading factor J0(m_RF) (stage 5)
+        self._rf_dbm = -120.0   # last RF drive level the sig-gen reported
 
     def _phi(self, bias):
         return np.pi * (bias - self.V0) / self.VPI
+
+    def _fringe(self, phi):
+        """Slow-detected fringe amplitude. An out-of-band RF tone is averaged by
+        the PD to J0(m_RF) (theorem: only the cos(phi) term fades, the DC pedestal
+        does not), so the visibility scales by self._j0 while the phase is intact."""
+        return self.DC_B * self._j0 * np.cos(phi)
 
     def acq_run_mzm(self, bias, pilot_hz=PILOT_HZ, pilot_v=PILOT_V, ch=CH,
                     acq_freqs=ACQ_FREQS, n_blocks=10):
         phi = self._phi(bias)
         m = np.pi * pilot_v / self.VPI            # pilot depth scales amplitudes
-        a1 = self.A1 * min(1.0, m / 0.06)
-        a2 = self.A2 * min(1.0, (m / 0.06) ** 2)
+        a1 = self.A1 * min(1.0, m / 0.06) * self._j0   # RF fades the AC harmonics
+        a2 = self.A2 * min(1.0, (m / 0.06) ** 2) * self._j0
         s = self.SIGMA / np.sqrt(max(1, n_blocks))
         # H1 ~ sin(phi+delta), split into I/Q by the skew; H2 ~ cos(phi)
         Y = self.BY + self._gy * a1 * np.sin(phi)
@@ -217,7 +270,7 @@ class SimBoard:
         Q1 = Y * np.sin(self.DELTA) + s * self.rng.standard_normal()
         I2 = X + s * self.rng.standard_normal()
         Q2 = 0.20 * X + s * self.rng.standard_normal()
-        dc_true = self.DC_A + self.DC_B * np.cos(phi)
+        dc_true = self.DC_A + self._fringe(phi)
         dc_board = min(dc_true, self.CH1_FS)      # board CH1 clips
         return {"blocks": n_blocks, "dc": dc_board, "tones": {
             PILOT_HZ: {"I": I1, "Q": Q1, "mag": float(np.hypot(I1, Q1)),
@@ -227,11 +280,79 @@ class SimBoard:
 
     def dc_true_at(self, bias):
         """Unclipped PD DC (what the DMM sees) at an arbitrary bias."""
-        return float(self.DC_A + self.DC_B * np.cos(self._phi(bias)))
+        return float(self.DC_A + self._fringe(self._phi(bias)))
 
     def set_drift(self, gx=None, gy=None):
         if gx is not None: self._gx = gx
         if gy is not None: self._gy = gy
+
+    def set_rf(self, m_rf, dbm=-120.0):
+        """Apply an out-of-band RF tone of modulation depth m_rf -> J0(m_rf)."""
+        from scipy.special import j0 as _besselj0
+        self._j0 = float(_besselj0(m_rf))
+        self._rf_dbm = float(dbm)
+
+
+class SimSigGen:
+    """Stand-in for DG922Pro driving the MZM RF port: a sine on the RF port
+    averages to a J0(m_RF) fade of the slow MZM observation (set on the board)."""
+    def __init__(self, board: SimBoard, vpi=None):
+        self.b = board
+        self.vpi = vpi or board.VPI
+        self._on = False
+        self._vpp = 0.0
+
+    def set_load(self, channel, load):
+        pass
+
+    def setup_waveform(self, channel=RF_CH, waveform="SINusoid", freq=RF_HZ,
+                       amp=1.0, offset=0.0, phase=0.0):
+        self._vpp = float(amp)
+
+    def set_amplitude(self, channel, amp):
+        self._vpp = float(amp)
+        if self._on:
+            self._apply()
+
+    def output_on(self, channel=RF_CH):
+        self._on = True
+        self._apply()
+
+    def output_off(self, channel=RF_CH):
+        self._on = False
+        self.b.set_rf(0.0)
+
+    def _apply(self):
+        m_rf = rf_depth(self._vpp, self.vpi)
+        self.b.set_rf(m_rf, dbm=vpp_to_dbm(self._vpp) if self._vpp > 0 else -120.0)
+
+
+class SimSpecAn:
+    """Stand-in for FSV30 reading the applied tone at DE2 (a fixed insertion loss
+    below the electrical drive level the sig-gen put out)."""
+    IL_DB = 6.0
+
+    def __init__(self, board: SimBoard):
+        self.b = board
+
+    def setup_frequency(self, center, span):
+        pass
+
+    def single_sweep(self):
+        pass
+
+    def wait_for_sweep(self, timeout_s=30.0):
+        return True
+
+    def marker_on(self, marker=1):
+        pass
+
+    def marker_set_freq(self, freq, marker=1):
+        pass
+
+    def marker_read(self, marker=1):
+        lvl = (self.b._rf_dbm - self.IL_DB) if self.b._rf_dbm > -100 else -120.0
+        return (RF_HZ, float(lvl))
 
 
 class SimDMM:
@@ -268,8 +389,7 @@ def acq_point(board, dmm, bias, pilot_v, n_blocks):
     """One measurement point: set bias+pilot, acquire H1/H2/board-DC, read DMM
     DC. Returns (acq_dict, dc_dmm)."""
     if isinstance(board, SimBoard):
-        board._last_dc_true = SimBoard.DC_A + SimBoard.DC_B * np.cos(
-            board._phi(bias))
+        board._last_dc_true = board.dc_true_at(bias)
         acq = board.acq_run_mzm(bias=bias, pilot_v=pilot_v, n_blocks=n_blocks)
         dc_dmm = dmm.measure_dc_voltage() if dmm else float("nan")
         return acq, dc_dmm
@@ -600,18 +720,23 @@ def stage_pilot(board, dmm, datadir, amps=(0.05, 0.10, 0.20, 0.40),
                ["Ap", "m", "kappa", "resid_mrad"], rows)
 
 
-def _recalibrate(board, dmm, pilot_v, vpi, v0, n=121, n_blocks=16, n_avg=2):
+def _recalibrate(board, dmm, pilot_v, vpi, v0, n=121, n_blocks=16, n_avg=2,
+                 label=None):
     """Quick re-calibration sweep (no file output) -> fresh demod dict; used by
-    the drift-recovery to re-identify the ellipse at the CURRENT pilot depth."""
+    the drift-recovery to re-identify the ellipse at the CURRENT pilot depth.
+    Pass `label` to print sweep progress (long silent sweeps look hung)."""
     configure_dc_fast(dmm)
     prepare_mzm_frontend(board, pilot_v)
     bias = np.linspace(v0 - vpi, v0 + vpi, n)
     I1 = []; Q1 = []; I2 = []; Q2 = []; dcd = []
-    for V in bias:
+    for i, V in enumerate(bias, 1):
         acq, dc = average_acq_point(board, dmm, float(V), pilot_v, n_blocks, n_avg)
         t1, t2 = acq["tones"][PILOT_HZ], acq["tones"][H2_HZ]
         I1.append(t1["I"]); Q1.append(t1["Q"])
         I2.append(t2["I"]); Q2.append(t2["Q"]); dcd.append(dc)
+        if label and (i == 1 or i % 30 == 0 or i == n):
+            print(f"[rf]   {label}: recal {i:3d}/{n}  bias={V:+.3f}  dc={dc:.3f}",
+                  flush=True)
     I1, Q1, I2, Q2, dcd = map(np.array, (I1, Q1, I2, Q2, dcd))
     comps = choose_comps(I1, Q1, I2, Q2)
     X = I2 if comps[0] == "I" else Q2
@@ -790,6 +915,185 @@ def stage_stability(board, dmm, datadir, duration_s=10800.0, phi_star=1.9,
     ec.save_results(res)
 
 
+# --------------------------------------------------------------------------- #
+#  stage 5: arbitrary-point lock robustness under an applied out-of-band RF    #
+# --------------------------------------------------------------------------- #
+def _specan_tone(specan, rf_hz, span=2e6, settle_s=0.6):
+    """Read the applied-tone level (dBm) at DE2 via the spectrum analyzer."""
+    if specan is None:
+        return float("nan")
+    specan.setup_frequency(center=rf_hz, span=span)
+    specan.single_sweep()
+    specan.wait_for_sweep()
+    specan.marker_on(1)
+    specan.marker_set_freq(rf_hz, 1)
+    time.sleep(settle_s)
+    _, lvl = specan.marker_read(1)
+    return float(lvl)
+
+
+def _rf_apply(siggen, specan, vpp, rf_hz, rf_ch):
+    """Drive (vpp>0) or disable (vpp<=0) the MZM RF port; return the verified
+    tone level at DE2 (NaN if no spectrum analyzer)."""
+    if siggen is None:
+        return float("nan")
+    if vpp <= 0:
+        siggen.output_off(rf_ch)
+        time.sleep(0.3)
+        return _specan_tone(specan, rf_hz)
+    siggen.set_load(rf_ch, 50)
+    siggen.setup_waveform(rf_ch, "SINusoid", freq=rf_hz, amp=vpp, offset=0.0)
+    siggen.output_on(rf_ch)
+    time.sleep(0.5)
+    return _specan_tone(specan, rf_hz)
+
+
+def _rf_load(datadir):
+    """Load any previously measured RF rows (resume across interrupted runs)."""
+    p = os.path.join(datadir, "rf_lock.npz")
+    rows = []; saved = {}
+    if not os.path.exists(p):
+        return rows, saved
+    try:
+        d = np.load(p)
+        for i, pw in enumerate(d["powers_dbm"]):
+            pdv = None if not np.isfinite(pw) else float(pw)
+            tag = "off" if pdv is None else f"{pdv:+.0f}dBm"
+            rows.append(dict(tag=tag, power_dbm=pdv, m_rf=float(d["m_rf"][i]),
+                             tone_dbm=float(d["tone_dbm"][i]),
+                             kappa=float(d["kappa"][i]), h1=float(d["h1"][i]),
+                             h2=float(d["h2"][i]), h1_fade=float(d["h1_fade"][i]),
+                             rms_mrad=float(d["rms_mrad"][i])))
+            if f"err_{tag}" in d.files:
+                saved[f"err_{tag}"] = d[f"err_{tag}"]
+    except Exception:
+        return [], {}
+    return rows, saved
+
+
+def _rf_save(datadir, rows, saved, grid, rf_hz, n_grid, meta):
+    """Write rf_lock.npz + reconcile results.json from the merged rows.  Called
+    after EVERY power state so an interrupted run keeps its completed states."""
+    rows = sorted(rows, key=lambda r: (-1e9 if r["power_dbm"] is None
+                                        else r["power_dbm"]))
+    off = [r for r in rows if r["power_dbm"] is None]
+    h1_off = off[0]["h1"] if off else None
+    for r in rows:                       # fade is relative to the RF-off row
+        r["h1_fade"] = (r["h1"] / h1_off) if h1_off else float("nan")
+    arr = lambda k: np.array([r[k] for r in rows], float)
+    powers = np.array([np.nan if r["power_dbm"] is None else r["power_dbm"]
+                       for r in rows], float)
+    np.savez(os.path.join(datadir, "rf_lock.npz"), powers_dbm=powers,
+             m_rf=arr("m_rf"), tone_dbm=arr("tone_dbm"), kappa=arr("kappa"),
+             h1=arr("h1"), h2=arr("h2"), h1_fade=arr("h1_fade"),
+             rms_mrad=arr("rms_mrad"), phi_grid=grid, rf_hz=float(rf_hz),
+             n_grid=int(n_grid),
+             **{f"err_{r['tag']}": saved[f"err_{r['tag']}"]
+                for r in rows if f"err_{r['tag']}" in saved})
+    rms_off = next((r["rms_mrad"] for r in off), float("nan"))
+    on0 = [r for r in rows if r["power_dbm"] is not None
+           and abs(r["power_dbm"]) < 1e-6]
+    rms_on = on0[0]["rms_mrad"] if on0 else float("nan")
+    accepted = bool(n_grid >= 8 and np.isfinite(rms_on) and np.isfinite(rms_off)
+                    and rms_on < 700.0 and rms_on < 3.0 * rms_off + 50.0)
+    summary = dict(rf_hz=float(rf_hz), n_grid=int(n_grid),
+                   rms_off_mrad=rms_off, rms_on_mrad=rms_on, rows=rows,
+                   accepted=accepted, **meta)
+    res = ec.load_results()
+    if accepted:
+        res["rf_lock_rms_on_mrad"] = round(rms_on, 1)
+        res["rf_lock_rms_off_mrad"] = round(rms_off, 1)
+        res["rf_headline"] = summary
+        res.pop("rf_diagnostic", None)
+    else:
+        for k in ("rf_lock_rms_on_mrad", "rf_lock_rms_off_mrad"):
+            res.pop(k, None)
+        res["rf_diagnostic"] = summary
+    ec.save_results(res)
+    return rms_off, rms_on, accepted
+
+
+def stage_rf(board, dmm, siggen, specan, datadir, rf_hz=RF_HZ, rf_ch=RF_CH,
+             powers_dbm=(None, 0.0), n_grid=8, iters=40, n_blocks=16, n_avg=1,
+             gain=0.3):
+    """Stage 5: hold the affine arbitrary-point lock while an out-of-band RF tone
+    is applied to the MZM RF port, and compare to the RF-off reference.
+
+    Theory (Sec. affine): a 50 MHz drive sits far above the PD/ADC band, so the
+    detector averages it to a J0(m_RF) factor multiplying the WHOLE harmonic
+    observation,  z = A u(phi)+b  ->  (J0 A) u(phi)+b.  The affine structure and
+    the phase u(phi) are untouched (J0 is reabsorbed by calibration); only the
+    SNR drops, so kappa(A) rises ~1/J0(m_RF).  Expectation: the lock holds with an
+    RF-on rms close to RF-off, and H1/H2 fade together by J0(m_RF).
+
+    For each RF power (None = RF off): set + verify the tone, RE-IDENTIFY the
+    ellipse under that RF state (so calibration and DC-truth share the same J0
+    fade), affine-lock across a phi* grid, and score each point by the drift-
+    immune DMM truth.  Records lock rms, the verified tone, kappa and the H1/H2
+    fade per power."""
+    from scipy.special import j0 as bessel_j0
+    fit = _load_fit(datadir)
+    configure_dc_fast(dmm)
+    vpi = fit["vpi"]
+    grid = np.linspace(0, 2 * np.pi, n_grid, endpoint=False)
+    meta = dict(iters=int(iters), n_blocks=int(n_blocks), n_avg=int(n_avg),
+                gain=float(gain))
+    rows, saved = _rf_load(datadir)      # resume across interrupted runs
+    if rows:
+        print(f"[rf] resuming: {len(rows)} power state(s) already on file "
+              f"({', '.join(r['tag'] for r in rows)})", flush=True)
+    for p in powers_dbm:
+        vpp = 0.0 if p is None else dbm_to_vpp(float(p))
+        m_rf = 0.0 if p is None else rf_depth(vpp, vpi)
+        tag = "off" if p is None else f"{p:+.0f}dBm"
+        print(f"[rf] === power {tag} (Vpp={vpp:.3f}, m_RF~{m_rf:.3f}): "
+              f"setting RF + re-identifying ellipse ...", flush=True)
+        tone = _rf_apply(siggen, specan, vpp, rf_hz, rf_ch)
+        prepare_mzm_frontend(board, fit["pilot_v"])
+        nf = _recalibrate(board, dmm, fit["pilot_v"], vpi, fit["v0"],
+                          n_blocks=n_blocks, n_avg=max(2, n_avg), label=tag)
+        rf_fit = dict(fit); rf_fit.update(
+            c0=nf["c0"], B=nf["B"], comps=nf["comps"], slope=nf["slope"],
+            a_dc=nf["a_dc"], b_dc=nf["b_dc"], vpi=nf["vpi"], v0=nf["v0"])
+        print(f"[rf]   {tag}: recal done (kappa={nf['kappa']:.1f}, tone={tone:.1f} "
+              f"dBm); locking {n_grid} phi* points ...", flush=True)
+        errs = []
+        for j, ps in enumerate(grid, 1):
+            ra = lock_affine(board, dmm, rf_fit, ps, G=gain, iters=iters,
+                             n_blocks=n_blocks, n_avg=n_avg)
+            ea, _, _ = eval_lock_err_dmm(board, dmm, rf_fit, ra["V"], ps)
+            errs.append(ea)
+            print(f"[rf]   {tag}: lock {j}/{n_grid}  phi*={ps:4.2f}  "
+                  f"err={ea*1e3:6.1f} mrad", flush=True)
+        errs = np.array(errs)
+        rms = float(np.sqrt(np.mean((errs * 1e3) ** 2)))
+        # H1/H2 fade probe at quadrature (both harmonics well above noise there)
+        vq = ec.canonical_period_center(nf["v0"], nf["vpi"], lo=-BIAS_LIMIT,
+                                        hi=BIAS_LIMIT) + 0.5 * nf["vpi"]
+        acq, _ = average_acq_point(board, None, float(vq), fit["pilot_v"],
+                                   n_blocks, max(2, n_avg))
+        h1 = acq["tones"][PILOT_HZ]["mag"]; h2 = acq["tones"][H2_HZ]["mag"]
+        rows = [r for r in rows if r["tag"] != tag]      # replace same-tag
+        rows.append(dict(tag=tag, power_dbm=(None if p is None else float(p)),
+                         m_rf=float(m_rf), tone_dbm=float(tone),
+                         kappa=float(nf["kappa"]), h1=float(h1), h2=float(h2),
+                         h1_fade=float("nan"), rms_mrad=round(rms, 1)))
+        saved[f"err_{tag}"] = errs
+        rms_off, rms_on, accepted = _rf_save(datadir, rows, saved, grid, rf_hz,
+                                             n_grid, meta)   # checkpoint NOW
+        print(f"[rf] {tag:>8}  m_RF={m_rf:.3f}  J0={bessel_j0(m_rf):.4f}  "
+              f"tone={tone:6.1f} dBm  kappa={nf['kappa']:.2f}  H1={h1:.4g} "
+              f"H2={h2:.4g}  lock rms={rms:.1f} mrad  [saved {len(rows)} states]",
+              flush=True)
+    if siggen is not None:
+        siggen.output_off(rf_ch)
+    rms_off, rms_on, accepted = _rf_save(datadir, rows, saved, grid, rf_hz,
+                                         n_grid, meta)
+    print(f"[rf] RF-off rms={rms_off:.1f}  RF-on(0 dBm) rms={rms_on:.1f} mrad  "
+          f"accepted={accepted}"
+          + ("" if accepted else "  (diagnostic only; tab:exp RF row stays 待测)"))
+
+
 def _scope_fft(scope, settle_s=3.0):
     if scope is None:
         return {PILOT_HZ: float("nan"), H2_HZ: float("nan")}
@@ -879,11 +1183,13 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("stage", choices=["bringup", "vpi", "calib", "pilotdiag",
                                        "lock", "pilot", "drift", "stability",
-                                       "all"])
+                                       "rf", "all"])
     ap.add_argument("--sim", action="store_true",
                     help="analytic model instead of hardware; writes build/exp_sim/")
     ap.add_argument("--no-dmm", action="store_true", help="skip DM858E")
     ap.add_argument("--no-scope", action="store_true", help="skip SDS824X HD")
+    ap.add_argument("--no-specan", action="store_true",
+                    help="skip FSV30 tone verification in the rf stage")
     ap.add_argument("--vpi", type=float, help="override Vpi (skip stage 0 fit)")
     ap.add_argument("--v0", type=float, help="override V0")
     ap.add_argument("--pilot-v", type=float, default=PILOT_V,
@@ -913,12 +1219,30 @@ def main():
                     help="calibration gauge method for stage calib")
     ap.add_argument("--scope-every", action="store_true",
                     help="in pilotdiag, take scope FFT at every point, not just quad")
+    ap.add_argument("--rf-hz", type=float, default=RF_HZ,
+                    help=f"applied RF tone frequency for the rf stage (default {RF_HZ:g} Hz)")
+    ap.add_argument("--rf-ch", type=int, default=RF_CH,
+                    help=f"DG922pro channel feeding the MZM RF port (default {RF_CH})")
+    ap.add_argument("--rf-powers", default="off,0",
+                    help="comma-separated RF drive levels in dBm for the rf stage; "
+                         "the token 'off' is the RF-off reference (default 'off,0')")
+    ap.add_argument("--rf-grid", type=int, default=8,
+                    help="phi* grid size for the rf-stage lock comparison (default 8)")
     a = ap.parse_args()
 
     def _pilot_list():
         return tuple(float(x) for x in a.pilot_list.split(",") if x.strip())
 
-    def run_selected(board, dmm, scope, datadir):
+    def _rf_powers():
+        out = []
+        for x in a.rf_powers.split(","):
+            x = x.strip()
+            if not x:
+                continue
+            out.append(None if x.lower() in ("off", "none") else float(x))
+        return tuple(out)
+
+    def run_selected(board, dmm, scope, siggen, specan, datadir):
         vpi, v0 = a.vpi, a.v0
         if a.stage in ("bringup",):
             stage_bringup(board, dmm, scope)
@@ -959,6 +1283,11 @@ def main():
         if a.stage in ("stability",):
             stage_stability(board, dmm, datadir, duration_s=a.duration_h * 3600,
                             n_blocks=a.n_blocks or 16, n_avg=a.n_avg)
+        if a.stage in ("rf",):
+            stage_rf(board, dmm, siggen, specan, datadir, rf_hz=a.rf_hz,
+                     rf_ch=a.rf_ch, powers_dbm=_rf_powers(), n_grid=a.rf_grid,
+                     iters=a.iters, n_blocks=a.n_blocks or 16, n_avg=a.n_avg,
+                     gain=a.gain)
 
     if a.sim:
         datadir = os.path.join(ec.REPO, "build", "exp_sim")
@@ -966,15 +1295,20 @@ def main():
         # redirect exp_common's results.json into the sim dir too
         ec.DATA = datadir
         board = SimBoard(); dmm = None if a.no_dmm else SimDMM(board); scope = None
+        siggen = SimSigGen(board, vpi=board.VPI); specan = SimSpecAn(board)
         print(f"[sim] writing to {os.path.relpath(datadir, ec.REPO)} (gitignored)")
-        run_selected(board, dmm, scope, datadir)
+        run_selected(board, dmm, scope, siggen, specan, datadir)
     else:
         datadir = ec.ensure_data_dir()
         with ExitStack() as stack:
             board = stack.enter_context(open_board())
             dmm = None if a.no_dmm else stack.enter_context(open_dmm())
             scope = None if a.no_scope else stack.enter_context(open_scope())
-            run_selected(board, dmm, scope, datadir)
+            siggen = specan = None
+            if a.stage == "rf":            # only this stage needs the RF gear
+                siggen = stack.enter_context(open_siggen())
+                specan = None if a.no_specan else stack.enter_context(open_specan())
+            run_selected(board, dmm, scope, siggen, specan, datadir)
 
 
 if __name__ == "__main__":

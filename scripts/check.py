@@ -213,6 +213,7 @@ def check_experiment_results(tex: str) -> None:
         ("recal_latency_cyc", "漂移突变检测延迟", 0.5, "cycles"),
         ("recal_post_rms_mrad", "漂移突变检测延迟", 0.1, "mrad"),
         ("stability_recal_events_3h", "$3$~h 长期稳定性", 0.5, "events"),
+        ("rf_lock_rms_on_mrad", "RF 加载", 0.1, "mrad"),
     ]
     checked = 0
     for key, row, tol, unit in specs:

@@ -323,6 +323,65 @@ def fig_drift(data, out):
     plt.close(fig); print("[fig] fig_exp3.pdf")
 
 
+def _vpk_from_dbm(dbm, load=50.0):
+    """Sine power dBm (into load) -> peak volts."""
+    return np.sqrt(2.0) * np.sqrt(1e-3 * 10 ** (dbm / 10.0) * load)
+
+
+def fig_rf(data, out):
+    """fig:exprf — RF-loaded lock robustness (stage 5).
+    (a) H1 harmonic fade vs effective RF depth, overlaid with the predicted
+        J0(m_RF) (effective RF Vpi fitted from the fade, since it is below the DC
+        Vpi); (b) arbitrary-point lock rms vs applied RF power, RF-off reference.
+    Skipped if rf_lock.npz is absent."""
+    npz = os.path.join(data, "rf_lock.npz")
+    if not os.path.exists(npz):
+        print("[skip] fig_exprf: rf_lock.npz not found"); return
+    from scipy.special import j0 as bessel_j0
+    from scipy.optimize import curve_fit
+    d = np.load(npz)
+    powers = d["powers_dbm"]; rms = d["rms_mrad"]
+    h1 = d["h1"]; fade = d["h1_fade"] if "h1_fade" in d.files else h1 / h1[0]
+    off = ~np.isfinite(powers); on = np.isfinite(powers)
+    vpk = _vpk_from_dbm(powers[on])
+    fade_on = fade[on]
+    # fit the EFFECTIVE 50 MHz Vpi from the measured fade: fade = J0(pi*Vpk/Vpi)
+    try:
+        vpi_rf = float(curve_fit(lambda v, vp: bessel_j0(np.pi * v / vp),
+                                 vpk, fade_on, p0=[3.0], maxfev=20000)[0][0])
+    except Exception:
+        vpi_rf = 2.8
+    m_eff = np.pi * vpk / vpi_rf
+    fig, axs = plt.subplots(1, 2, figsize=(TW * 0.66, 2.1))
+    # (a) harmonic fade vs effective m_RF, with the J0 prediction
+    ax = axs[0]
+    mm = np.linspace(0, float(m_eff.max()) * 1.12 + 1e-3, 200)
+    ax.plot(mm, bessel_j0(mm), color=BLU, lw=1.1, label="$J_0(m_{\\rm RF})$（预测）")
+    ax.plot(m_eff, fade_on, "o", color=GRN, ms=4, label="实测 H1 衰落")
+    ax.set_xlabel("RF 调制深度 $m_{\\rm RF}=\\pi V_{\\rm pk}/V_\\pi^{\\rm RF}$")
+    ax.set_ylabel("H1 相对幅度")
+    ax.set_title(f"(a) 谐波随 RF 的 $J_0$ 衰落（$V_\\pi^{{\\rm RF}}{{\\approx}}"
+                 f"{vpi_rf:.1f}$ V）", fontsize=7.0)
+    ax.legend(fontsize=6.3, loc="lower left"); ax.grid(True, alpha=0.25)
+    ax.set_ylim(top=1.04, bottom=0)
+    # (b) lock rms vs applied RF power, RF-off baseline as a dashed line
+    ax = axs[1]
+    order = np.argsort(powers[on])
+    ax.plot(powers[on][order], rms[on][order], "o-", color=GRN, ms=4,
+            label="仿射锁定 (RF 开)")
+    if np.any(off):
+        rms_off = float(np.mean(rms[off]))
+        ax.axhline(rms_off, color=RED, ls="--", lw=1.0,
+                   label=f"RF 关参考 ({rms_off:.0f} mrad)")
+    ax.set_xlabel("施加 RF 功率 (dBm)")
+    ax.set_ylabel("锁定 rms (mrad)")
+    ax.set_title("(b) 任意点锁定 rms vs RF 功率", fontsize=7.5)
+    ax.legend(fontsize=6.3, loc="best"); ax.grid(True, alpha=0.25)
+    ax.set_ylim(bottom=0)
+    fig.tight_layout(); fig.savefig(os.path.join(out, "fig_exprf.pdf"))
+    plt.close(fig); print("[fig] fig_exprf.pdf")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -339,6 +398,7 @@ def main():
     fig_lock(a.data_dir, a.out_dir)
     fig_pilot(a.data_dir, a.out_dir)
     fig_drift(a.data_dir, a.out_dir)
+    fig_rf(a.data_dir, a.out_dir)
 
 
 if __name__ == "__main__":
