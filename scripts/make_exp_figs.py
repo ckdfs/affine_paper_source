@@ -275,10 +275,10 @@ def _panel_stability(ax1, sp):
     dt = d["dmm_t"] / 3600.0; de = np.abs(d["dmm_err_mrad"])
     rec = int(d["recal_events"]); hrs = float(d["t"][-1]) / 3600
     vdrift = float(V.max() - V.min())
-    ax1.plot(th, V, color=BLU, lw=0.8)
-    ax1.set_ylabel("偏置 $V_b$ (V)", color=BLU); ax1.set_xlabel("时间 (h)")
-    ax1.set_title(f"(a) 长期稳定性 ${hrs:.1f}$ h：偏置跟踪 ${vdrift:.2f}$ V 漂移，"
-                  f"重定标 ${rec}$ 次", fontsize=7.0)
+    ax1.plot(th, V, color=INK, lw=0.8, alpha=0.85)
+    ax1.set_ylabel("偏置 $V_b$ (V)", color=INK); ax1.set_xlabel("时间 (h)")
+    ax1.set_title(f"(a) 长期稳定性（${hrs:.1f}$ h，偏置漂移 ${vdrift:.2f}$ V，"
+                  f"重定标 ${rec}$ 次）", fontsize=7.5)
     ax2 = ax1.twinx()
     ax2.plot(dt, de, "o", color=GRN, ms=2.5)
     ax2.set_ylabel("锁定误差 (mrad)", color=GRN)
@@ -293,16 +293,16 @@ def _panel_drift(ax1, dp):
         step + lat if lat >= 0 else -1)
     ax1.plot(err, color=GRN, lw=0.9)
     ax1.set_xlabel("控制周期"); ax1.set_ylabel("误差 (mrad)", color=GRN)
-    ax1.axvline(step, color=RED, ls="--", lw=0.8)
+    ax1.axvline(step, color=RED, ls="--", lw=0.9)
     ax1.text(step, ax1.get_ylim()[1] * 0.9, " 突变", color=RED, fontsize=6)
     if recal >= 0:
-        ax1.axvline(recal, color=GLD, ls=":", lw=0.9)
+        ax1.axvline(recal, color=BLU, ls=":", lw=0.9)
         ax1.text(recal, ax1.get_ylim()[1] * 0.55,
-                 f" 检测+{lat}\n →重定标", color=GLD, fontsize=6)
-    ax1.set_title("(b) 残差触发检测与恢复重定标", fontsize=7.5)
+                 f" 检测+{lat}\n →重定标", color=BLU, fontsize=6)
+    ax1.set_title("(b) 残差触发检测与恢复", fontsize=7.5)
     ax2 = ax1.twinx()
-    ax2.plot(rho, color=BLU, lw=0.8, alpha=0.7)
-    ax2.set_ylabel("残差 $\\bar\\rho$", color=BLU)
+    ax2.plot(rho, color=INK, lw=1.0, alpha=0.85)
+    ax2.set_ylabel("残差 $\\bar\\rho$", color=INK)
 
 
 def fig_drift(data, out):
@@ -312,8 +312,10 @@ def fig_drift(data, out):
     has_s, has_d = os.path.exists(sp), os.path.exists(dp)
     if not (has_s or has_d):
         print("[skip] fig_exp3: stability.npz / drift.npz not found"); return
+    # wide stacked layout (matches fig_recal): both panels have a long x-axis
+    # (hours / control cycles), so give each the full width and flatten it.
     nrows = int(has_s) + int(has_d)
-    fig, axs = plt.subplots(nrows, 1, figsize=(CW, 1.95 * nrows), squeeze=False)
+    fig, axs = plt.subplots(nrows, 1, figsize=(2 * CW, 1.5 * nrows), squeeze=False)
     r = 0
     if has_s:
         _panel_stability(axs[r, 0], sp); r += 1
