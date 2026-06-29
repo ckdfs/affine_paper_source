@@ -41,6 +41,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import exp_common as ec  # noqa: E402
+import exp_common_dp as ecdp  # noqa: E402
 
 # bench constants ----------------------------------------------------------- #
 PILOT_HZ = 1000.0          # board default pilot
@@ -51,6 +52,30 @@ BIAS_LIMIT = 9.0           # keep |bias|+|pilot| < 10 V (board clips otherwise)
 ACQ_FREQS = (PILOT_HZ, H2_HZ)
 RF_HZ = 50e6               # default applied RF tone (stage 5 robustness)
 RF_CH = 1                  # DG922pro channel feeding the MZM RF port
+
+# DPMZM bench constants (device swapped in; A->phi1 sub-I, B->phi2 sub-Q,        #
+# C->phi3 parent; single combined-output PD).  Three pilots, one per bias axis,  #
+# chosen on the 50 Hz Goertzel grid so the 9 observation channels                #
+# {wi, 2wi, |wi-wj|} are mutually leakage-free.                                   #
+DP_CH = ("A", "B", "C")                       # sub-I, sub-Q, parent bias DACs
+DP_PILOTS_HZ = (1100.0, 1400.0, 1900.0)       # w1, w2, w3
+DP_PILOT_V = 0.12                             # per-axis pilot amplitude (V)
+DP_MAX_ACQ_FREQS = 9                           # rebuilt firmware stores all DP bins
+DP_MAX_BLOCKS = 10                             # 9 bins + 3 pilots stalls above this
+
+
+def _dp_acq_freqs(pilots=DP_PILOTS_HZ):
+    """The 9 lock-in demod frequencies in A0 row order: six harmonics
+    {w1,2w1,w2,2w2,w3,2w3} then three IMD difference tones
+    {|w1-w2|, |w1-w3|, |w2-w3|}  (rows Z-, Z13, Z23)."""
+    w1, w2, w3 = pilots
+    return (w1, 2 * w1, w2, 2 * w2, w3, 2 * w3,
+            abs(w1 - w2), abs(w1 - w3), abs(w2 - w3))
+
+
+DP_ACQ_FREQS = _dp_acq_freqs()
+DP_ACQ_CHUNKS = tuple(tuple(DP_ACQ_FREQS[i:i + DP_MAX_ACQ_FREQS])
+                      for i in range(0, len(DP_ACQ_FREQS), DP_MAX_ACQ_FREQS))
 
 
 def dbm_to_vpp(dbm: float, load_ohm: float = 50.0) -> float:
@@ -397,6 +422,338 @@ def acq_point(board, dmm, bias, pilot_v, n_blocks):
                             ch=CH, acq_freqs=ACQ_FREQS, n_blocks=n_blocks)
     dc_dmm = read_dc(dmm)
     return acq, dc_dmm
+
+
+# --------------------------------------------------------------------------- #
+#  DPMZM: analytic model for --sim + real-board 3-pilot / 9-channel front end  #
+# --------------------------------------------------------------------------- #
+class SimBoardDP:
+    """Stand-in for a DPMZM-wired BiasBoard.  Returns the 9-channel lock-in
+    observation z = Atrue @ Phi(phi) + btrue + noise and the single combined-PD
+    DC intensity (eq:dpmzm).  phi=(phi1,phi2,phi3) maps from the A/B/C bias lines
+    by per-axis Vpi/V0.  For --sim tooling validation the AC observation uses a
+    generous fixed pilot depth (m=1.2, like the paper simulation) and a low noise
+    floor so the identify->demod->lock pipeline closes to ~mrad -- this is a CODE
+    check, the honest shallow-pilot SNR story comes from the REAL bench."""
+    VPI = (5.5, 5.3, 5.7)              # per-axis half-wave voltage (sub1, sub2, parent)
+    V0 = (-1.3, -0.8, 0.6)             # per-axis bias at the cos maximum
+    SIM_DEPTH = (1.2, 1.2, 1.2)        # effective pilot depths for A0 (sim only)
+    SIGMA = 0.002                      # per-channel AC noise (matches make_figs)
+    P0 = 1.49                          # PD DC peak (V), like the single-MZM bench
+    CH1_FS = 1.20                      # board CH1 ADC full scale (clips)
+
+    def __init__(self, seed=11):
+        self.rng = np.random.default_rng(seed)
+        A0 = ecdp.buildA0(*self.SIM_DEPTH)
+        sc = 0.12 * np.linalg.norm(A0) / np.sqrt(A0.size)
+        self.Atrue = A0 + sc * self.rng.standard_normal((9, 12))
+        self.btrue = 0.5 * 0.02 * self.rng.standard_normal(9)
+        self._last_dc_true = self.P0
+        self.freqs = DP_ACQ_FREQS
+
+    def phi_of(self, biases):
+        return np.array([np.pi * (biases[i] - self.V0[i]) / self.VPI[i]
+                         for i in range(3)])
+
+    def dc_true_at(self, biases):
+        """Unclipped combined-PD DC (what the DMM sees) at a 3-axis bias."""
+        return float(self.P0 * ecdp.dp_intensity(self.phi_of(biases)))
+
+    def acq_run_dp(self, biases, n_blocks=10):
+        phi = self.phi_of(biases)
+        s = self.SIGMA / np.sqrt(max(1, n_blocks))
+        z = self.Atrue @ ecdp.feat(phi) + self.btrue + s * self.rng.standard_normal(9)
+        dc_true = self.dc_true_at(biases)
+        self._last_dc_true = dc_true
+        dc_board = min(dc_true, self.CH1_FS)          # board CH1 clips like the MZM bench
+        tones = {}
+        for i, f in enumerate(self.freqs):
+            I = float(z[i]); Q = float(0.05 * s * self.rng.standard_normal())
+            tones[f] = {"I": I, "Q": Q, "mag": float(np.hypot(I, Q)),
+                        "phase": float(np.arctan2(Q, I))}
+        return {"blocks": n_blocks, "dc": dc_board, "tones": tones}
+
+
+def _dp_write_biases(board, biases):
+    """Stage the three DP bias voltages in one serial write."""
+    cmd = "".join(f"gen bias {ch} {float(v):.4f}\r\n"
+                  for ch, v in zip(DP_CH, biases))
+    board._ser.reset_input_buffer()
+    board._ser.write(cmd.encode()); board._ser.flush()
+    board._read(settle=0.04, idle_gap=0.08, max_total=0.4)        # drain echoes
+
+
+def _dp_config_acq_freqs(board, freqs, verify=False):
+    """Configure one real-board acq frequency chunk.
+
+    The rebuilt firmware used for the DPMZM experiment stores all nine Goertzel
+    bins.  The chunk abstraction is kept only so older firmware can be tested by
+    lowering DP_MAX_ACQ_FREQS without touching the measurement stages."""
+    freqs = tuple(float(f) for f in freqs)
+    if getattr(board, "_dp_acq_freqs", None) == freqs:
+        return
+    # Do not batch these lines: the board accepts 9 bins after the firmware
+    # rebuild, but rapid multi-line acq_add writes can still drop commands over
+    # USB CDC.  This setup is cached, so the per-point loop stays fast.
+    board.acq_reset()
+    for f in freqs:
+        board.acq_add(f)
+    board._dp_acq_freqs = freqs
+    if verify:
+        show = board.acq_show()
+        if f"freqs: {len(freqs)}" not in show:
+            raise RuntimeError(f"failed to configure {len(freqs)} acq freqs: {show!r}")
+
+
+def prepare_dpmzm_frontend(board, pilots=DP_PILOTS_HZ, pilot_v=DP_PILOT_V):
+    """Configure the real board once for repeated DPMZM points: three bias DACs
+    and three pilots (one per axis), plus the nine DP acq frequencies."""
+    if isinstance(board, SimBoardDP):
+        return
+    for _ in range(3):
+        board.gen_reset()
+        for ch in DP_CH:
+            board.gen_bias(ch, 0.0)
+        for ch, w in zip(DP_CH, pilots):
+            board.gen_pilot(ch, w, pilot_v)
+        try:
+            for chunk in DP_ACQ_CHUNKS:
+                _dp_config_acq_freqs(board, chunk, verify=True)
+            board._dp_acq_freqs = None
+            return
+        except Exception:
+            time.sleep(0.3)
+    print("[warn] prepare_dpmzm_frontend: DP gen/acq chunks not confirmed after retries")
+
+
+def choose_comps9(I9, Q9):
+    """Per channel pick the lock-in component (I or Q) carrying the larger sweep
+    variance -- the board's per-tone reference phase is unknown, the consistent
+    dominant component is absorbed into the identified A (rows scale freely)."""
+    I9 = np.asarray(I9); Q9 = np.asarray(Q9)
+    return ["I" if np.var(I9[:, k]) >= np.var(Q9[:, k]) else "Q"
+            for k in range(I9.shape[1])]
+
+
+def dp_obs_vector(acq, comps9, freqs=DP_ACQ_FREQS):
+    """Extract the 9-vector z from an acq result, one chosen component per tone."""
+    return np.array([acq["tones"][f][comps9[k]] for k, f in enumerate(freqs)])
+
+
+def _parse_acq(board, txt):
+    import math
+    out = {"blocks": None, "dc": None, "tones": {}, "_raw": txt}
+    m = board._ACQ_RE.search(txt)
+    if not m:
+        return out
+    out["blocks"] = int(m.group(1)); out["dc"] = float(m.group(2))
+    for tok in m.group(3).split():
+        p = tok.split(",")
+        if len(p) == 3:
+            f, I, Q = float(p[0]), float(p[1]), float(p[2])
+            out["tones"][f] = {"I": I, "Q": Q,
+                               "mag": math.hypot(I, Q), "phase": math.atan2(Q, I)}
+    return out
+
+
+def _dp_run_acq_chunk(board, freqs, n_blocks):
+    _dp_config_acq_freqs(board, freqs)
+    n_blocks = min(int(n_blocks), DP_MAX_BLOCKS)
+    win = max(2.0, n_blocks * 0.025 + 1.5)
+    txt = board.command(f"acq run {int(n_blocks)}", settle=0.4, idle_gap=0.3,
+                        max_total=win)
+    return _parse_acq(board, txt)
+
+
+def _dp_acq_at(board, biases, n_blocks, _retry=True):
+    """Real-board point: stage the three DP biases, acquire the 9 observation
+    tones, and merge them back into one acq dict.  Retries once if the ACQ line
+    came back truncated."""
+    _dp_write_biases(board, biases)
+    merged = {"blocks": int(n_blocks), "dc": None, "tones": {}, "_raw_chunks": []}
+    dcs = []
+    for chunk in DP_ACQ_CHUNKS:
+        out = _dp_run_acq_chunk(board, chunk, n_blocks)
+        merged["_raw_chunks"].append(out.get("_raw", ""))
+        if out.get("dc") is not None:
+            dcs.append(out["dc"])
+        for f in chunk:
+            if f in out["tones"]:
+                merged["tones"][f] = out["tones"][f]
+    merged["dc"] = float(np.mean(dcs)) if dcs else None
+    if len(merged["tones"]) < len(DP_ACQ_FREQS) and _retry:
+        board._dp_acq_freqs = None
+        return _dp_acq_at(board, biases, n_blocks, _retry=False)
+    if len(merged["tones"]) < len(DP_ACQ_FREQS):
+        missing = [f for f in DP_ACQ_FREQS if f not in merged["tones"]]
+        raise RuntimeError(f"truncated DP acq, missing {missing}")
+    return merged
+
+
+def _dp_apply_bias_for_dmm(board, biases, n_blocks=1):
+    """Apply a DP bias on real hardware with the shortest useful acq run.
+
+    The firmware commits gen-bias values during acq generation, so DMM-only
+    sweeps only need one Goertzel bin, not the full 9-channel observation."""
+    _dp_write_biases(board, biases)
+    return _dp_run_acq_chunk(board, (DP_ACQ_FREQS[0],), n_blocks)
+
+
+def acq_run_dp(board, biases, n_blocks, pilots=DP_PILOTS_HZ):
+    """One raw 9-channel acquisition at a 3-axis bias (sim or real board)."""
+    if isinstance(board, SimBoardDP):
+        return board.acq_run_dp(biases, n_blocks=n_blocks)
+    return _dp_acq_at(board, biases, n_blocks)
+
+
+def dp_point(board, dmm, biases, n_blocks):
+    """Acquire the raw 9-tone result + the unclipped DMM DC at a 3-axis bias."""
+    if isinstance(board, SimBoardDP):
+        board._last_dc_true = board.dc_true_at(biases)
+        acq = board.acq_run_dp(biases, n_blocks=n_blocks)
+        dc = dmm.measure_dc_voltage() if dmm else float("nan")
+        return acq, dc
+    acq = acq_run_dp(board, biases, n_blocks)
+    return acq, read_dc(dmm)
+
+
+def read_dc_at_dp_bias(board, dmm, biases, settle=0.15):
+    """Set a 3-axis bias and read the unclipped DMM DC (controller-independent
+    per-axis phase truth for the DPMZM lock/vpi stages).
+
+    NB: the firmware writes the DAC only inside `acq run` -- `gen bias` alone
+    stages the value but leaves the output unmoved (see app_main.c).  So apply
+    the bias with a short acq_run before reading the DMM, mirroring the
+    single-MZM stage_vpi (which sweeps via acq_point_prepared)."""
+    if isinstance(board, SimBoardDP):
+        board._last_dc_true = board.dc_true_at(biases)
+        return (board.dc_true_at(biases) if dmm is None
+                else dmm.measure_dc_voltage())
+    _dp_apply_bias_for_dmm(board, biases, n_blocks=1)
+    time.sleep(settle)
+    return read_dc(dmm)
+
+
+def _dp_complete(acq):
+    return all(f in acq["tones"] for f in DP_ACQ_FREQS)
+
+
+def _dp_point_complete(board, dmm, biases, n_blocks, tries=4):
+    """A dp_point whose acq contains all 9 tones (retry the flaky USB drop)."""
+    for _ in range(tries):
+        acq, dc = dp_point(board, dmm, biases, n_blocks)
+        if _dp_complete(acq):
+            return acq, dc
+    return acq, dc                                  # last attempt (caller tolerates)
+
+
+def average_dp_point(board, dmm, biases, n_blocks, n_avg=1):
+    """Average n_avg short 9-channel acquisitions (raises the weak IMD-channel
+    SNR), returning (mean tones dict, dc).  Mirrors average_acq_point.  Each
+    acquisition is retried until all nine tones are present."""
+    if n_avg <= 1:
+        return _dp_point_complete(board, dmm, biases, n_blocks)
+    freqs = DP_ACQ_FREQS
+    accI = np.zeros(9); accQ = np.zeros(9); dcs = []
+    for _ in range(n_avg):
+        acq, dc = _dp_point_complete(board, dmm, biases, n_blocks)
+        accI += np.array([acq["tones"][f]["I"] for f in freqs])
+        accQ += np.array([acq["tones"][f]["Q"] for f in freqs])
+        dcs.append(dc)
+    accI /= n_avg; accQ /= n_avg
+    tones = {f: {"I": float(accI[k]), "Q": float(accQ[k]),
+                 "mag": float(np.hypot(accI[k], accQ[k])),
+                 "phase": float(np.arctan2(accQ[k], accI[k]))}
+             for k, f in enumerate(freqs)}
+    return ({"blocks": n_blocks, "dc": acq["dc"], "tones": tones},
+            float(np.nanmean(dcs)))
+
+
+# --------------------------------------------------------------------------- #
+#  Scope-FFT POWER acquisition (bypasses the board ADC's +-1.2 V clip).         #
+#  The board only drives bias + a DEEP continuous pilot (`gen run`); the scope  #
+#  reads the POWER at the 9 channel frequencies via its FFT (no phase).  This   #
+#  matches the magnitude-only control path (exp_common_dp.calibrate_dp_mag /    #
+#  gn_demod_mag) and a real deployment where the lock-in phase is uncontrolled. #
+# --------------------------------------------------------------------------- #
+DP_PILOT_V_SCOPE = 0.7              # deep pilot for the scope path (board ADC bypassed)
+DP_FFT_CENTER = 2000.0
+DP_FFT_SPAN = 4000.0
+
+
+def prepare_scope_fft_dp(board, scope, pilots=DP_PILOTS_HZ, pilot_v=DP_PILOT_V_SCOPE):
+    """Configure the board pilots once and the scope channel/timebase/edge trigger.
+    The scope FFT MARKER readout proved unreliable (reads the noise floor); we
+    capture the RAW waveform and do a PC Goertzel (the validated path) instead."""
+    if isinstance(board, SimBoardDP):
+        board._scope_pilot_v = pilot_v
+        return
+    board.gen_reset()
+    for ch in DP_CH:
+        board.gen_bias(ch, 0.0)
+    for ch, w in zip(DP_CH, pilots):
+        board.gen_pilot(ch, w, pilot_v)
+    # turn OFF any FFT math function: a lingering FFT FREEZES get_waveform (it
+    # returns the same stale frame at every bias).  Plain Y-T capture only.
+    try:
+        scope.fft_off()
+    except Exception:
+        pass
+    scope.send(":FUNCtion1 OFF")
+    scope.setup_channel(1, coupling="AC"); scope.setup_timebase(5e-2)
+
+
+def _pc_goertzel9(t, v):
+    """9-channel POWER magnitude (phase-invariant) from a raw scope waveform; the
+    freqs are 100 Hz multiples so a 10 ms window is leakage-free."""
+    t = np.asarray(t, float); v = np.asarray(v, float) - np.mean(v)
+    dt = t[1] - t[0]; n = min(int(round(0.01 / dt)), len(v))
+    tt = t[:n] - t[0]; vv = v[:n]
+    return np.array([np.hypot((2 / n) * np.sum(vv * np.cos(2 * np.pi * f * tt)),
+                              (2 / n) * np.sum(vv * np.sin(2 * np.pi * f * tt)))
+                     for f in DP_ACQ_FREQS])
+
+
+def _scope_capture(scope, timeout=2.0):
+    """One SINGLE-triggered frame (poll TRIG:STATus until Stop, then read)."""
+    scope.send(":TRIGger:MODE SINGle"); t0 = time.time()
+    while time.time() - t0 < timeout:
+        if "Stop" in scope.query(":TRIGger:STATus?"):
+            break
+        time.sleep(0.02)
+    return scope.get_waveform(1, max_points=20000)
+
+
+def scope_power_dp(board, scope, biases, settle=1.0, navg=3):
+    """9-channel POWER magnitude at a 3-axis bias.  Real board: set bias, start a
+    NON-BLOCKING continuous deep pilot (`gen start` -- runs until the next
+    command, so it never overlaps the next point), let it settle, capture `navg`
+    raw SINGLE frames + PC Goertzel, MEDIAN, then stop the pilot with a harmless
+    `status` (keeps the pilot config).  Sim: |signed z| from the analytic model."""
+    F = DP_ACQ_FREQS
+    if isinstance(board, SimBoardDP):
+        acq = board.acq_run_dp(biases, n_blocks=20)
+        return np.array([abs(acq["tones"][f]["I"]) for f in F])
+    for ch, v in zip(DP_CH, biases):
+        board.gen_bias(ch, float(v))
+    board._ser.reset_input_buffer()
+    board._ser.write(b"gen start\r\n"); board._ser.flush()
+    time.sleep(settle)                                  # pilot comes up (~1 s)
+    mags = []
+    for _ in range(navg):
+        t, v = _scope_capture(scope)
+        if len(v) > 10 and np.ptp(v) > 0.05:
+            mags.append(_pc_goertzel9(np.array(t), np.array(v)))
+        time.sleep(0.12)          # let the scope re-acquire; a back-to-back SINGLE
+        #                           otherwise returns the prior frozen frame
+    # stop the continuous pilot (any command breaks gen-start; `status` keeps the
+    # pilot CONFIG so the next point's gen-start reuses it) and drain the replies.
+    board._ser.write(b"status\r\n"); board._ser.flush()
+    try:
+        board._read(settle=0.0, idle_gap=0.2, max_total=1.5)
+    except Exception:
+        pass
+    return np.median(mags, axis=0) if mags else np.full(9, np.nan)
 
 
 # --------------------------------------------------------------------------- #
@@ -1178,12 +1535,575 @@ def _write_csv(p, header, rows):
     print(f"[io] wrote {os.path.relpath(p, ec.REPO)} ({len(rows)} rows)")
 
 
+# --------------------------------------------------------------------------- #
+#  DPMZM stages (device swapped in: A->phi1 sub-I, B->phi2 sub-Q, C->phi3      #
+#  parent; single combined PD).  See plan parsed-brewing-wadler.md.            #
+#  Shared per-axis Vpi/V0 + identified (Ah,bh,comps) live in dp_fit.json.      #
+# --------------------------------------------------------------------------- #
+def _dp_load_fit(datadir):
+    with open(os.path.join(datadir, "dp_fit.json")) as f:
+        return json.load(f)
+
+
+def _dp_save_fit(datadir, **kv):
+    p = os.path.join(datadir, "dp_fit.json")
+    cur = {}
+    if os.path.exists(p):
+        with open(p) as f:
+            cur = json.load(f)
+    cur.update(kv)
+    with open(p, "w") as f:
+        json.dump(cur, f, indent=2)
+    return cur
+
+
+def dp_bias_of_phi(phi, vpi, v0):
+    """Per-axis phase -> bias (the controller commands bias)."""
+    return np.array([v0[i] + phi[i] * vpi[i] / np.pi for i in range(3)])
+
+
+def dp_phi_of_bias(bias, vpi, v0):
+    return np.array([np.pi * (bias[i] - v0[i]) / vpi[i] for i in range(3)])
+
+
+def _triwave(x, lo, hi):
+    """Reflect an unbounded coordinate x into a triangle wave spanning [lo, hi]
+    (keeps the quasi-periodic scan inside the reachable +-9 V bias window)."""
+    p = hi - lo
+    t = (x - lo) % (2 * p)
+    return lo + (t if t <= p else 2 * p - t)
+
+
+def _dp_build_Z(I9, Q9, comps):
+    """Pick the chosen lock-in component per channel -> N x 9 observation."""
+    return np.stack([I9[:, j] if comps[j] == "I" else Q9[:, j]
+                     for j in range(9)], axis=1)
+
+
+def _dp_sweep_axis(board, dmm, i, park, grid):
+    """Sweep bias axis i over `grid` with the other axes held at `park` (3-vec);
+    return the unclipped DMM DC array."""
+    return np.array([read_dc_at_dp_bias(board, dmm, _with(park, i, V)) for V in grid])
+
+
+def stage_dp_vpi(board, dmm, datadir, lo=-9.0, hi=9.0, n=61, pilot_v=DP_PILOT_V,
+                 n_blocks=12, n_avg=1):
+    """DPMZM stage (6a): per-axis Vpi/V0 + sub-axis 4*pi confirmation + IMD
+    purity control.
+
+    The combined PD is cross-coupled, so a naive single-axis fit fails.  A stable
+    bootstrap is: coarse-find the two sub-axis peaks, fit the parent with both
+    subs near peak, place the parent at quadrature (cos T3 = 0) to kill the
+    half-angle cross term, then fit each sub-axis as a clean single-cosine
+    self-fringe.  This sequence is verified by the DPMZM --sim path before the
+    real bench is used."""
+    configure_dc_fast(dmm)
+    prepare_dpmzm_frontend(board, pilot_v=pilot_v)
+    vpi = [0.0, 0.0, 0.0]; v0 = [0.0, 0.0, 0.0]
+    store = {}
+    bias = np.linspace(lo, hi, n)
+
+    # Step 1: coarse sub-I peak (others at 0).  The argmax is robust even though
+    # the cross term distorts the fringe.
+    dcI0 = _dp_sweep_axis(board, dmm, 0, [0.0, 0.0, 0.0], bias)
+    store["I0_bias"] = bias; store["I0_dc"] = dcI0
+    Ipk = float(bias[int(np.argmax(dcI0))])
+    print(f"[dp-vpi] coarse sub-I peak@{Ipk:+.2f}", flush=True)
+
+    # Step 2: coarse sub-Q peak with I parked near its peak.
+    dcQ0 = _dp_sweep_axis(board, dmm, 1, [Ipk, 0.0, 0.0], bias)
+    store["Q0_bias"] = bias; store["Q0_dc"] = dcQ0
+    Qpk = float(bias[int(np.argmax(dcQ0))])
+    print(f"[dp-vpi] coarse sub-Q peak@{Qpk:+.2f}", flush=True)
+
+    # Step 3: parent fringe with both sub axes near their peaks.
+    dcP = _dp_sweep_axis(board, dmm, 2, [Ipk, Qpk, 0.0], bias)
+    _, _, vpi[2], v0[2] = ec.fit_dc_transfer(bias, dcP); vpi[2] = abs(vpi[2])
+    store["P_bias"] = bias; store["P_dc"] = dcP
+    Pquad = float(np.clip(v0[2] + 0.5 * vpi[2], lo, hi))
+    print(f"[dp-vpi] parent (subs@peak): Vpi={vpi[2]:.3f} V  "
+          f"V0={v0[2]:+.3f} V  quad@{Pquad:+.2f}", flush=True)
+
+    # Step 4: sub axes cleanly fitted with parent at quadrature (cross term off).
+    dcI = _dp_sweep_axis(board, dmm, 0, [0.0, Qpk, Pquad], bias)
+    _, _, vpi[0], v0[0] = ec.fit_dc_transfer(bias, dcI); vpi[0] = abs(vpi[0])
+    store["I_bias"] = bias; store["I_dc"] = dcI
+    print(f"[dp-vpi] sub-I (P@quad): Vpi={vpi[0]:.3f} V  V0={v0[0]:+.3f} V",
+          flush=True)
+
+    dcQ = _dp_sweep_axis(board, dmm, 1, [v0[0], 0.0, Pquad], bias)
+    _, _, vpi[1], v0[1] = ec.fit_dc_transfer(bias, dcQ); vpi[1] = abs(vpi[1])
+    store["Q_bias"] = bias; store["Q_dc"] = dcQ
+    print(f"[dp-vpi] sub-Q (P@quad): Vpi={vpi[1]:.3f} V  V0={v0[1]:+.3f} V",
+          flush=True)
+
+    # Optional parent refinement with the refined sub peaks.
+    dcP2 = _dp_sweep_axis(board, dmm, 2, [v0[0], v0[1], 0.0], bias)
+    _, _, vpi[2], v0[2] = ec.fit_dc_transfer(bias, dcP2); vpi[2] = abs(vpi[2])
+    store["P2_bias"] = bias; store["P2_dc"] = dcP2
+    print(f"[dp-vpi] parent refined: Vpi={vpi[2]:.3f} V  V0={v0[2]:+.3f} V",
+          flush=True)
+
+    # --- 4*pi confirmation: fine sweep the sub with the SMALLER Vpi (more period
+    #     coverage in range), other sub + parent at peak (max half-angle cross term)
+    si = 0 if vpi[0] <= vpi[1] else 1; oj = 1 - si
+    fine = np.linspace(lo, hi, 4 * n)
+    park = [v0[0], v0[1], v0[2]]                 # both subs + parent at peak
+    dc_fine = np.array([read_dc_at_dp_bias(board, dmm, _with(park, si, V)) for V in fine])
+    half = 2 * vpi[si]                           # +2*pi in Theta == +2*Vpi in bias
+    contrast = 0.0
+    for k, V in enumerate(fine):
+        if V + half <= fine[-1]:
+            contrast = max(contrast,
+                           abs(dc_fine[k] - dc_fine[int(np.argmin(np.abs(fine - (V + half))))]))
+    amp1 = (dc_fine.max() - dc_fine.min()) / 2
+    contrast_rel = float(contrast / amp1) if amp1 > 0 else 0.0
+    span_periods = (hi - lo) / (2 * vpi[si])     # how many 2*pi periods fit in range
+    store["fine_bias"] = fine; store["fine_dc"] = dc_fine; store["fine_axis"] = si
+    if span_periods < 1.0:
+        print(f"[dp-vpi] 4*pi: sub-{si} Vpi={vpi[si]:.2f} V too large to span 2*pi "
+              f"in +-9 V (only {span_periods:.2f} period) -- partial demo", flush=True)
+    print(f"[dp-vpi] 4*pi distinguishability: max|P(Th1)-P(Th1+2pi)|/amp = "
+          f"{contrast_rel:.3f}  ({'DISTINGUISHABLE' if contrast_rel > 0.1 else 'flat'})")
+    # save the (critical) Vpi/V0 fit BEFORE the optional IMD purity control, so a
+    # purity hiccup never discards the characterization
+    _dp_save_fit(datadir, vpi=vpi, v0=v0, pilot_v=pilot_v)
+    # --- IMD purity: |Z-| at mid-fringe vs at sub1 null (kills sin(Th1/2)) ---
+    imd_mid = imd_nul = purity = float("nan")
+    try:
+        b_mid = np.clip(dp_bias_of_phi([np.pi / 2, np.pi / 2, 0.0], vpi, v0), lo, hi)
+        b_nul = np.clip(dp_bias_of_phi([0.0, np.pi / 2, 0.0], vpi, v0), lo, hi)  # Th1=0
+        f_imd = DP_ACQ_FREQS[6]                     # |w1-w2| channel
+        acq_m, _ = average_dp_point(board, dmm, b_mid, n_blocks, max(n_avg, 2))
+        acq_n, _ = average_dp_point(board, dmm, b_nul, n_blocks, max(n_avg, 2))
+        imd_mid = acq_m["tones"][f_imd]["mag"]; imd_nul = acq_n["tones"][f_imd]["mag"]
+        purity = float(imd_nul / imd_mid) if imd_mid > 0 else float("nan")
+        print(f"[dp-vpi] IMD purity |Z-|(null)/|Z-|(mid) = {purity:.3f}  "
+              f"({'optical (collapses)' if purity < 0.5 else 'check electrical pickup'})")
+    except Exception as e:
+        print(f"[dp-vpi] IMD purity skipped: {e}")
+    np.savez(os.path.join(datadir, "dp_vpi.npz"), vpi=vpi, v0=v0,
+             contrast_rel=contrast_rel, imd_mid=imd_mid, imd_nul=imd_nul,
+             purity=purity, pilot_v=pilot_v, **store)
+    res = ec.load_results()
+    res["dp_vpi"] = dict(vpi=[round(x, 4) for x in vpi],
+                         v0=[round(x, 4) for x in v0],
+                         contrast_rel=round(contrast_rel, 3),
+                         imd_purity=round(purity, 3))
+    ec.save_results(res)
+    return vpi, v0
+
+
+def _with(b3, i, V):
+    """Copy of the 3-axis bias b3 with axis i overridden to V."""
+    b = list(b3); b[i] = V
+    return b
+
+
+def stage_dp_calib(board, dmm, datadir, pilot_v=DP_PILOT_V, N=1500,
+                   n_blocks=14, n_avg=1, incr=(0.04241, 0.05317, 0.06789),
+                   reprocess=False):
+    """DPMZM stage (6b): quasi-periodic 3-axis scan -> bounded joint identification
+    of (Ah,bh) + the per-axis Vpi scaling, and the held-out model-prediction
+    residual (the bench-measurable counterpart of the simulation's identification
+    error; no ground-truth A on the bench).  Also reports sigma_min(6->9) from the
+    *measured* Ah.  reprocess=True re-fits the SAVED raw scan (dp_calib.npz)
+    without re-acquiring -- used to re-analyse a scan after a fit-method fix."""
+    fit = _dp_load_fit(datadir)
+    vpi = fit["vpi"]; v0 = fit["v0"]
+    if reprocess:
+        d = np.load(os.path.join(datadir, "dp_calib.npz"))
+        BIASES = d["biases"]; I9 = d["I9"]; Q9 = d["Q9"]; DC = d["dc"]
+        N = len(BIASES)
+        print(f"[dp-calib] reprocessing saved scan: {N} points (no re-acquire)", flush=True)
+    else:
+        configure_dc_fast(dmm)
+        prepare_dpmzm_frontend(board, pilot_v=pilot_v)
+        # Quasi-periodic trajectory confined to the reachable bias box: the
+        # unbounded phase walk would drive bias past +-9 V, so reflect
+        # (triangle-wave) the per-axis bias within [-9+m, 9-m] V with
+        # incommensurate increments.  This densely covers the *reachable* phase
+        # region -- enough excitation for the identification.
+        margin = 0.4
+        blo, bhi = -BIAS_LIMIT + margin, BIAS_LIMIT - margin
+        step = np.array([max(0.05, incr[i] * vpi[i] / np.pi) for i in range(3)])
+        BIASES = np.zeros((N, 3)); I9 = np.zeros((N, 9)); Q9 = np.zeros((N, 9))
+        DC = np.zeros(N)
+        for k in range(N):
+            bias = np.array([_triwave(k * step[i], blo, bhi) for i in range(3)])
+            BIASES[k] = bias
+            acq, dc = average_dp_point(board, dmm, bias, n_blocks, n_avg)
+            for j, f in enumerate(DP_ACQ_FREQS):
+                I9[k, j] = acq["tones"][f]["I"]; Q9[k, j] = acq["tones"][f]["Q"]
+            DC[k] = dc
+            if k == 0 or (k + 1) % 50 == 0 or k == N - 1:
+                print(f"[dp-calib] {k + 1:4d}/{N}", flush=True)
+    comps = choose_comps9(I9, Q9)
+    Z = _dp_build_Z(I9, Q9, comps)
+    # JOINT identification: refine the per-axis bias->phase scaling together with
+    # (A,b).  The per-axis Vpi from dp-vpi is only a seed -- the combined-PD
+    # half-angle period and the dim Q arm make the isolated single-axis fits
+    # unreliable, so we pin the scaling from the whole 9-channel response.
+    cal = ecdp.calibrate_dp_joint(BIASES, Z, vpi, v0)
+    Ah, bh = cal["Ah"], cal["bh"]
+    vpi = [round(x, 4) for x in cal["vpi"]]; v0 = [round(x, 4) for x in cal["v0"]]
+    PH = np.stack([dp_phi_of_bias(BIASES[k], cal["vpi"], cal["v0"]) for k in range(N)])
+    m = [float(np.pi * pilot_v / max(0.2, cal["vpi"][i])) for i in range(3)]
+    A0 = ecdp.buildA0(*m)
+    relF_struct = ecdp.relF(Ah, A0)
+    s6 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.HARM_ROWS)
+    s9 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.ALL_ROWS)
+    print(f"[dp-calib] joint-refined Vpi={[round(x,2) for x in cal['vpi']]} "
+          f"V0={[round(x,2) for x in cal['v0']]}", flush=True)
+    np.savez(os.path.join(datadir, "dp_calib.npz"), PH=PH, Z=Z, I9=I9, Q9=Q9,
+             dc=DC, biases=BIASES, Ah=Ah, bh=bh, A0=A0, comps=np.array(comps),
+             vpi=cal["vpi"], v0=cal["v0"], m=m, pilots=DP_PILOTS_HZ,
+             n_blocks=n_blocks, n_avg=n_avg)
+    _dp_save_fit(datadir, Ah=Ah.tolist(), bh=bh.tolist(), comps=list(comps),
+                 vpi=cal["vpi"], v0=cal["v0"], m=m, pilots=list(DP_PILOTS_HZ),
+                 pilot_v=pilot_v, relF_holdout_pct=cal["relF_holdout_pct"])
+    accepted = bool(cal["relF_holdout_pct"] <= 25.0)
+    print(f"[dp-calib] relF holdout={cal['relF_holdout_pct']:.3f}%  "
+          f"in-sample={cal['relF_insample_pct']:.3f}%  structF={relF_struct:.2f}%  "
+          f"sigma_min 6ch={s6:.2e} 9ch={s9:.4f}  accepted={accepted}")
+    summary = dict(relF_holdout_pct=round(cal["relF_holdout_pct"], 3),
+                   relF_insample_pct=round(cal["relF_insample_pct"], 3),
+                   relF_struct_pct=round(relF_struct, 2),
+                   sigmin_6ch=round(s6, 5), sigmin_9ch=round(s9, 5),
+                   N=int(N), n_blocks=int(n_blocks), n_avg=int(n_avg),
+                   accepted=accepted)
+    res = ec.load_results()
+    res["dp_calib_headline"] = summary
+    if accepted:
+        res["dp_relF_pct"] = round(cal["relF_holdout_pct"], 3)
+    else:
+        res.pop("dp_relF_pct", None)
+        print("[dp-calib] diagnostic only: residual above gate; dp_relF_pct not set")
+    ec.save_results(res)
+    return Ah, bh, comps
+
+
+def stage_dp_obs(board, dmm, datadir, pilot_v=DP_PILOT_V, n_blocks=16, n_avg=4,
+                 grid=41, n_probe=24):
+    """DPMZM stage (7): IMD observability recovery.  (i) sigma_min maps over
+    (phi1,phi2) at phi3=pi/2 with 6 vs 9 channels, from the *measured* Ah; (ii) a
+    measured parent-axis test near the standard point -- command small parent
+    dithers and reconstruct them with 6 vs 9 channels (6ch is near-blind)."""
+    fit = _dp_load_fit(datadir)
+    Ah = np.array(fit["Ah"]); bh = np.array(fit["bh"]); comps = fit["comps"]
+    vpi = fit["vpi"]; v0 = fit["v0"]
+    configure_dc_fast(dmm)
+    prepare_dpmzm_frontend(board, pilot_v=pilot_v)
+    f = np.linspace(0, 4 * np.pi, grid)
+
+    def smap(rows, phi3):
+        M = np.zeros((grid, grid))
+        for i, a in enumerate(f):
+            for j, b in enumerate(f):
+                M[j, i] = ecdp.sigmin(Ah, [a, b, phi3], rows)
+        return M
+    M6 = smap(ecdp.HARM_ROWS, np.pi / 2); M9 = smap(ecdp.ALL_ROWS, np.pi / 2)
+    s6 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.HARM_ROWS)
+    s9 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.ALL_ROWS)
+    # measured parent-axis observability: reconstruct commanded parent dithers
+    base = np.array(ecdp.STD_POINT)
+    J = Ah @ ecdp.dfeat(base)
+    rng = np.random.default_rng(0)
+    d3 = rng.uniform(-0.25, 0.25, n_probe)
+    e6 = []; e9 = []
+    for dd in d3:
+        bias = np.clip(dp_bias_of_phi(base + np.array([0, 0, dd]), vpi, v0),
+                       -BIAS_LIMIT, BIAS_LIMIT)
+        acq, _ = average_dp_point(board, dmm, bias, n_blocks, n_avg)
+        z = dp_obs_vector(acq, comps)
+        r = z - (Ah @ ecdp.feat(base) + bh)
+        d9 = np.linalg.lstsq(J[ecdp.ALL_ROWS], r[ecdp.ALL_ROWS], rcond=None)[0]
+        d6 = np.linalg.lstsq(J[ecdp.HARM_ROWS], r[ecdp.HARM_ROWS], rcond=None)[0]
+        e9.append(abs(d9[2] - dd)); e6.append(abs(d6[2] - dd))
+    err6 = float(np.sqrt(np.mean(np.square(e6))))
+    err9 = float(np.sqrt(np.mean(np.square(e9))))
+    print(f"[dp-obs] sigma_min @std  6ch={s6:.2e}  9ch={s9:.4f}  "
+          f"(recovery x{s9 / max(s6, 1e-9):.1f})")
+    print(f"[dp-obs] parent-dither recon rms  6ch={err6 * 1e3:.0f} mrad  "
+          f"9ch={err9 * 1e3:.0f} mrad")
+    np.savez(os.path.join(datadir, "dp_obs.npz"), f=f, M6=M6, M9=M9, s6=s6, s9=s9,
+             d3=d3, e6=np.array(e6), e9=np.array(e9), err6=err6, err9=err9)
+    res = ec.load_results()
+    res["dp_sigmin_6ch"] = round(s6, 4)
+    res["dp_sigmin_9ch"] = round(s9, 4)
+    res["dp_obs_headline"] = dict(sigmin_6ch=round(s6, 5), sigmin_9ch=round(s9, 5),
+                                  parent_recon_6ch_mrad=round(err6 * 1e3, 1),
+                                  parent_recon_9ch_mrad=round(err9 * 1e3, 1),
+                                  n_avg=int(n_avg))
+    ec.save_results(res)
+    return s6, s9
+
+
+def _dp_audit_from_z(z, Ah, bh):
+    """Controller-independent phase readout from one already-acquired 9-channel z:
+    multi-seed cold-start GN, pick the minimum-residual solution.  No extra
+    acquisition -- the control loop already measured z this iteration.  For the
+    three-loop baseline this is fully independent of its scalar control law, so
+    the GN-vs-baseline comparison is fair (same operator on each achieved state).
+    """
+    seeds = [(0, 0, 0), ecdp.STD_POINT, ecdp.ARB_POINT,
+             (np.pi, 0, 0), (0, np.pi, np.pi)]
+    best = None; bestr = np.inf
+    for s in seeds:
+        est = ecdp.gn_demod(z, np.array(s, float), Ah, bh, iters=10)
+        r = np.linalg.norm(z - (Ah @ ecdp.feat(est) + bh))
+        if r < bestr:
+            bestr = r; best = est
+    return best
+
+
+def stage_dp_lock(board, dmm, datadir, pilot_v=DP_PILOT_V, iters=40, n_blocks=14,
+                  n_avg=1, gain=0.3, audit_navg=4):
+    """DPMZM stage (8): three-axis arbitrary-point lock.  GN-affine controller
+    vs three independent scalar loops, both sharing the same gen/acq path, at an
+    arbitrary target and at the standard QPSK target.  Per-iteration error is the
+    controller-independent audit phase (cold multi-seed GN on the iteration's own
+    z) vs target; in --sim the exact phi_of is used instead."""
+    fit = _dp_load_fit(datadir)
+    Ah = np.array(fit["Ah"]); bh = np.array(fit["bh"]); comps = fit["comps"]
+    vpi = fit["vpi"]; v0 = fit["v0"]
+    configure_dc_fast(dmm)
+    prepare_dpmzm_frontend(board, pilot_v=pilot_v)
+
+    def truth(bias, z):
+        if isinstance(board, SimBoardDP):
+            return board.phi_of(bias)
+        return _dp_audit_from_z(z, Ah, bh)
+
+    def run_gn(tgt):
+        tgt = np.array(tgt, float); est = tgt + 0.3; phi_cmd = tgt + 0.3
+        errs = []
+        for _ in range(iters):
+            bias = np.clip(dp_bias_of_phi(phi_cmd, vpi, v0), -BIAS_LIMIT, BIAS_LIMIT)
+            acq, _ = average_dp_point(board, dmm, bias, n_blocks, n_avg)
+            z = dp_obs_vector(acq, comps)
+            est = ecdp.gn_demod(z, est, Ah, bh, iters=3)
+            phi_cmd = phi_cmd - gain * ecdp.wrap(est - tgt)
+            errs.append(1e3 * np.linalg.norm(ecdp.wrap(truth(bias, z) - tgt)))
+        return np.array(errs)
+
+    def run_3loop(tgt):
+        tgt = np.array(tgt, float)
+        ref = Ah[[0, 2, 6]] @ ecdp.feat(tgt)
+        Jd = Ah @ ecdp.dfeat(tgt)
+        slopes = np.array([Jd[0, 0], Jd[2, 1], Jd[6, 2]])
+        fl = np.array([abs(Ah[0, 1]), abs(Ah[2, 3]), abs(Ah[6, 10])])
+        slopes = np.sign(np.where(slopes == 0, 1, slopes)) * \
+            np.maximum(np.abs(slopes), 0.15 * fl)
+        phi_cmd = tgt + 0.3; errs = []
+        for _ in range(iters):
+            bias = np.clip(dp_bias_of_phi(phi_cmd, vpi, v0), -BIAS_LIMIT, BIAS_LIMIT)
+            acq, _ = average_dp_point(board, dmm, bias, n_blocks, n_avg)
+            z = dp_obs_vector(acq, comps)
+            e = np.clip((z[[0, 2, 6]] - ref) / slopes, -1, 1)
+            phi_cmd = phi_cmd - gain * e
+            errs.append(1e3 * np.linalg.norm(ecdp.wrap(truth(bias, z) - tgt)))
+        return np.array(errs)
+
+    tail = slice(int(0.6 * iters), None)
+    out = {}
+    for name, tgt in [("arb", ecdp.ARB_POINT), ("std", ecdp.STD_POINT)]:
+        eG = run_gn(tgt); eT = run_3loop(tgt)
+        rG = float(np.sqrt(np.mean(eG[tail] ** 2)))
+        rT = float(np.sqrt(np.mean(np.clip(eT[tail], 0, 3142) ** 2)))
+        out[name] = dict(eG=eG, eT=eT, rG=rG, rT=rT)
+        print(f"[dp-lock] {name}: GN rms={rG:.1f} mrad  three-loop rms={rT:.1f} mrad",
+              flush=True)
+    np.savez(os.path.join(datadir, "dp_lock.npz"),
+             arb_eG=out["arb"]["eG"], arb_eT=out["arb"]["eT"],
+             std_eG=out["std"]["eG"], std_eT=out["std"]["eT"],
+             arb_target=ecdp.ARB_POINT, std_target=ecdp.STD_POINT,
+             gain=gain, iters=iters, n_avg=n_avg)
+    res = ec.load_results()
+    res["dp_lock_rms_arb_gn_mrad"] = round(out["arb"]["rG"], 1)
+    res["dp_lock_rms_arb_3loop_mrad"] = round(out["arb"]["rT"], 1)
+    res["dp_lock_rms_std_gn_mrad"] = round(out["std"]["rG"], 1)
+    res["dp_lock_rms_std_3loop_mrad"] = round(out["std"]["rT"], 1)
+    res["dp_lock_headline"] = dict(gain=gain, iters=int(iters), n_avg=int(n_avg),
+                                   audit_navg=int(audit_navg))
+    ec.save_results(res)
+    return out
+
+
+# --------------------------------------------------------------------------- #
+#  MAGNITUDE-MODE DPMZM stages (scope-FFT power; bypasses the board ADC clip)   #
+# --------------------------------------------------------------------------- #
+def stage_dp_calib_mag(board, scope, dmm, datadir, pilot_v=DP_PILOT_V_SCOPE,
+                       N=400, incr=(0.04241, 0.05317, 0.06789)):
+    """DPMZM calib (magnitude mode): quasi-periodic 3-axis scan read by the scope
+    FFT (POWER only), bounded-Vpi magnitude identification (v0 fixed to the DC
+    maxima from dp-vpi).  Deep pilot -> strong IMD, unclipped."""
+    fit = _dp_load_fit(datadir)
+    vpi = fit["vpi"]; v0 = fit["v0"]
+    prepare_scope_fft_dp(board, scope, pilot_v=pilot_v)
+    margin = 0.4; blo, bhi = -BIAS_LIMIT + margin, BIAS_LIMIT - margin
+    step = np.array([max(0.05, incr[i] * vpi[i] / np.pi) for i in range(3)])
+    BIASES = np.zeros((N, 3)); MAG = np.zeros((N, 9))
+    for k in range(N):
+        bias = np.array([_triwave(k * step[i], blo, bhi) for i in range(3)])
+        BIASES[k] = bias
+        MAG[k] = scope_power_dp(board, scope, bias)
+        if k == 0 or (k + 1) % 25 == 0 or k == N - 1:
+            print(f"[dp-calib-mag] {k + 1:4d}/{N}", flush=True)
+    # mask channels that read nan too often (noise floor); fill nan per channel
+    good = np.isfinite(MAG)
+    for j in range(9):
+        col = MAG[:, j]
+        col[~np.isfinite(col)] = np.nanmin(col[np.isfinite(col)]) if good[:, j].any() else 0.0
+    cal = ecdp.calibrate_dp_mag_joint(BIASES, MAG, vpi, v0)
+    Ah = cal["Ah"]; vpi = cal["vpi"]
+    PH = np.stack([dp_phi_of_bias(BIASES[k], vpi, v0) for k in range(N)])
+    s6 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.HARM_ROWS)
+    s9 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.ALL_ROWS)
+    print(f"[dp-calib-mag] holdout={cal['relF_holdout_pct']:.2f}%  Vpi={[round(x,2) for x in vpi]}  "
+          f"sigma_min 6ch={s6:.3f} 9ch={s9:.3f} (x{s9/max(s6,1e-9):.1f})", flush=True)
+    np.savez(os.path.join(datadir, "dp_calib.npz"), biases=BIASES, MAG=MAG, PH=PH,
+             Ah=Ah, A0=ecdp.buildA0(1.0, 1.0, 1.0), vpi=vpi, v0=v0,
+             pilots=DP_PILOTS_HZ, mode="mag", pilot_v=pilot_v)
+    _dp_save_fit(datadir, Ah=Ah.tolist(), vpi=list(vpi), v0=list(v0),
+                 pilots=list(DP_PILOTS_HZ), pilot_v=pilot_v, mode="mag",
+                 relF_holdout_pct=cal["relF_holdout_pct"])
+    accepted = bool(cal["relF_holdout_pct"] <= 25.0)
+    res = ec.load_results()
+    res["dp_calib_headline"] = dict(relF_holdout_pct=round(cal["relF_holdout_pct"], 3),
+                                    sigmin_6ch=round(s6, 5), sigmin_9ch=round(s9, 5),
+                                    N=int(N), mode="mag", pilot_v=pilot_v,
+                                    accepted=accepted)
+    if accepted:
+        res["dp_relF_pct"] = round(cal["relF_holdout_pct"], 3)
+    ec.save_results(res)
+    return Ah, vpi, v0
+
+
+def stage_dp_obs_mag(board, scope, datadir, pilot_v=DP_PILOT_V_SCOPE, grid=41,
+                     n_probe=24):
+    """DPMZM observability (magnitude mode): sigma_min(6 vs 9) maps from the
+    measured Ah, and a measured parent-dither reconstruction (6 vs 9 channels)
+    via the magnitude Jacobian near the standard point."""
+    fit = _dp_load_fit(datadir)
+    Ah = np.array(fit["Ah"]); vpi = fit["vpi"]; v0 = fit["v0"]
+    prepare_scope_fft_dp(board, scope, pilot_v=pilot_v)
+    f = np.linspace(0, 4 * np.pi, grid)
+
+    def smap(rows, phi3):
+        M = np.zeros((grid, grid))
+        for i, a in enumerate(f):
+            for j, b in enumerate(f):
+                M[j, i] = ecdp.sigmin(Ah, [a, b, phi3], rows)
+        return M
+    M6 = smap(ecdp.HARM_ROWS, np.pi / 2); M9 = smap(ecdp.ALL_ROWS, np.pi / 2)
+    s6 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.HARM_ROWS)
+    s9 = ecdp.sigmin(Ah, ecdp.STD_POINT, ecdp.ALL_ROWS)
+    base = np.array(ecdp.STD_POINT)
+    g0 = Ah @ ecdp.feat(base); Jm = np.sign(g0)[:, None] * (Ah @ ecdp.dfeat(base))
+    m0 = np.abs(g0)
+    rng = np.random.default_rng(0); d3 = rng.uniform(-0.25, 0.25, n_probe)
+    e6 = []; e9 = []
+    for dd in d3:
+        bias = np.clip(dp_bias_of_phi(base + np.array([0, 0, dd]), vpi, v0),
+                       -BIAS_LIMIT, BIAS_LIMIT)
+        m = scope_power_dp(board, scope, bias)
+        dm = m - m0
+        d9 = np.linalg.lstsq(Jm[ecdp.ALL_ROWS], dm[ecdp.ALL_ROWS], rcond=None)[0]
+        d6 = np.linalg.lstsq(Jm[ecdp.HARM_ROWS], dm[ecdp.HARM_ROWS], rcond=None)[0]
+        e9.append(abs(d9[2] - dd)); e6.append(abs(d6[2] - dd))
+    err6 = float(np.sqrt(np.mean(np.square(e6))))
+    err9 = float(np.sqrt(np.mean(np.square(e9))))
+    print(f"[dp-obs-mag] sigma_min std 6ch={s6:.4f} 9ch={s9:.4f} (x{s9/max(s6,1e-9):.1f}); "
+          f"parent recon 6ch={err6*1e3:.0f} 9ch={err9*1e3:.0f} mrad", flush=True)
+    np.savez(os.path.join(datadir, "dp_obs.npz"), f=f, M6=M6, M9=M9, s6=s6, s9=s9,
+             d3=d3, e6=np.array(e6), e9=np.array(e9), err6=err6, err9=err9, mode="mag")
+    res = ec.load_results()
+    res["dp_sigmin_6ch"] = round(s6, 4); res["dp_sigmin_9ch"] = round(s9, 4)
+    res["dp_obs_headline"] = dict(sigmin_6ch=round(s6, 5), sigmin_9ch=round(s9, 5),
+                                  parent_recon_6ch_mrad=round(err6 * 1e3, 1),
+                                  parent_recon_9ch_mrad=round(err9 * 1e3, 1), mode="mag")
+    ec.save_results(res)
+    return s6, s9
+
+
+def stage_dp_lock_mag(board, scope, datadir, pilot_v=DP_PILOT_V_SCOPE, iters=40,
+                      gain=0.3):
+    """DPMZM three-axis lock (magnitude mode): GN-affine (gn_demod_mag) vs three
+    independent scalar-magnitude loops, at an arbitrary and the standard target.
+    Truth = cold multi-seed gn_demod_mag on the iteration's own power vector."""
+    fit = _dp_load_fit(datadir)
+    Ah = np.array(fit["Ah"]); vpi = fit["vpi"]; v0 = fit["v0"]
+    prepare_scope_fft_dp(board, scope, pilot_v=pilot_v)
+    seeds = [(0, 0, 0), ecdp.STD_POINT, ecdp.ARB_POINT, (np.pi, 0, -np.pi / 2)]
+
+    def truth(bias, m):
+        if isinstance(board, SimBoardDP):
+            return board.phi_of(bias)
+        best = None; br = np.inf
+        for s in seeds:
+            est = ecdp.gn_demod_mag(m, np.array(s, float), Ah, iters=12)
+            r = np.linalg.norm(m ** 2 - (Ah @ ecdp.feat(est)) ** 2)
+            if r < br:
+                br = r; best = est
+        return best
+
+    def run_gn(tgt):
+        tgt = np.array(tgt, float); est = tgt + 0.3; phi_cmd = tgt + 0.3; errs = []
+        for _ in range(iters):
+            bias = np.clip(dp_bias_of_phi(phi_cmd, vpi, v0), -BIAS_LIMIT, BIAS_LIMIT)
+            m = scope_power_dp(board, scope, bias)
+            est = ecdp.gn_demod_mag(m, phi_cmd, Ah, iters=8)   # seed from command
+            phi_cmd = phi_cmd - gain * ecdp.wrap(est - tgt)
+            errs.append(1e3 * np.linalg.norm(ecdp.wrap(truth(bias, m) - tgt)))
+        return np.array(errs)
+
+    def run_3loop(tgt):
+        tgt = np.array(tgt, float)
+        rows = [0, 2, 6]
+        mref = np.abs(Ah[rows] @ ecdp.feat(tgt))
+        Jd = np.sign(Ah @ ecdp.feat(tgt))[:, None] * (Ah @ ecdp.dfeat(tgt))
+        slopes = np.array([Jd[0, 0], Jd[2, 1], Jd[6, 2]])
+        slopes = np.sign(np.where(slopes == 0, 1, slopes)) * np.maximum(np.abs(slopes), 1e-3)
+        phi_cmd = tgt + 0.3; errs = []
+        for _ in range(iters):
+            bias = np.clip(dp_bias_of_phi(phi_cmd, vpi, v0), -BIAS_LIMIT, BIAS_LIMIT)
+            m = scope_power_dp(board, scope, bias)
+            e = np.clip((m[rows] - mref) / slopes, -1, 1)
+            phi_cmd = phi_cmd - gain * e
+            errs.append(1e3 * np.linalg.norm(ecdp.wrap(truth(bias, m) - tgt)))
+        return np.array(errs)
+
+    tail = slice(int(0.6 * iters), None); out = {}
+    for name, tgt in [("arb", ecdp.ARB_POINT), ("std", ecdp.STD_POINT)]:
+        eG = run_gn(tgt); eT = run_3loop(tgt)
+        rG = float(np.sqrt(np.mean(eG[tail] ** 2)))
+        rT = float(np.sqrt(np.mean(np.clip(eT[tail], 0, 3142) ** 2)))
+        out[name] = dict(eG=eG, eT=eT, rG=rG, rT=rT)
+        print(f"[dp-lock-mag] {name}: GN rms={rG:.1f}  three-loop rms={rT:.1f} mrad", flush=True)
+    np.savez(os.path.join(datadir, "dp_lock.npz"),
+             arb_eG=out["arb"]["eG"], arb_eT=out["arb"]["eT"],
+             std_eG=out["std"]["eG"], std_eT=out["std"]["eT"],
+             arb_target=ecdp.ARB_POINT, std_target=ecdp.STD_POINT,
+             gain=gain, iters=iters, mode="mag")
+    res = ec.load_results()
+    res["dp_lock_rms_arb_gn_mrad"] = round(out["arb"]["rG"], 1)
+    res["dp_lock_rms_arb_3loop_mrad"] = round(out["arb"]["rT"], 1)
+    res["dp_lock_rms_std_gn_mrad"] = round(out["std"]["rG"], 1)
+    res["dp_lock_rms_std_3loop_mrad"] = round(out["std"]["rT"], 1)
+    res["dp_lock_headline"] = dict(gain=gain, iters=int(iters), mode="mag")
+    ec.save_results(res)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("stage", choices=["bringup", "vpi", "calib", "pilotdiag",
                                        "lock", "pilot", "drift", "stability",
-                                       "rf", "all"])
+                                       "rf", "all",
+                                       "dp-vpi", "dp-calib", "dp-obs", "dp-lock",
+                                       "dp-all"])
     ap.add_argument("--sim", action="store_true",
                     help="analytic model instead of hardware; writes build/exp_sim/")
     ap.add_argument("--no-dmm", action="store_true", help="skip DM858E")
@@ -1228,7 +2148,17 @@ def main():
                          "the token 'off' is the RF-off reference (default 'off,0')")
     ap.add_argument("--rf-grid", type=int, default=8,
                     help="phi* grid size for the rf-stage lock comparison (default 8)")
+    ap.add_argument("--dp-n", type=int, default=1500,
+                    help="quasi-periodic scan length for dp-calib (default 1500)")
+    ap.add_argument("--dp-pilot-v", type=float, default=None,
+                    help=f"per-axis DPMZM pilot amplitude (default {DP_PILOT_V} V board "
+                         f"path, {DP_PILOT_V_SCOPE} V scope path)")
+    ap.add_argument("--scope-acq", action="store_true",
+                    help="DPMZM calib/obs/lock: read POWER via the scope FFT (deep "
+                         "pilot, bypasses the board ADC clip) + magnitude-only math")
     a = ap.parse_args()
+    if a.dp_pilot_v is None:
+        a.dp_pilot_v = DP_PILOT_V_SCOPE if a.scope_acq else DP_PILOT_V
 
     def _pilot_list():
         return tuple(float(x) for x in a.pilot_list.split(",") if x.strip())
@@ -1288,14 +2218,45 @@ def main():
                      rf_ch=a.rf_ch, powers_dbm=_rf_powers(), n_grid=a.rf_grid,
                      iters=a.iters, n_blocks=a.n_blocks or 16, n_avg=a.n_avg,
                      gain=a.gain)
+        if a.stage in ("dp-vpi", "dp-all"):
+            stage_dp_vpi(board, dmm, datadir, pilot_v=a.dp_pilot_v,
+                         n=a.n_points or 181, n_blocks=a.n_blocks or DP_MAX_BLOCKS,
+                         n_avg=a.n_avg)
+        if a.stage in ("dp-calib", "dp-all"):
+            if a.scope_acq:
+                stage_dp_calib_mag(board, scope, dmm, datadir,
+                                   pilot_v=a.dp_pilot_v, N=a.dp_n)
+            else:
+                stage_dp_calib(board, dmm, datadir, pilot_v=a.dp_pilot_v, N=a.dp_n,
+                               n_blocks=a.n_blocks or DP_MAX_BLOCKS, n_avg=a.n_avg)
+        if a.stage in ("dp-obs", "dp-all"):
+            if a.scope_acq:
+                stage_dp_obs_mag(board, scope, datadir, pilot_v=a.dp_pilot_v)
+            else:
+                stage_dp_obs(board, dmm, datadir, pilot_v=a.dp_pilot_v,
+                             n_blocks=a.n_blocks or DP_MAX_BLOCKS,
+                             n_avg=a.n_avg if a.n_avg > 1 else 4)
+        if a.stage in ("dp-lock", "dp-all"):
+            if a.scope_acq:
+                stage_dp_lock_mag(board, scope, datadir, pilot_v=a.dp_pilot_v,
+                                  iters=a.iters, gain=a.gain)
+            else:
+                stage_dp_lock(board, dmm, datadir, pilot_v=a.dp_pilot_v,
+                              iters=a.iters, n_blocks=a.n_blocks or DP_MAX_BLOCKS,
+                              n_avg=a.n_avg, gain=a.gain)
 
     if a.sim:
         datadir = os.path.join(ec.REPO, "build", "exp_sim")
         os.makedirs(datadir, exist_ok=True)
         # redirect exp_common's results.json into the sim dir too
         ec.DATA = datadir
-        board = SimBoard(); dmm = None if a.no_dmm else SimDMM(board); scope = None
-        siggen = SimSigGen(board, vpi=board.VPI); specan = SimSpecAn(board)
+        if a.stage.startswith("dp"):
+            board = SimBoardDP(); scope = siggen = specan = None
+            dmm = None if a.no_dmm else SimDMM(board)
+        else:
+            board = SimBoard(); scope = None
+            dmm = None if a.no_dmm else SimDMM(board)
+            siggen = SimSigGen(board, vpi=board.VPI); specan = SimSpecAn(board)
         print(f"[sim] writing to {os.path.relpath(datadir, ec.REPO)} (gitignored)")
         run_selected(board, dmm, scope, siggen, specan, datadir)
     else:

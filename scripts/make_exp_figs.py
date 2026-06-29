@@ -2,7 +2,7 @@
 """Render the EXPERIMENTAL figures from recorded bench data.
 
   fig_exp_mzm.pdf    single-MZM bench schematic   (data-free, always)
-  fig_exp_dpmzm.pdf  planned DPMZM schematic       (data-free, always)
+  fig_exp_dpmzm.pdf  DPMZM bench schematic         (data-free, always)
   fig_exp1.pdf       calibration ellipse + circle  (needs calib.npz/_fit.json)
   fig_exp2.pdf       lock rms vs phi*: affine/H1   (needs lock_sweep.npz)
   fig_exp3.pdf       drift + recal record          (needs drift.npz)
@@ -117,7 +117,7 @@ def fig_setup_mzm(out):
 def fig_setup_dpmzm(out):
     fig, ax = plt.subplots(figsize=(TW, 2.2)); ax.set_xlim(0, 16)
     ax.set_ylim(0, 4.6); ax.axis("off")
-    ax.text(0.1, 4.3, "（计划/未来工作）", fontsize=7, color="0.4")
+    ax.text(0.1, 4.3, "（实测链路）", fontsize=7, color="0.4")
     _box(ax, 0.2, 2.0, 1.4, 0.9, "DFB 激光")
     _box(ax, 2.1, 1.4, 2.2, 2.1,
          "DPMZM\n子I:$\\varphi_1$ 子Q:$\\varphi_2$\n父:$\\varphi_3$", 5.8)
@@ -384,6 +384,111 @@ def fig_rf(data, out):
     plt.close(fig); print("[fig] fig_exprf.pdf")
 
 
+CH_LABELS = ["$Y_1$", "$X_1$", "$Y_2$", "$X_2$", "$Y_3$", "$X_3$",
+             "$Z_-$", "$Z_{13}$", "$Z_{23}$"]
+FEAT_LABELS = ["$c\\varphi_1$", "$s\\varphi_1$", "$c\\varphi_2$", "$s\\varphi_2$",
+               "$ccC$", "$ccS$", "$csC$", "$csS$", "$scC$", "$scS$", "$ssC$", "$ssS$"]
+
+
+def fig_dp_torus(data, out):
+    """fig:exp6 — (a) sub-axis-1 sweep over 4*Vpi showing phi vs phi+2pi
+    distinguishability (half-angle / 4*pi period); (b) identified A_hat heatmap
+    over the ideal sparse fingerprint A0.  Cross-refs fig:torus / fig:ahat."""
+    vp = os.path.join(data, "dp_vpi.npz"); cp = os.path.join(data, "dp_calib.npz")
+    if not (os.path.exists(vp) or os.path.exists(cp)):
+        print("[skip] fig_exp6: dp_vpi.npz / dp_calib.npz not found"); return
+    ncol = int(os.path.exists(vp)) + int(os.path.exists(cp))
+    fig, axs = plt.subplots(1, ncol, figsize=(ncol * CW, 2.2), squeeze=False)
+    c = 0
+    if os.path.exists(vp):
+        d = np.load(vp); fb = d["fine_bias"]; fd = d["fine_dc"]
+        axidx = int(d["fine_axis"]) if "fine_axis" in d.files else 0
+        vpi0 = float(d["vpi"][axidx]); v00 = float(d["v0"][axidx])
+        cr = float(d["contrast_rel"])
+        th = np.pi * (fb - v00) / vpi0            # selected sub-axis phase in rad
+        ax = axs[0, c]; ax.plot(th / np.pi, fd, color=INK, lw=0.9)
+        ax.axvline(0, color=GLD, ls=":", lw=0.8); ax.axvline(2, color=GLD, ls=":", lw=0.8)
+        ax.set_xlabel(f"$\\varphi_{axidx + 1}/\\pi$")
+        ax.set_ylabel("合路 PD 强度 (V)")
+        ax.set_title(f"(a) 子轴 {axidx + 1} 扫 $4V_\\pi$：$\\varphi$ vs $\\varphi{{+}}2\\pi$ 可区分"
+                     f"（对比度 {cr:.2f}）", fontsize=7.0)
+        c += 1
+    if os.path.exists(cp):
+        d = np.load(cp); Ah = d["Ah"]; A0 = d["A0"]
+        ax = axs[0, c]; v = float(np.max(np.abs(Ah)))
+        im = ax.imshow(Ah, cmap="RdYlGn", vmin=-v, vmax=v, aspect="auto")
+        for r in range(9):
+            for cc in range(12):
+                if A0[r, cc] != 0:
+                    ax.add_patch(Rectangle((cc - 0.5, r - 0.5), 1, 1, fill=False,
+                                           ec=INK, lw=1.0))
+        ax.set_yticks(range(9)); ax.set_yticklabels(CH_LABELS, fontsize=6)
+        ax.set_xticks(range(12)); ax.set_xticklabels(FEAT_LABELS, rotation=60, fontsize=5.5)
+        ax.set_title("(b) 辨识 $\\hat A$（框=理想 $A_0$ 稀疏指纹）", fontsize=7.0)
+        fig.colorbar(im, ax=ax, fraction=0.04, pad=0.02)
+    fig.tight_layout(); fig.savefig(os.path.join(out, "fig_exp6.pdf"))
+    plt.close(fig); print("[fig] fig_exp6.pdf")
+
+
+def fig_dp_obs(data, out):
+    """fig:exp5 — IMD observability recovery.  (a,b) sigma_min maps over
+    (phi1,phi2) at phi3=pi/2 with 6 vs 9 channels (from the measured A_hat);
+    (c) measured parent-axis dither reconstruction error, 6 vs 9 ch.  fig:obs."""
+    p = os.path.join(data, "dp_obs.npz")
+    if not os.path.exists(p):
+        print("[skip] fig_exp5: dp_obs.npz not found"); return
+    d = np.load(p); f = d["f"]; M6 = d["M6"]; M9 = d["M9"]
+    tk = [0, np.pi, 2 * np.pi, 3 * np.pi, 4 * np.pi]
+    tl = ["0", "$\\pi$", "$2\\pi$", "$3\\pi$", "$4\\pi$"]
+    L6 = np.log10(np.maximum(M6, 1e-6)); L9 = np.log10(np.maximum(M9, 1e-6))
+    fig, axs = plt.subplots(1, 3, figsize=(2 * CW, 2.25),
+                            gridspec_kw={"width_ratios": [1, 1, 0.78]})
+    for ax, (M, tt) in zip(axs[:2], [(L6, "(a) 6 谐波通道"), (L9, "(b) +IMD（9 通道）")]):
+        im = ax.pcolormesh(f, f, M, cmap="viridis", vmin=-6, vmax=-0.8,
+                           shading="auto", rasterized=True)
+        ax.plot(np.pi, np.pi, "o", mfc="none", mec=RED, ms=7, mew=1.4)  # standard pt
+        ax.set_xticks(tk); ax.set_xticklabels(tl); ax.set_yticks(tk); ax.set_yticklabels(tl)
+        ax.set_title(tt, fontsize=7.5); ax.set_xlabel("$\\varphi_1$")
+    axs[0].set_ylabel("$\\varphi_2$")
+    fig.colorbar(im, ax=axs[:2], orientation="horizontal",
+                 label="$\\log_{10}\\sigma_{\\min}(\\mathcal{J})$",
+                 fraction=0.10, pad=0.22)
+    ax = axs[2]
+    e6 = float(d["err6"]) * 1e3; e9 = float(d["err9"]) * 1e3
+    ax.bar([0, 1], [e6, e9], color=[RED, GRN], width=0.6)
+    ax.set_xticks([0, 1]); ax.set_xticklabels(["6 谐波", "+IMD(9)"])
+    ax.set_ylabel("rms (mrad)")
+    ax.set_title(f"(c) 标准点父轴可观测性\n$\\sigma_{{\\min}}$: {float(d['s6']):.1e}"
+                 f"$\\to${float(d['s9']):.3f}", fontsize=7.0)
+    fig.savefig(os.path.join(out, "fig_exp5.pdf"), bbox_inches="tight")
+    plt.close(fig); print("[fig] fig_exp5.pdf")
+
+
+def fig_dp_lock(data, out):
+    """fig:exp4 — three-axis arbitrary-point lock: GN-affine vs three independent
+    loops, at an arbitrary and the standard QPSK target (log error norm).
+    Cross-refs fig:dploop."""
+    p = os.path.join(data, "dp_lock.npz")
+    if not os.path.exists(p):
+        print("[skip] fig_exp4: dp_lock.npz not found"); return
+    d = np.load(p)
+    fig, axs = plt.subplots(1, 2, figsize=(2 * CW, 2.05), sharey=True)
+    panels = [("arb", d["arb_eG"], d["arb_eT"], d["arb_target"], "(a) 任意目标点"),
+              ("std", d["std_eG"], d["std_eT"], d["std_target"], "(b) 标准 QPSK 点")]
+    for ax, (_, eG, eT, tgt, tt) in zip(axs, panels):
+        ax.semilogy(np.maximum(eT, 1.0), color=RED, lw=0.7, label="三独立环")
+        ax.semilogy(np.maximum(eG, 1.0), color=GRN, lw=0.7, label="GN 仿射（本文）")
+        t = ", ".join(f"{x:.1f}" for x in tgt)
+        ax.set_xlabel("控制周期"); ax.set_title(f"{tt} $({t})$", fontsize=7.5)
+        ax.set_ylim(1, 4000)
+    axs[0].set_ylabel("$\\|\\boldsymbol{\\varphi}-\\boldsymbol{\\varphi}^*\\|$ (mrad)")
+    h, l = axs[0].get_legend_handles_labels()
+    fig.legend(h, l, loc="upper center", ncol=2, frameon=False, fontsize=7,
+               bbox_to_anchor=(0.5, 1.02))
+    fig.tight_layout(rect=(0, 0, 1, 0.9)); fig.savefig(os.path.join(out, "fig_exp4.pdf"))
+    plt.close(fig); print("[fig] fig_exp4.pdf")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -401,6 +506,9 @@ def main():
     fig_pilot(a.data_dir, a.out_dir)
     fig_drift(a.data_dir, a.out_dir)
     fig_rf(a.data_dir, a.out_dir)
+    fig_dp_torus(a.data_dir, a.out_dir)
+    fig_dp_obs(a.data_dir, a.out_dir)
+    fig_dp_lock(a.data_dir, a.out_dir)
 
 
 if __name__ == "__main__":

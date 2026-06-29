@@ -214,6 +214,14 @@ def check_experiment_results(tex: str) -> None:
         ("recal_post_rms_mrad", "漂移突变检测延迟", 0.1, "mrad"),
         ("stability_recal_events_3h", "$3$~h 长期稳定性", 0.5, "events"),
         ("rf_lock_rms_on_mrad", "RF 加载", 0.1, "mrad"),
+        # --- DPMZM stages (device swapped in; see plan parsed-brewing-wadler) ---
+        ("dp_relF_pct", "准周期扫描辨识", 0.1, "%"),
+        ("dp_sigmin_6ch", "IMD 可观测性", 0.005, ""),
+        ("dp_sigmin_9ch", "IMD 可观测性", 0.005, ""),
+        ("dp_lock_rms_arb_gn_mrad", "任意点三轴", 0.5, "mrad"),
+        ("dp_lock_rms_arb_3loop_mrad", "任意点三轴", 0.5, "mrad"),
+        ("dp_lock_rms_std_gn_mrad", "标准点三轴", 0.5, "mrad"),
+        ("dp_lock_rms_std_3loop_mrad", "标准点三轴", 0.5, "mrad"),
     ]
     checked = 0
     for key, row, tol, unit in specs:
