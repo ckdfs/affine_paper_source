@@ -199,8 +199,24 @@ ax.semilogy(0.96*(1-0.16)**(n+1),'k--',lw=0.8,label='$(1-G)^n$ theory')
 ax.set_xlabel('control step'); ax.set_title('(b) DPMZM acquisition',fontsize=7.5)
 ax.legend(borderpad=0.2,handlelength=1.2,loc='lower left',fontsize=6)
 ax.set_ylim(1e-3,2)
+# capture panel (a)'s already-plotted line data (xdata/ydata/color/label) and
+# axis limits *before* saving/closing, so the single-panel variant below is a
+# pure re-plot of already-computed arrays — no recomputation, no RNG draws
+acq_a_lines = [(ln.get_xdata(), ln.get_ydata(), ln.get_color(), ln.get_linestyle(),
+                ln.get_linewidth(), ln.get_label()) for ln in axs[0].get_lines()]
+acq_a_ylim = axs[0].get_ylim()
 plt.tight_layout(); plt.savefig('figs/fig_acq.pdf'); plt.close()
 print('[acq] time constant 1/G: MZM %.1f steps, DPMZM %.1f steps'%(1/G,1/0.16))
+
+# ---- single-panel MZM-only variant for paper_mzm_zh: re-plots the captured
+#      line data from panel (a) above verbatim (no new computation/RNG) ----
+fig,ax=plt.subplots(1,1,figsize=(CW,2.15))
+for xd,yd,col,ls,lw,lab in acq_a_lines:
+    ax.semilogy(xd,yd,color=col,linestyle=ls,linewidth=lw,label=lab)
+ax.set_xlabel('control step'); ax.set_ylabel('$|e|$ (rad)')
+ax.legend(ncol=1,borderpad=0.2,handlelength=1.2,loc='lower left',fontsize=6)
+ax.set_ylim(acq_a_ylim)
+plt.tight_layout(); plt.savefig('figs/fig_acq_mzm.pdf'); plt.close()
 
 # ============ Fig F3: setpoint stepping ============
 fig,axs=plt.subplots(2,1,figsize=(2*CW,2.6),sharex=True)
@@ -242,7 +258,22 @@ axs[1].semilogy(np.maximum(np.array(trd),0.5),color=GRN,lw=0.8)
 for i in range(1,len(tgseq)): axs[1].axvline(i*seg,color=GLD,lw=0.8,ls=':')
 axs[1].set_ylabel('$\\|e\\|$ (mrad)'); axs[1].set_xlabel('control step')
 axs[1].set_title('(b) DPMZM: three-axis setpoint steps (dotted: step instants)',fontsize=7.5)
+# capture panel (a)'s already-plotted line data before saving/closing, for a
+# pure re-plot single-panel variant below (no recomputation, no RNG draws)
+step_a_lines = [(ln.get_xdata(), ln.get_ydata(), ln.get_color(), ln.get_linestyle(),
+                  ln.get_linewidth(), ln.get_label()) for ln in axs[0].get_lines()]
+step_a_ylim = axs[0].get_ylim()
 plt.tight_layout(); plt.savefig('figs/fig_step.pdf'); plt.close()
+
+# ---- single-panel MZM-only variant for paper_mzm_zh: re-plots the captured
+#      line data from panel (a) above verbatim (no new computation/RNG) ----
+fig,ax=plt.subplots(1,1,figsize=(CW,1.9))
+for xd,yd,col,ls,lw,lab in step_a_lines:
+    ax.plot(xd,yd,color=col,linestyle=ls,linewidth=lw,label=lab)
+ax.set_ylabel('$\\varphi_b$ (rad)'); ax.set_xlabel('control step')
+ax.legend(loc='upper right',borderpad=0.2)
+ax.set_ylim(step_a_ylim)
+plt.tight_layout(); plt.savefig('figs/fig_step_mzm.pdf'); plt.close()
 
 # ============ Fig F4: residual-triggered recalibration ============
 Ptr=dict(P1); cal2=calibrate_mzm(Ptr); tgt=1.9
