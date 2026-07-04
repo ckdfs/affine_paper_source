@@ -8,28 +8,44 @@ Bilingual manuscript + Python figure scripts + HTML derivation notes.
 ```bash
 make figs     # regenerate matplotlib figs/*.pdf  (+ capture sim stdout to build/sim_output.txt)
 make exp-figs # render experiment figures figs/fig_exp*.pdf from measured data/exp/ (matplotlib)
-make pdf      # compile paper_zh.tex with latexmk -xelatex
-make check    # doctor: refs / cites / figure files / NUMBER RECONCILIATION
+make pdf      # compile BOTH paper_mzm_zh.tex and paper_dpmzm_zh.tex with latexmk -xelatex
+make check    # doctor: refs / cites / figure files / NUMBER RECONCILIATION, for BOTH papers
 make verify   # figs + pdf + check  (the full "regenerate and validate" loop)
 ```
 
+`make pdf`/`make check`/`make all` now cover both manuscripts by default (they
+loop internally). Pass `MAIN=<one .tex>` to restrict any of them to a single
+manuscript for debugging, e.g. `make check MAIN=paper_mzm_zh.tex`.
+
 No `make`? Call the scripts directly with any python3 — they re-dispatch to the
 right interpreter themselves:
-`python scripts/build.py figs|pdf|all` and `python scripts/check.py`.
+`python scripts/build.py figs|pdf|all` (add `--tex <one .tex>` to restrict) and
+`python scripts/check.py` (add `--tex <one .tex>` likewise).
 
 **After any edit that touches a number, a figure, or the bibliography, run `make check`.**
-A green `0 FAIL` is the bar for "done".
+A green `0 FAIL` is the bar for "done" — across both papers.
 
 ## Layout
 
 ```
-paper_zh.tex        # PRIMARY manuscript (the one we maintain)
-paper.tex           # English version — LAGS the Chinese (missing the algorithm
-                    #   and experiment sections). Do not touch unless asked to sync.
+paper_mzm_zh.tex    # Single-MZM manuscript — submitted first. Complete: theory,
+                    #   simulation, AND real bench experiments (sec:exp backfilled
+                    #   from data/exp/, gated by check.py [5]).
+paper_dpmzm_zh.tex  # DPMZM manuscript — theory + simulation complete; the DPMZM
+                    #   bench experiments are not yet run, so its sec:exp table
+                    #   rows still read "计划"/"待测" (placeholder), by design.
+                    #   References the MZM paper (\cite{mzmaffine}) for the
+                    #   companion single-MZM results.
+paper_zh.tex        # FROZEN pre-split reference (not built/checked; do not edit —
+                    #   the two papers above supersede it)
+                    # paper.tex (old English draft) has been deleted; history is
+                    #   in git.
 figs/*.pdf          # rendered figures, committed on purpose (see RNG rule below)
 data/exp/           # measured single-MZM bench data, committed: vpi.csv, calib.npz,
                     #   lock_sweep.npz, pilot_depth.csv, drift.npz, stability.npz,
-                    #   results.json (the EXPERIMENT number contract; see check.py [5])
+                    #   results.json (the EXPERIMENT number contract; see check.py [5]).
+                    #   No dp_* top-level keys yet — the DPMZM experiment specs in
+                    #   check.py [5] are present but all currently skipped.
 scripts/
   make_figs.py        # fig_arch/ellipse/bessel/mzmloop/torus/obs/dploop/ahat
                       #   + the [V] validation suite at the very end
@@ -71,28 +87,36 @@ build/              # generated, git-ignored (captured sim stdout etc.)
    so `figs/*.pdf` live in git. Regenerate deliberately, then reconcile numbers.
 
 4. **The number contract — `scripts/paper_metrics.json`.** Every headline number
-   in the manuscript (mostly Table `tab:results`) is listed there with: the
-   literal `tex` string that must appear in `paper_zh.tex`, a `sim` regex over
-   the captured stdout, an `expect` value and `tol`. `check.py` enforces **both
-   directions** — the paper must contain the literal, and the simulation must
+   across BOTH manuscripts (mostly Table `tab:results`) is listed there with: a
+   `paper` field (`"mzm"` or `"dpmzm"`) saying which manuscript owns it, the
+   literal `tex` string that must appear in *that* manuscript
+   (`paper_mzm_zh.tex` or `paper_dpmzm_zh.tex`), a `sim` regex over the captured
+   stdout (shared — one `build/sim_output.txt` feeds both papers), an `expect`
+   value and `tol`. `check.py [4]` enforces **both directions** per paper — the
+   assigned manuscript must contain the literal, and the simulation must
    reproduce it. This exists because stale hand-entered table numbers were a real
    bug. To change a number legitimately: `make figs` → read `build/sim_output.txt`
-   → update `expect` in the JSON and the `tex` literal in the manuscript → add a
-   reproducing print in the relevant script if one is missing → `make check`.
+   → update `expect` in the JSON and the `tex` literal in the owning manuscript →
+   add a reproducing print in the relevant script if one is missing → `make check`.
 
-5. **Never fabricate experimental data.** `sec:exp` now reports REAL single-MZM
-   bench measurements (calibration, arbitrary-point lock vs baseline, κ(m), 3h
-   stability, recal recovery) backfilled from `data/exp/` and gated by
-   `check.py [5]`; the DPMZM rows remain plan/`\placeholderbox`. Only backfill
-   values that were actually measured and clear the quality gate — never invent
+5. **Never fabricate experimental data.** `paper_mzm_zh.tex`'s `sec:exp` reports
+   REAL single-MZM bench measurements (calibration, arbitrary-point lock vs
+   baseline, κ(m), 3h stability, recal recovery, RF-loaded robustness) backfilled
+   from `data/exp/` and gated by `check.py [5]` (checked against
+   `paper_mzm_zh.tex`). `paper_dpmzm_zh.tex`'s `sec:exp` rows remain
+   plan/`\placeholderbox`/"计划" — `data/exp/results.json` carries no `dp_*`
+   top-level keys yet, so the DPMZM specs in `check.py [5]` are defined but
+   currently all skipped (this is expected, not a bug). Only backfill values
+   that were actually measured and clear the quality gate — never invent
    numbers, and keep unmeasured cells "待测"/"计划". The measurement driver
    (`measure_bench.py --sim`) writes only to `build/exp_sim/`, never `data/exp/`.
 
-6. **PDF visual check.** `pdftoppm -png -r 110 paper_zh.pdf out` then read the PNG.
-   Fonts now load **by filename** (kpathsea-searched), so `make pdf` works on
-   macOS/Linux as well as Windows, Fandol is embedded, and **CJK renders correctly
-   in poppler** (the old Adobe-GB1 blank-glyph issue is gone). Layout, math,
-   tables and figures are all inspectable.
+6. **PDF visual check.** `pdftoppm -png -r 110 paper_mzm_zh.pdf out` (or
+   `paper_dpmzm_zh.pdf`) then read the PNG. Fonts now load **by filename**
+   (kpathsea-searched), so `make pdf` works on macOS/Linux as well as Windows,
+   Fandol is embedded, and **CJK renders correctly in poppler** (the old
+   Adobe-GB1 blank-glyph issue is gone). Layout, math, tables and figures are
+   all inspectable.
 
 ## Git
 
@@ -104,13 +128,15 @@ Windows and harmless.
 
 ## What "good" looks like
 
-- `make check` → `0 FAIL`. WARNs are advisory (e.g. an equation `\label` that is
-  never `\ref`'d, or a figure reachable only through a `fig:a--fig:c` range) — read
-  them, fix if they indicate a real omission, otherwise leave them.
-- `latexmk -xelatex paper_zh.tex` → clean: no undefined references, no Overfull
-  \hbox ≥ 20pt. The only expected warnings are benign `Font shape ... undefined`
-  Times/Fandol substitutions.
-- The math in the manuscript matches `notes/*.html` and the code in `scripts/`.
+- `make check` → `0 FAIL` for BOTH `paper_mzm_zh.tex` and `paper_dpmzm_zh.tex`.
+  WARNs are advisory (e.g. an equation `\label` that is never `\ref`'d, or a
+  figure reachable only through a `fig:a--fig:c` range) — read them, fix if they
+  indicate a real omission, otherwise leave them.
+- `latexmk -xelatex paper_mzm_zh.tex` and `latexmk -xelatex paper_dpmzm_zh.tex`
+  → both clean: no undefined references, no Overfull \hbox ≥ 20pt. The only
+  expected warnings are benign `Font shape ... undefined` Times/Fandol
+  substitutions.
+- The math in each manuscript matches `notes/*.html` and the code in `scripts/`.
 
 ## Persisted facts
 

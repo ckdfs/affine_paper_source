@@ -16,7 +16,8 @@
 *.vrb
 
 # Compiled paper outputs (regenerate with latexmk)
-paper.pdf
+paper_mzm_zh.pdf
+paper_dpmzm_zh.pdf
 paper_zh.pdf
 
 # Python

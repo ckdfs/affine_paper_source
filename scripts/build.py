@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Build orchestrator for the affine-framework paper.
+"""Build orchestrator for the affine-framework paper(s).
 
-One command to regenerate figures and/or compile the manuscript, with the
+The manuscript is split into two papers: paper_mzm_zh.tex (single-MZM,
+submitted first) and paper_dpmzm_zh.tex (DPMZM, experiments pending). One
+command to regenerate figures and/or compile the manuscript(s), with the
 right Python interpreter and with simulation stdout captured for the number
 reconciliation check (see scripts/check.py).
 
 Usage (run from anywhere; paths are resolved relative to the repo root):
     python scripts/build.py figs     # run the 3 figure scripts -> figs/*.pdf
-    python scripts/build.py pdf       # latexmk -xelatex paper_zh.tex
-    python scripts/build.py all       # figs + pdf
-    python scripts/build.py figs --tex paper.tex   # use a different manuscript
+    python scripts/build.py pdf       # latexmk -xelatex BOTH manuscripts
+    python scripts/build.py all       # figs + pdf (both manuscripts)
+    python scripts/build.py pdf --tex paper_mzm_zh.tex   # single manuscript
 
 Interpreter: the figure scripts need numpy/scipy/matplotlib. If the running
 interpreter has them, it is used. Otherwise set $PAPER_PYTHON to a suitable
@@ -22,6 +24,7 @@ import os, sys, subprocess, shutil, argparse
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(REPO, "build")
 FIG_SCRIPTS = ["make_figs.py", "make_extra_figs.py", "make_algo_figs.py"]
+DEFAULT_MANUSCRIPTS = ["paper_mzm_zh.tex", "paper_dpmzm_zh.tex"]
 
 
 def _has_numpy(py: str) -> bool:
@@ -92,12 +95,25 @@ def run_pdf(tex: str) -> int:
         ["latexmk", "-xelatex", "-interaction=nonstopmode", tex], cwd=REPO).returncode
 
 
+def run_pdf_all(manuscripts: list[str]) -> int:
+    """Compile each manuscript in turn; stop at the first failure."""
+    for tex in manuscripts:
+        rc = run_pdf(tex)
+        if rc:
+            print(f"[build] latexmk FAILED on {tex} (rc={rc})")
+            return rc
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("target", choices=["figs", "exp-figs", "pdf", "all"])
-    ap.add_argument("--tex", default="paper_zh.tex", help="manuscript to compile (pdf/all)")
+    ap.add_argument("--tex", default=None,
+                     help="compile a single manuscript (pdf/all); default is "
+                          "to compile both paper_mzm_zh.tex and paper_dpmzm_zh.tex")
     a = ap.parse_args()
+    manuscripts = [a.tex] if a.tex else DEFAULT_MANUSCRIPTS
     rc = 0
     if a.target == "exp-figs":
         return run_exp_figs()
@@ -106,7 +122,7 @@ def main() -> int:
         if rc:
             return rc
     if a.target in ("pdf", "all"):
-        rc = run_pdf(a.tex)
+        rc = run_pdf_all(manuscripts)
     return rc
 
 

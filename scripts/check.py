@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
-"""Doctor / verifier for the affine-framework paper. Read-only.
+"""Doctor / verifier for the affine-framework paper(s). Read-only.
 
-Runs five families of checks and prints a PASS/WARN/FAIL report:
+The manuscript was split into two papers: paper_mzm_zh.tex (single-MZM,
+submitted first, experiments complete) and paper_dpmzm_zh.tex (DPMZM, theory
++ simulation complete, experiments pending/placeholder). By default this
+script checks BOTH and reports a combined PASS/WARN/FAIL summary; pass --tex
+to check just one manuscript (debugging).
+
+Runs five families of checks and prints a PASS/WARN/FAIL report per paper:
 
   1. Cross-reference integrity   -- every \\ref/\\eqref target has a \\label;
                                     flags labels that are never referenced.
@@ -9,23 +15,32 @@ Runs five families of checks and prints a PASS/WARN/FAIL report:
                                     bibitems that are never cited.
   3. Figure integrity            -- every \\includegraphics file exists.
   4. Number reconciliation       -- every entry in scripts/paper_metrics.json
-                                    occurs literally in the .tex AND is
-                                    reproduced (within tol) by the captured
-                                    simulation stdout (build/sim_output.txt).
+                                    is assigned (via its "paper" field) to
+                                    paper_mzm_zh.tex or paper_dpmzm_zh.tex; it
+                                    must occur literally in ITS manuscript AND
+                                    be reproduced (within tol) by the captured
+                                    simulation stdout (build/sim_output.txt,
+                                    shared across both papers).
   5. Experiment reconciliation   -- if data/exp/results.json exists, every
                                     measured single-MZM metric present there
-                                    must also be reflected in tab:exp.
+                                    must also be reflected in tab:exp of
+                                    paper_mzm_zh.tex; the DPMZM dp_* specs are
+                                    checked against paper_dpmzm_zh.tex (all
+                                    currently skipped -- results.json carries
+                                    no dp_* keys yet, so those rows may
+                                    legitimately still read "计划"/"待测").
   (+) LaTeX log scan             -- Overfull \\hbox and undefined references,
                                     if <tex>.log is present.
 
 Usage:
-    python scripts/check.py                 # checks paper_zh.tex
-    python scripts/check.py --tex paper.tex
-    python scripts/check.py --no-sim        # skip reconciliation
+    python scripts/check.py                 # checks both paper_mzm_zh.tex
+                                              #   and paper_dpmzm_zh.tex
+    python scripts/check.py --tex paper_mzm_zh.tex   # single-manuscript mode
+    python scripts/check.py --no-sim        # skip simulation reconciliation
 
 Reconciliation needs build/sim_output.txt; regenerate it with
     python scripts/build.py figs
-Exit code is nonzero if any FAIL was reported.
+Exit code is nonzero if any FAIL was reported (across all papers checked).
 """
 from __future__ import annotations
 import os, re, sys, json, argparse
@@ -125,13 +140,29 @@ def _num(s: str) -> float:
     return float(s)
 
 
-def check_metrics(tex: str, use_sim: bool) -> None:
+# Maps a manuscript filename (basename, no extension needed) to the "paper"
+# key used in scripts/paper_metrics.json entries and in the [5] spec table
+# below. Add new manuscripts here if the paper is split further.
+PAPER_KEYS = {
+    "paper_mzm_zh": "mzm",
+    "paper_dpmzm_zh": "dpmzm",
+}
+
+
+def paper_key_for(tex_name: str) -> str | None:
+    stem = os.path.splitext(os.path.basename(tex_name))[0]
+    return PAPER_KEYS.get(stem)
+
+
+def check_metrics(tex: str, use_sim: bool, paper_key: str | None) -> None:
     print("[4] number reconciliation (paper_metrics.json)")
     mpath = os.path.join(REPO, "scripts", "paper_metrics.json")
     if not os.path.exists(mpath):
         _emit("WARN", "scripts/paper_metrics.json not found -- skipping")
         return
     metrics = json.loads(read(mpath))["metrics"]
+    if paper_key is not None:
+        metrics = [m for m in metrics if m.get("paper") == paper_key]
     sim = None
     if use_sim:
         sp = os.path.join(REPO, "build", "sim_output.txt")
@@ -140,6 +171,9 @@ def check_metrics(tex: str, use_sim: bool) -> None:
         else:
             _emit("WARN", "build/sim_output.txt missing -- run build.py figs "
                           "for the sim side (checking tex side only)")
+    if not metrics:
+        _emit("WARN", f"no paper_metrics.json entries assigned to paper={paper_key!r} -- skipping")
+        return
     for m in metrics:
         name, lit = m["name"], m["tex"]
         # (a) tex side: the literal must appear in the manuscript
@@ -194,7 +228,7 @@ def _numbers_in_latex_cell(cell: str) -> list[float]:
     return vals
 
 
-def check_experiment_results(tex: str) -> None:
+def check_experiment_results(tex: str, tex_name: str, paper_key: str | None) -> None:
     print("[5] experiment reconciliation (data/exp/results.json)")
     rpath = os.path.join(REPO, "data", "exp", "results.json")
     if not os.path.exists(rpath):
@@ -205,40 +239,63 @@ def check_experiment_results(tex: str) -> None:
     except json.JSONDecodeError as e:
         _emit("FAIL", f"data/exp/results.json is invalid JSON: {e}")
         return
+    # (key, tab:exp row label or None for prose-only, tol, unit, paper)
+    # "mzm" specs check against paper_mzm_zh.tex (tab:exp there is backfilled
+    # with real single-MZM bench measurements). "dpmzm" specs check against
+    # paper_dpmzm_zh.tex; results.json currently carries no dp_* top-level
+    # keys, so these are all skipped by the `key not in results` guard below
+    # -- the DPMZM tab:exp rows may legitimately still read "计划"/"待测".
     specs = [
-        ("selfcheck_median_mrad", "标定自检残差", 0.05, "mrad"),
-        ("lock_affine_rms_mrad", "任意点锁定~rms", 0.1, "mrad"),
-        ("kappa_A", "噪声地板", 0.01, ""),
-        ("settle_cycles", "捕获整定时间", 0.5, "cycles"),
-        ("recal_latency_cyc", "漂移突变检测延迟", 0.5, "cycles"),
-        ("recal_post_rms_mrad", "漂移突变检测延迟", 0.1, "mrad"),
-        ("stability_recal_events_3h", "$3$~h 长期稳定性", 0.5, "events"),
-        ("rf_lock_rms_on_mrad", "RF 加载", 0.1, "mrad"),
+        ("selfcheck_median_mrad", "标定自检残差", 0.05, "mrad", "mzm"),
+        ("lock_affine_rms_mrad", "任意点锁定~rms", 0.1, "mrad", "mzm"),
+        ("kappa_A", "噪声地板", 0.01, "", "mzm"),
+        ("settle_cycles", "捕获整定时间", 0.5, "cycles", "mzm"),
+        ("recal_latency_cyc", "漂移突变检测延迟", 0.5, "cycles", "mzm"),
+        ("recal_post_rms_mrad", "漂移突变检测延迟", 0.1, "mrad", "mzm"),
+        ("stability_recal_events_3h", "$3$~h 长期稳定性", 0.5, "events", "mzm"),
+        ("rf_lock_rms_on_mrad", "RF 加载", 0.1, "mrad", "mzm"),
+        ("lock_h1match_rms_mrad", "任意点锁定~rms", 1.0, "mrad", "mzm"),
+        ("rf_lock_rms_off_mrad", "RF 加载", 0.1, "mrad", "mzm"),
+        ("stability_dmm_rms_mrad", "$3$~h 长期稳定性", 1.0, "mrad", "mzm"),
+        ("vpi_V", None, 0.01, "V", "mzm"),
         # --- DPMZM stages (device swapped in; see plan parsed-brewing-wadler) ---
-        ("dp_relF_pct", "准周期扫描辨识", 0.1, "%"),
-        ("dp_sigmin_6ch", "IMD 可观测性", 0.005, ""),
-        ("dp_sigmin_9ch", "IMD 可观测性", 0.005, ""),
-        ("dp_lock_rms_arb_gn_mrad", "任意点三轴", 0.5, "mrad"),
-        ("dp_lock_rms_arb_3loop_mrad", "任意点三轴", 0.5, "mrad"),
-        ("dp_lock_rms_std_gn_mrad", "标准点三轴", 0.5, "mrad"),
-        ("dp_lock_rms_std_3loop_mrad", "标准点三轴", 0.5, "mrad"),
+        ("dp_relF_pct", "准周期扫描辨识", 0.1, "%", "dpmzm"),
+        ("dp_sigmin_6ch", "IMD 可观测性", 0.005, "", "dpmzm"),
+        ("dp_sigmin_9ch", "IMD 可观测性", 0.005, "", "dpmzm"),
+        ("dp_lock_rms_arb_gn_mrad", "任意点三轴", 0.5, "mrad", "dpmzm"),
+        ("dp_lock_rms_arb_3loop_mrad", "任意点三轴", 0.5, "mrad", "dpmzm"),
+        ("dp_lock_rms_std_gn_mrad", "标准点三轴", 0.5, "mrad", "dpmzm"),
+        ("dp_lock_rms_std_3loop_mrad", "标准点三轴", 0.5, "mrad", "dpmzm"),
     ]
+    if paper_key is not None:
+        specs = [s for s in specs if s[4] == paper_key]
     checked = 0
-    for key, row, tol, unit in specs:
+    for key, row, tol, unit, _spec_paper in specs:
         if key not in results:
             continue
         checked += 1
+        try:
+            exp = float(results[key])
+        except (TypeError, ValueError):
+            _emit("FAIL", f"{key}: value is not numeric -> {results[key]!r}")
+            continue
+        if row is None:
+            # prose-only metric (no tab:exp row): scan the whole manuscript
+            # body for a matching literal instead of a table cell.
+            nums = _numbers_in_latex_cell(tex)
+            if any(abs(v - exp) <= tol for v in nums):
+                suffix = f" {unit}" if unit else ""
+                _emit("ok", f"{key}: {tex_name} contains {exp:g}{suffix}")
+            else:
+                _emit("FAIL", f"{key}: no literal within tol {tol:g} of "
+                              f"{exp:g} found anywhere in {tex_name}")
+            continue
         cell = _exp_cell(tex, row)
         if cell is None:
             _emit("FAIL", f"{key}: cannot find tab:exp row containing {row!r}")
             continue
         if "待测" in cell or "计划" in cell:
             _emit("FAIL", f"{key}: results.json has a value but tab:exp still says {cell!r}")
-            continue
-        try:
-            exp = float(results[key])
-        except (TypeError, ValueError):
-            _emit("FAIL", f"{key}: value is not numeric -> {results[key]!r}")
             continue
         nums = _numbers_in_latex_cell(cell)
         if any(abs(v - exp) <= tol for v in nums):
@@ -248,27 +305,48 @@ def check_experiment_results(tex: str) -> None:
             _emit("FAIL", f"{key}: tab:exp cell {cell!r} does not contain "
                           f"{exp:g} within tol {tol:g}")
     if checked == 0:
-        _emit("ok", "results file exists but has no table headline metrics yet")
+        _emit("ok", "results file exists but has no table headline metrics assigned "
+                     f"to paper={paper_key!r} yet")
+
+
+DEFAULT_MANUSCRIPTS = ["paper_mzm_zh.tex", "paper_dpmzm_zh.tex"]
+
+
+def check_one(tex_name: str, use_sim: bool) -> tuple[int, int]:
+    """Run all checks for a single manuscript. Returns (fails, warns) for
+    just this paper (global _fails/_warns keep accumulating across papers)."""
+    global _fails, _warns
+    tex_path = os.path.join(REPO, tex_name)
+    if not os.path.exists(tex_path):
+        sys.exit(f"ERROR: {tex_name} not found in {REPO}")
+    tex = read(tex_path)
+    paper_key = paper_key_for(tex_name)
+    print(f"\n=== checking {tex_name} (paper={paper_key!r}) ===")
+    f0, w0 = _fails, _warns
+    check_refs(tex)
+    check_cites(tex)
+    check_figs(tex)
+    check_metrics(tex, use_sim=use_sim, paper_key=paper_key)
+    check_experiment_results(tex, tex_name, paper_key)
+    check_log(tex_name)
+    df, dw = _fails - f0, _warns - w0
+    print(f"--- {tex_name}: {R if df else G}{df} FAIL{X} / {Y if dw else G}{dw} WARN{X}")
+    return df, dw
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--tex", default="paper_zh.tex")
+    ap.add_argument("--tex", default=None,
+                     help="check a single manuscript (debugging); default is "
+                          "to check both paper_mzm_zh.tex and paper_dpmzm_zh.tex")
     ap.add_argument("--no-sim", action="store_true", help="skip simulation reconciliation")
     a = ap.parse_args()
-    tex_path = os.path.join(REPO, a.tex)
-    if not os.path.exists(tex_path):
-        sys.exit(f"ERROR: {a.tex} not found in {REPO}")
-    tex = read(tex_path)
-    print(f"=== checking {a.tex} ===")
-    check_refs(tex)
-    check_cites(tex)
-    check_figs(tex)
-    check_metrics(tex, use_sim=not a.no_sim)
-    check_experiment_results(tex)
-    check_log(a.tex)
-    print(f"\nsummary: {G}{'no fails' if not _fails else ''}{X}"
+    manuscripts = [a.tex] if a.tex else DEFAULT_MANUSCRIPTS
+    for tex_name in manuscripts:
+        check_one(tex_name, use_sim=not a.no_sim)
+    print(f"\n=== overall summary ({len(manuscripts)} manuscript(s)) ===")
+    print(f"summary: {G}{'no fails' if not _fails else ''}{X}"
           f"{R}{_fails} FAIL{X} / {Y}{_warns} WARN{X}")
     return 1 if _fails else 0
 
