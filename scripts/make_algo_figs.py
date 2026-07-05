@@ -174,38 +174,57 @@ plt.tight_layout(); plt.savefig('figs/fig_flow.pdf'); plt.close()
 #      (full 2Vpi sweep instead of 4pi for DPMZM children; 2-channel lock-in
 #      instead of "2 or 9 ch."; atan2-only demod instead of atan2/2-step GN).
 #      No RNG, no new computation -- pure re-draw of the same box geometry. ----
-fig,ax=plt.subplots(figsize=(2*CW,3.1)); ax.set_xlim(0,20); ax.set_ylim(0,8.4); ax.axis('off')
-ax.add_patch(FancyBboxPatch((0.35,0.4),7.05,7.6,
+# ---- vertical single-column redraw for paper_mzm_zh: same boxes/arrows/labels
+#      as the wide fig_flow.pdf above, restacked top-to-bottom so it stays
+#      legible at columnwidth (3.45in). Top segment = calibration phase (a
+#      vertical chain power-up -> pre-sweep -> full 2Vpi sweep -> fit+gauge ->
+#      self-check with a fail:re-sweep back-edge); bottom segment = run phase,
+#      one per-cycle loop lock-in -> demod atan2 -> PI update -> residual
+#      monitor -> threshold test, with a yes-> trigger recal branch feeding
+#      back up into the calibration phase and a next-cycle back-edge. Pure
+#      patches/annotate, no RNG, no new computation. ----
+fig,ax=plt.subplots(figsize=(CW,4.6)); ax.set_xlim(0,10); ax.set_ylim(0,26); ax.axis('off')
+# two phase lanes stacked vertically
+ax.add_patch(FancyBboxPatch((0.30,14.15),9.4,11.5,
              boxstyle='round,pad=0,rounding_size=0.3',
              fc='#EFF4EE',ec='#C9D6C9',lw=0.8,mutation_scale=1,zorder=1))
-ax.add_patch(FancyBboxPatch((7.95,0.4),11.75,7.6,
+ax.add_patch(FancyBboxPatch((0.30,0.35),9.4,13.35,
              boxstyle='round,pad=0,rounding_size=0.3',
              fc='#F2F4F7',ec='#CBD2DC',lw=0.8,mutation_scale=1,zorder=1))
-ax.text(0.75,7.45,'Calibration phase',fontsize=8,weight='bold',color=INK,zorder=4)
-ax.text(8.35,7.45,'Run phase (per control cycle)',fontsize=8,weight='bold',color=INK,zorder=4)
-fbox(ax,0.7,5.95,3.4,0.95,'power-up /\nrecal request',6.8)
-fbox(ax,0.7,4.45,3.4,0.95,'pre-sweep:\n$V_\\pi$ period estimate',6.8)
-fbox(ax,0.7,2.95,3.4,0.95,'full-period sweep\n($2V_\\pi$)',6.4)
-fbox(ax,0.7,1.45,3.4,0.95,'fit + gauge fixing\n(ellipse / LS regression)',6.4)
-fa(ax,2.4,5.95,2.4,5.40); fa(ax,2.4,4.45,2.4,3.90); fa(ax,2.4,2.95,2.4,2.40)
-fbox(ax,4.85,1.45,2.4,0.95,'self-check\n$\\|\\hat A\\Phi+\\hat{b}-z\\|$ ok?',6.0,fc=AMB)
-fa(ax,4.1,1.92,4.85,1.92)
-elbow(ax,[(6.05,2.40),(6.05,6.42),(4.10,6.42)],'fail: re-sweep',(6.28,4.2),rot=90)
-fa(ax,7.25,1.92,8.70,1.92,'pass',6,(7.98,2.08))
-fbox(ax,8.70,1.45,2.8,0.95,'lock-in readout\n$\\mathbf{z}_k$ (2 ch.)',6.4)
-fbox(ax,12.30,1.45,3.0,0.95,'demodulate\natan2',6.4)
-fbox(ax,16.00,1.45,3.0,0.95,'PI update\n$V \\leftarrow V - G\\,e$',6.4)
-fa(ax,11.50,1.92,12.30,1.92); fa(ax,15.30,1.92,16.00,1.92)
-fbox(ax,12.30,3.65,3.0,0.95,'residual monitor\n$\\rho_k$, EWMA',6.4,fc=AMB)
-fa(ax,13.80,2.40,13.80,3.65)
-fbox(ax,16.00,3.65,3.0,0.95,'$\\bar\\rho>\\rho_{\\rm th}$ for\n$M$ cycles?',6.4,fc=AMB)
-fa(ax,15.30,4.12,16.00,4.12)
-fa(ax,17.50,4.60,17.50,5.85,'yes',6,(17.78,5.12))
-fbox(ax,16.00,5.85,3.0,0.95,'trigger recal\n(micro-arc sweep)',6.4,fc=RDT)
-elbow(ax,[(17.50,6.80),(17.50,7.15),(2.40,7.15),(2.40,6.90)],
-      'recalibrate',(5.2,7.27))
-elbow(ax,[(17.50,1.45),(17.50,0.80),(10.10,0.80),(10.10,1.45)],
-      'next cycle ($<10^3$ MAC)',(13.8,0.52))
+ax.text(0.60,24.90,'Calibration phase',fontsize=7.5,weight='bold',color=INK,zorder=4)
+ax.text(0.60,12.95,'Run phase (per control cycle)',fontsize=7.5,weight='bold',color=INK,zorder=4)
+# geometry: main column centred at x=3.4, boxes 4.4 wide; right rail at x~8.6
+BW=4.4; CX=3.4; BX=CX-BW/2       # box x-origin
+CXc=BX+BW/2                       # column centreline
+# --- calibration chain (top lane, descending) ---
+fbox(ax,BX,23.15,BW,1.30,'power-up /\nrecal request',6.8)
+fbox(ax,BX,21.05,BW,1.30,'pre-sweep:\n$V_\\pi$ period estimate',6.8)
+fbox(ax,BX,18.95,BW,1.30,'full-period sweep\n($2V_\\pi$)',6.6)
+fbox(ax,BX,16.85,BW,1.30,'fit + gauge fixing\n(ellipse / LS regression)',6.4)
+fbox(ax,BX,14.85,BW,1.30,'self-check\n$\\|\\hat A\\Phi+\\hat{b}-z\\|$ ok?',6.2,fc=AMB)
+fa(ax,CXc,23.15,CXc,22.35); fa(ax,CXc,21.05,CXc,20.25)
+fa(ax,CXc,18.95,CXc,18.15); fa(ax,CXc,16.85,CXc,16.15)
+# fail: re-sweep back-edge (self-check -> full-period sweep) on the right rail
+elbow(ax,[(BX+BW,15.50),(8.95,15.50),(8.95,19.60),(BX+BW,19.60)],
+      'fail:\nre-sweep',(8.35,17.55),fs=5.8)
+# pass -> hands over to the run phase below
+fa(ax,CXc,14.85,CXc,12.55,'pass',6,(CXc+0.72,14.15))
+# --- run phase loop (bottom lane, descending then back-edge) ---
+fbox(ax,BX,11.25,BW,1.30,'lock-in readout\n$\\mathbf{z}_k$ (2 ch.)',6.4)
+fbox(ax,BX,9.15,BW,1.30,'demodulate\natan2',6.6)
+fbox(ax,BX,7.05,BW,1.30,'PI update\n$V \\leftarrow V - G\\,e$',6.4)
+fbox(ax,BX,4.95,BW,1.30,'residual monitor\n$\\rho_k$, EWMA',6.4,fc=AMB)
+fbox(ax,BX,2.85,BW,1.30,'$\\bar\\rho>\\rho_{\\rm th}$ for\n$M$ cycles?',6.4,fc=AMB)
+fa(ax,CXc,11.25,CXc,10.45); fa(ax,CXc,9.15,CXc,8.35)
+fa(ax,CXc,7.05,CXc,6.25); fa(ax,CXc,4.95,CXc,4.15)
+# no -> next cycle: back up to lock-in readout on the left rail
+elbow(ax,[(BX,3.50),(0.75,3.50),(0.75,11.90),(BX,11.90)],
+      'no: next cycle ($<10^3$ MAC)',(0.55,7.70),fs=5.6,rot=90)
+# yes -> trigger recal (right rail), then feed back up into calibration phase
+fbox(ax,6.15,2.85,3.25,1.30,'trigger recal\n(micro-arc sweep)',6.2,fc=RDT)
+fa(ax,BX+BW,3.50,6.15,3.50,'yes',6,(6.02,3.72))
+elbow(ax,[(7.775,4.15),(7.775,23.80),(BX+BW,23.80)],
+      'recalibrate',(6.55,14.0),rot=90)
 plt.tight_layout(); plt.savefig('figs/fig_flow_mzm.pdf'); plt.close()
 
 # ============ Fig F2: acquisition transients ============

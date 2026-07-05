@@ -350,12 +350,12 @@ $(b_Y{-}A_{21})/A_{22}$ & 半周期\\
 \label{sec:algo}
 前述理论可组织成一个两阶段控制流程（图~\ref{fig:flow}）。标定阶段执行偏压扫描、模型拟合、规范固定和残差自检；运行阶段在每个控制周期读取锁相输出，完成相位解调、误差计算和 PI 更新，并用模型残差监测链路是否偏离标定状态。若残差持续越限，则触发微幅弧重定标。算法~\ref{alg:cal} 与算法~\ref{alg:run} 分别给出两阶段伪代码；二者在第~\ref{sec:calib} 节算法~\ref{alg:mzm} 的流程之上加入残差监测与重定标监督。
 
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{figs/fig_flow_mzm.pdf}
-\caption{监督状态机：左为标定阶段（扫描$\to$拟合与规范固定$\to$自检），右为运行阶段的每周期回路（锁相读出$\to$解调$\to$PI$\to$残差监测），残差越限持续~$M$ 周期即触发微幅弧重定标并返回标定通道。}
+\includegraphics[width=\columnwidth]{figs/fig_flow_mzm.pdf}
+\caption{监督状态机：上为标定阶段（扫描$\to$拟合与规范固定$\to$自检），下为运行阶段的每周期回路（锁相读出$\to$解调$\to$PI$\to$残差监测），残差越限持续~$M$ 周期即触发微幅弧重定标并返回标定通道。}
 \label{fig:flow}
-\end{figure*}
+\end{figure}
 
 \begin{algorithm}[!t]
 \caption{自标定与规范固定（上电或重定标触发时执行）}
@@ -497,13 +497,13 @@ $m{=}1.2$ 处的~$\kappa(A)$（受扰真值） & $2.59$（理想比值~$3.13$）
 （5）RF 加载鲁棒性——把原先接地的射频口改接信号源（DG922pro 一通道，$50$~MHz 正弦），在 RF 关及~$0$ 至~$+13$~dBm 逐功率重新辨识椭圆、于~$8$ 个目标相位逐点锁定，记录锁定~rms、$\kappa(\hat A)$ 与谐波随 RF 深度的衰落（图~\ref{fig:expperf}(c)(d)）；RF 是否真在调制光相位由 H1 与直流条纹的~$J_0$ 衰落直接判定（板上 Goertzel 与~DM858E），频谱仪在跨阻（TIA）前测点（DE1）核对加载音——该测点（TIA 后的 DE2 因带宽限制看不到~$50$~MHz）。该阶段无对应仿真图，直接检验仿射定理在有载荷时的预言。
 判据：仿射框架在任意目标点的闭环静差应与标定残差同量级、且不随目标相位系统性放大，并显著优于幅值匹配/谐波比值基线；受导频深度限制，各项绝对指标按式~\eqref{eq:var} 的~$\kappa(m)$ 趋势整体高于~$m{=}1.2$ 仿真（见下文实测）。RF 加载阶段（5）另有结构性预期：$50$~MHz 远高于~PD/ADC 带宽，探测对其取平均得到一个~$J_0(m_{\rm RF})$ 因子，整体缩放观测向量~\eqref{eq:affine}（$A\to J_0A$）而不改变相位~$\uv(\varphi_b)$；由于~$J_0$ 同时缩放~H1、H2，条件数~$\kappa(A)$（即椭圆轴比）保持不变，仅观测信噪比随~$J_0(m_{\rm RF})$ 下降，故锁定应在 RF 加载下保持有界、RF 开的~rms 与 RF 关接近。下文实测予以证实。
 
-\begin{table*}[!t]
+\begin{table}[!t]
 \caption{实验测试矩阵。仿真对照值来自表~\ref{tab:results}。}
 \label{tab:exp}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{10pt}
-\begin{tabular}{lll}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.30\columnwidth}p{0.24\columnwidth}p{0.40\columnwidth}@{}}
 \toprule
 指标 & 仿真值 & 实验值\\
 \midrule
@@ -516,8 +516,8 @@ $3$~h 长期稳定性（重定标事件数） & --- & 0 次（连续~$3$~h，误
 RF 加载锁定~rms（$50$~MHz，开/关） & --- & 仿射~$192.5$ / $166.1$~mrad（$\kappa{\approx}45$ 不变）\\
 \bottomrule
 \end{tabular}
-\par\footnotesize 注：仿真列取~$m{=}1.2$，实验列受交流通道余量限制~$m\approx0.09$–$0.12$，两列绝对量级不可直接比较，对比应看趋势与相对优势。
-\end{table*}
+\par\scriptsize 注：仿真列取~$m{=}1.2$，实验列受交流通道余量限制~$m\approx0.09$–$0.12$，两列绝对量级不可直接比较，对比应看趋势与相对优势。
+\end{table}
 
 \begin{figure}[!t]
 \centering
