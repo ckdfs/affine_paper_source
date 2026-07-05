@@ -168,6 +168,46 @@ elbow(ax,[(17.50,1.45),(17.50,0.80),(10.10,0.80),(10.10,1.45)],
       'next cycle ($<10^3$ MAC)',(13.8,0.52))
 plt.tight_layout(); plt.savefig('figs/fig_flow.pdf'); plt.close()
 
+# ---- MZM-only variant of the flowchart above for paper_mzm_zh: identical
+#      deterministic patches/annotate drawing code, just with the three
+#      DPMZM-specific box labels swapped for their single-MZM equivalents
+#      (full 2Vpi sweep instead of 4pi for DPMZM children; 2-channel lock-in
+#      instead of "2 or 9 ch."; atan2-only demod instead of atan2/2-step GN).
+#      No RNG, no new computation -- pure re-draw of the same box geometry. ----
+fig,ax=plt.subplots(figsize=(2*CW,3.1)); ax.set_xlim(0,20); ax.set_ylim(0,8.4); ax.axis('off')
+ax.add_patch(FancyBboxPatch((0.35,0.4),7.05,7.6,
+             boxstyle='round,pad=0,rounding_size=0.3',
+             fc='#EFF4EE',ec='#C9D6C9',lw=0.8,mutation_scale=1,zorder=1))
+ax.add_patch(FancyBboxPatch((7.95,0.4),11.75,7.6,
+             boxstyle='round,pad=0,rounding_size=0.3',
+             fc='#F2F4F7',ec='#CBD2DC',lw=0.8,mutation_scale=1,zorder=1))
+ax.text(0.75,7.45,'Calibration phase',fontsize=8,weight='bold',color=INK,zorder=4)
+ax.text(8.35,7.45,'Run phase (per control cycle)',fontsize=8,weight='bold',color=INK,zorder=4)
+fbox(ax,0.7,5.95,3.4,0.95,'power-up /\nrecal request',6.8)
+fbox(ax,0.7,4.45,3.4,0.95,'pre-sweep:\n$V_\\pi$ period estimate',6.8)
+fbox(ax,0.7,2.95,3.4,0.95,'full-period sweep\n($2V_\\pi$)',6.4)
+fbox(ax,0.7,1.45,3.4,0.95,'fit + gauge fixing\n(ellipse / LS regression)',6.4)
+fa(ax,2.4,5.95,2.4,5.40); fa(ax,2.4,4.45,2.4,3.90); fa(ax,2.4,2.95,2.4,2.40)
+fbox(ax,4.85,1.45,2.4,0.95,'self-check\n$\\|\\hat A\\Phi+\\hat{b}-z\\|$ ok?',6.0,fc=AMB)
+fa(ax,4.1,1.92,4.85,1.92)
+elbow(ax,[(6.05,2.40),(6.05,6.42),(4.10,6.42)],'fail: re-sweep',(6.28,4.2),rot=90)
+fa(ax,7.25,1.92,8.70,1.92,'pass',6,(7.98,2.08))
+fbox(ax,8.70,1.45,2.8,0.95,'lock-in readout\n$\\mathbf{z}_k$ (2 ch.)',6.4)
+fbox(ax,12.30,1.45,3.0,0.95,'demodulate\natan2',6.4)
+fbox(ax,16.00,1.45,3.0,0.95,'PI update\n$V \\leftarrow V - G\\,e$',6.4)
+fa(ax,11.50,1.92,12.30,1.92); fa(ax,15.30,1.92,16.00,1.92)
+fbox(ax,12.30,3.65,3.0,0.95,'residual monitor\n$\\rho_k$, EWMA',6.4,fc=AMB)
+fa(ax,13.80,2.40,13.80,3.65)
+fbox(ax,16.00,3.65,3.0,0.95,'$\\bar\\rho>\\rho_{\\rm th}$ for\n$M$ cycles?',6.4,fc=AMB)
+fa(ax,15.30,4.12,16.00,4.12)
+fa(ax,17.50,4.60,17.50,5.85,'yes',6,(17.78,5.12))
+fbox(ax,16.00,5.85,3.0,0.95,'trigger recal\n(micro-arc sweep)',6.4,fc=RDT)
+elbow(ax,[(17.50,6.80),(17.50,7.15),(2.40,7.15),(2.40,6.90)],
+      'recalibrate',(5.2,7.27))
+elbow(ax,[(17.50,1.45),(17.50,0.80),(10.10,0.80),(10.10,1.45)],
+      'next cycle ($<10^3$ MAC)',(13.8,0.52))
+plt.tight_layout(); plt.savefig('figs/fig_flow_mzm.pdf'); plt.close()
+
 # ============ Fig F2: acquisition transients ============
 fig,axs=plt.subplots(1,2,figsize=(2*CW,1.9))
 # (a) MZM: four targets, same offset, log-error overlay + theory
@@ -275,6 +315,44 @@ ax.legend(loc='upper right',borderpad=0.2)
 ax.set_ylim(step_a_ylim)
 plt.tight_layout(); plt.savefig('figs/fig_step_mzm.pdf'); plt.close()
 
+# ---- composite 1x2 MZM panel for paper_mzm_zh: (a) acquisition convergence,
+#      (b) setpoint-step tracking. Pure re-plot of acq_a_lines/step_a_lines
+#      (captured above from the already-drawn panel (a) axes of fig_acq.pdf
+#      and fig_step.pdf); no new computation, no RNG draws.
+#      Redraw (v2): the four per-target curves are no longer individually
+#      listed in the legend (they'd overlap the data at this small size) --
+#      only the "(1-G)^n theory" reference line gets a legend entry; the
+#      panel caption itself explains that the phi* curves coincide. Tick/
+#      label fonts trimmed to <=7pt and margins tightened via
+#      subplots_adjust so the axes occupy most of the frame. ----
+fig,axs=plt.subplots(1,2,figsize=(CW,1.35))
+ax=axs[0]
+for xd,yd,col,ls,lw,lab in acq_a_lines:
+    if 'theory' in lab:
+        ax.semilogy(xd,yd,color='k',linestyle=ls,linewidth=lw,label='$(1-G)^n$',zorder=5)
+    else:
+        ax.semilogy(xd,yd,color=col,linestyle='-',linewidth=0.7,alpha=0.85,zorder=3)
+ax.set_xlabel('control step',fontsize=7,labelpad=1)
+ax.set_ylabel('$|e|$ (rad)',fontsize=7,labelpad=1)
+ax.tick_params(labelsize=6.5,pad=1)
+leg=ax.legend(loc='upper right',borderpad=0.25,handlelength=1.2,
+              handletextpad=0.4,fontsize=6.5,frameon=False)
+ax.set_ylim(acq_a_ylim)
+ax.set_title('(a) acquisition (4 targets)',fontsize=7,pad=2)
+ax=axs[1]
+for xd,yd,col,ls,lw,lab in step_a_lines:
+    nice = 'target $\\varphi^*$' if 'target' in lab else '$\\varphi_b$'
+    ax.plot(xd,yd,color=col,linestyle=ls,linewidth=lw,label=nice)
+ax.set_xlabel('control step',fontsize=7,labelpad=1)
+ax.set_ylabel('$\\varphi_b$ (rad)',fontsize=7,labelpad=1)
+ax.tick_params(labelsize=6.5,pad=1)
+ax.legend(loc='upper right',borderpad=0.25,handlelength=1.2,
+          handletextpad=0.4,fontsize=6.5,frameon=False)
+ax.set_ylim(step_a_ylim)
+ax.set_title('(b) setpoint steps',fontsize=7,pad=2)
+fig.subplots_adjust(left=0.115,right=0.985,top=0.87,bottom=0.20,wspace=0.38)
+plt.savefig('figs/fig_acqstep_mzm.pdf'); plt.close()
+
 # ============ Fig F4: residual-triggered recalibration ============
 Ptr=dict(P1); cal2=calibrate_mzm(Ptr); tgt=1.9
 phi=tgt; rho_buf=[]; err_buf=[]; ev=None; rho_ew=0; lam=0.05
@@ -303,6 +381,33 @@ axs[1].axvline(1200,color=RED,lw=0.9,ls='--'); axs[1].axvline(ev,color=BLU,lw=0.
 axs[1].set_ylabel('$\\bar\\rho$ (EWMA)'); axs[1].set_xlabel('control step')
 axs[1].set_title('(b) circle-residual monitor and threshold $\\rho_{\\rm th}{=}0.06$',fontsize=7.5)
 plt.tight_layout(); plt.savefig('figs/fig_recal.pdf'); plt.close()
+
+# ---- single-column MZM-only variant for paper_mzm_zh: pure re-plot of the
+#      already-computed err_buf/rho_buf/ev/RHO_TH arrays above (no new
+#      computation, no RNG draws). Narrowed to CW; fonts trimmed to <=7pt,
+#      x-axis ticks thinned via MaxNLocator, titles shortened to (a)/(b)
+#      short captions so the drift-jump / recal verticals, the threshold
+#      dashed line and the EWMA curve all stay legible at column width. ----
+fig,axs=plt.subplots(2,1,figsize=(CW,2.3),sharex=True)
+axs[0].plot(err_buf,color=GRN,lw=0.6)
+axs[0].axvline(1200,color=RED,lw=0.8,ls='--')
+axs[0].axvline(ev,color=BLU,lw=0.8)
+axs[0].set_ylabel('$|e|$ (mrad)',fontsize=7,labelpad=1)
+axs[0].set_ylim(0,1.05*max(err_buf))
+axs[0].tick_params(labelsize=6.5,pad=1)
+axs[0].set_title('(a) locking error (drift jump red, recal blue)',fontsize=6.8,pad=2)
+axs[1].semilogy(rho_buf,color=INK,lw=0.6)
+axs[1].axhline(RHO_TH,color=GLD,lw=0.8,ls='--')
+axs[1].axvline(1200,color=RED,lw=0.8,ls='--')
+axs[1].axvline(ev,color=BLU,lw=0.8)
+axs[1].set_ylabel('$\\bar\\rho$ (EWMA)',fontsize=7,labelpad=1)
+axs[1].set_xlabel('control step',fontsize=7,labelpad=1)
+axs[1].tick_params(labelsize=6.5,pad=1)
+axs[1].xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
+axs[1].set_title('(b) residual monitor $\\bar\\rho$ vs threshold $\\rho_{\\rm th}$',fontsize=6.8,pad=2)
+fig.subplots_adjust(left=0.155,right=0.98,top=0.90,bottom=0.13,hspace=0.55)
+plt.savefig('figs/fig_recal_mzm.pdf'); plt.close()
+
 pre=np.sqrt(np.mean(np.array(err_buf[800:1200])**2))
 dur=np.sqrt(np.mean(np.array(err_buf[1200:ev])**2))
 post=np.sqrt(np.mean(np.array(err_buf[ev+150:])**2))

@@ -95,6 +95,24 @@ arr(ax,9.05,1.5,9.05,0.45); arr(ax,9.05,0.45,2.6,0.45)
 arr(ax,2.6,0.45,2.6,0.8); ax.text(6.0,0.18,'$V_{1,2,3}$ + dithers $m_i\\sin\\omega_i t$',fontsize=6,ha='center')
 plt.tight_layout(); plt.savefig('figs/fig_arch.pdf'); plt.close()
 
+# ---- Fig 1b: MZM-only architecture panel for paper_mzm_zh (single column) ----
+# Pure re-draw: same box()/arr() calls as panel (a) above, just alone in a
+# fresh figure at larger font sizes (it now fills the full column width
+# instead of half of a stacked 2-row figure). No RNG, no new computation --
+# this whole schematic is patches/annotate/text only.
+fig,ax=plt.subplots(figsize=(CW,1.65))
+ax.set_xlim(0,10); ax.set_ylim(0,3.2); ax.axis('off')
+box(ax,0.2,1.6,1.2,0.8,'laser',7.5); box(ax,2.0,1.4,2.0,1.2,'MZM\n$\\varphi_b$',7.5)
+arr(ax,1.4,2.0,2.0,2.0); arr(ax,4.0,2.0,4.9,2.0)
+box(ax,4.9,1.6,1.2,0.8,'tap/PD',7.0)
+box(ax,6.6,2.0,1.5,0.7,'LIA $\\omega$: $Y$',7.0); box(ax,6.6,1.1,1.5,0.7,'LIA $2\\omega$: $X$',7.0)
+arr(ax,6.1,2.0,6.6,2.35); arr(ax,6.1,2.0,6.6,1.45)
+box(ax,8.4,1.3,1.5,1.4,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, PI',7.0)
+arr(ax,8.1,2.35,8.4,2.2); arr(ax,8.1,1.45,8.4,1.6)
+arr(ax,9.15,1.3,9.15,0.55); arr(ax,9.15,0.55,3.0,0.55); arr(ax,3.0,0.55,3.0,1.4)
+ax.text(6.0,0.7,'bias DAC $V_b$ + dither $m\\sin\\omega t$',fontsize=7,ha='center')
+plt.tight_layout(); plt.savefig('figs/fig_arch_mzm.pdf'); plt.close()
+
 # ---- Fig 2: phase plane: raw ellipse + corrected circle ----
 # (no legend: it covered the data; elements are annotated directly instead)
 cal = calibrate_mzm(P1)
@@ -120,6 +138,20 @@ ax.add_patch(plt.Circle((0,0),1,fill=False,ec=INK,lw=0.8,ls='--'))
 ax.set_xlabel('$\\hat u_x$'); ax.set_ylabel('$\\hat u_y$')
 ax.set_title('(b) after affine inversion',fontsize=7.5)
 ax.set_aspect('equal'); ax.set_xlim(-1.35,1.35); ax.set_ylim(-1.35,1.35)
+# capture both panels' already-plotted artists (lines, the +/o markers, the
+# annotations, the dashed unit circle) *before* saving/closing, for a pure
+# re-plot composite figure later -- no recomputation, no RNG draws
+def _capture_lines(ax):
+    return [(ln.get_xdata(), ln.get_ydata(), ln.get_color(), ln.get_linestyle(),
+             ln.get_marker(), ln.get_markersize(), ln.get_markerfacecolor(),
+             ln.get_markeredgecolor(), ln.get_markeredgewidth(),
+             ln.get_linewidth()) for ln in ax.get_lines()]
+ellipse_a_lines = _capture_lines(axs[0])
+ellipse_a_annots = [(a.xy, a.get_text(), a.get_color(),
+                      a.get_ha()) for a in axs[0].texts]
+ellipse_a_xlim, ellipse_a_ylim = axs[0].get_xlim(), axs[0].get_ylim()
+ellipse_b_lines = _capture_lines(axs[1])
+ellipse_b_xlim, ellipse_b_ylim = axs[1].get_xlim(), axs[1].get_ylim()
 plt.tight_layout(); plt.savefig('figs/fig_ellipse.pdf'); plt.close()
 
 # ---- Fig 3: J1, J2, kappa vs m ----
@@ -143,7 +175,55 @@ ax2.annotate('$J_1/J_2{=}%.2f$'%k12,(1.2,k12),textcoords='offset points',
 l1,la1=ax.get_legend_handles_labels(); l2,la2=ax2.get_legend_handles_labels()
 ax.legend(l1+l2,la1+la2,loc='lower center',bbox_to_anchor=(0.5,0.99),ncol=4,
           frameon=False,borderpad=0.2,handlelength=1.4,columnspacing=0.9)
+# capture ax2's kappa(A) curves (line data only, no recomputation) for the
+# composite fig_affine_mzm panel (c) below -- pure re-plot, no RNG draws
+bessel_kappa_lines = _capture_lines(ax2)
+bessel_k12 = (1.2, k12)
 plt.tight_layout(); plt.savefig('figs/fig_bessel.pdf'); plt.close()
+
+# ---- Fig affine (mzm): 1x3 composite strip (a) raw ellipse (b) unit circle
+#      (c) kappa(A) theory curve -- capture-replot of the three panels above,
+#      for a cross-column narrow strip layout used in paper_mzm_zh. Pure
+#      re-draw of already-captured line/marker/annotation data; no RNG. ----
+fig,axs=plt.subplots(1,3,figsize=(7.16,1.7))
+ax=axs[0]
+for xd,yd,col,ls,mk,ms,mfc,mec,mew,lw in ellipse_a_lines:
+    ax.plot(xd,yd,color=col,linestyle=ls,marker=(mk if mk!='None' else None),
+            markersize=ms,markerfacecolor=mfc,markeredgecolor=mec,
+            markeredgewidth=mew,linewidth=lw)
+for xy,txt,col,ha in ellipse_a_annots:
+    if '\\hat{\\mathbf{b}}' in txt:
+        off, ha = (-9,-11), 'right'
+    else:
+        off = (-7,4)
+    ax.annotate(txt,xy,textcoords='offset points',xytext=off,fontsize=7,
+                color=col,ha=ha)
+ax.set_xlabel('$X$'); ax.set_ylabel('$Y$')
+ax.set_title('(a) raw observable plane',fontsize=7.5)
+ax.set_aspect('equal'); ax.set_xlim(ellipse_a_xlim); ax.set_ylim(ellipse_a_ylim)
+ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=2, prune='both'))
+ax=axs[1]
+for xd,yd,col,ls,mk,ms,mfc,mec,mew,lw in ellipse_b_lines:
+    ax.plot(xd,yd,color=col,linestyle=ls,marker=(mk if mk!='None' else None),
+            markersize=ms,markerfacecolor=mfc,markeredgecolor=mec,
+            markeredgewidth=mew,linewidth=lw)
+ax.add_patch(plt.Circle((0,0),1,fill=False,ec=INK,lw=0.8,ls='--'))
+ax.set_xlabel('$\\hat u_x$'); ax.set_ylabel('$\\hat u_y$')
+ax.set_title('(b) after affine inversion',fontsize=7.5)
+ax.set_aspect('equal'); ax.set_xlim(ellipse_b_xlim); ax.set_ylim(ellipse_b_ylim)
+ax=axs[2]
+for xd,yd,col,ls,mk,ms,mfc,mec,mew,lw in bessel_kappa_lines:
+    ax.semilogy(xd,yd,color=col,linestyle=ls,linewidth=lw,
+                marker=(mk if mk!='None' else None),markersize=ms,
+                markerfacecolor=mfc,markeredgecolor=mec,markeredgewidth=mew)
+ax.axvline(bessel_k12[0],color=GLD,lw=0.8)
+ax.plot(bessel_k12[0],bessel_k12[1],'o',color=GLD,ms=4)
+ax.annotate('$J_1/J_2{=}%.2f$'%bessel_k12[1],bessel_k12,textcoords='offset points',
+            xytext=(6,3),fontsize=6.5,color=GLD)
+ax.set_ylim(1,200)
+ax.set_xlabel('dither depth $m$ (rad)'); ax.set_ylabel('$\\kappa(A)$')
+ax.set_title('(c) $\\kappa(A)$ theory curve',fontsize=7.5)
+plt.tight_layout(); plt.savefig('figs/fig_affine_mzm.pdf'); plt.close()
 
 # ---- Fig 4: MZM closed loop ----
 def mzm_loop(p, phi_ref, n=2600, G=0.18):

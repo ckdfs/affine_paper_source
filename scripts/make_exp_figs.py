@@ -489,6 +489,260 @@ def fig_dp_lock(data, out):
     plt.close(fig); print("[fig] fig_exp4.pdf")
 
 
+# --------------------------------------------------------------------------- #
+#  composite cross-column panels for paper_mzm_zh relayout (new, appended)    #
+#  This module is offline/deterministic (reads recorded data/exp/*, no RNG),  #
+#  so these composites are ordinary new functions -- not capture-replots.     #
+# --------------------------------------------------------------------------- #
+def fig_expcal_mzm(data, out):
+    """fig_expcal_mzm — 1x4 cross-column strip: (a) DM858E bidirectional DC
+    transfer curve, (b) normalized DC-vs-fitted-phase curve (both from
+    vpi.csv, same fit as fig_exp0), (c) measured raw observable ellipse,
+    (d) affine pull-back unit circle (both from calib.npz/calib_fit.json,
+    same fit as fig_exp1). Skips (a,b) or (c,d) independently if their
+    source data is missing."""
+    vp = os.path.join(data, "vpi.csv")
+    cnpz = os.path.join(data, "calib.npz"); cfjs = os.path.join(data, "calib_fit.json")
+    have_vpi = os.path.exists(vp)
+    have_cal = os.path.exists(cnpz) and os.path.exists(cfjs)
+    if not (have_vpi or have_cal):
+        print("[skip] fig_expcal_mzm: vpi.csv and calib.npz/calib_fit.json not found")
+        return
+    ncol = 2 * int(have_vpi) + 2 * int(have_cal)
+    fig, axs = plt.subplots(1, ncol, figsize=(TW, 1.7))
+    c = 0
+    if have_vpi:
+        rows = _read_csv(vp)
+        has_dir = bool(rows) and "dir" in rows[0]
+
+        def sel(d):
+            b = np.array([float(r["bias"]) for r in rows if not has_dir or r["dir"] == d])
+            y = np.array([float(r["dc_dmm"]) for r in rows if not has_dir or r["dir"] == d])
+            return b, y
+        if has_dir:
+            bu, du = sel("up"); bd, dd = sel("down")
+            au, bbu, vpu, v0u = ec.fit_dc_transfer(bu, du)
+            ad, bbd, vpd, v0d = ec.fit_dc_transfer(bd, dd)
+            a, b = 0.5 * (au + ad), 0.5 * (bbu + bbd)
+            vpi, v0 = 0.5 * (vpu + vpd), 0.5 * (v0u + v0d)
+        else:
+            bu, du = sel(None); bd, dd = np.array([]), np.array([])
+            a, b, vpi, v0 = ec.fit_dc_transfer(bu, du)
+        ax = axs[c]
+        ax.plot(bu, du, ".", ms=1.8, color=GRN, label="上行")
+        if has_dir:
+            ax.plot(bd, dd, ".", ms=1.8, color=RED, label="下行")
+        allb = np.concatenate([bu, bd]) if has_dir else bu
+        vv = np.linspace(allb.min(), allb.max(), 400)
+        ax.plot(vv, a + b * np.cos(np.pi * (vv - v0) / vpi), color=BLU, lw=1.0, label="拟合")
+        ax.set_xlabel("偏压 $V_b$ (V)"); ax.set_ylabel("PD 直流 (V)")
+        ax.set_title(f"(a) 双向直流传递\n$V_\\pi{{=}}{vpi:.3f}$ V", fontsize=7.0)
+        ax.legend(fontsize=5.5, loc="best")
+        c += 1
+        ax = axs[c]
+        ph = lambda bb: ((np.pi * (bb - v0) / vpi + np.pi) % (2 * np.pi)) - np.pi
+        ax.plot(ph(bu), du, ".", ms=1.8, color=GRN)
+        if has_dir:
+            ax.plot(ph(bd), dd, ".", ms=1.8, color=RED)
+        pp = np.linspace(-np.pi, np.pi, 300)
+        ax.plot(pp, a + b * np.cos(pp), color=BLU, lw=1.0)
+        ax.set_xlabel("偏置相位 $\\varphi$ (rad)"); ax.set_ylabel("PD 直流 (V)")
+        ax.set_title("(b) 按拟合相位归一重排", fontsize=7.0)
+        c += 1
+    if have_cal:
+        d = np.load(cnpz, allow_pickle=True)
+        with open(cfjs) as f:
+            fit = json.load(f)
+        X, Y = d["X"], d["Y"]; c0 = np.array(fit["c0"]); B = np.array(fit["B"])
+        us = (B @ np.stack([X - c0[0], Y - c0[1]])).T
+        A_hat = np.linalg.inv(B)
+        ax = axs[c]
+        ax.plot(X, Y, ".", ms=1.3, color="0.45")
+        t = np.linspace(0, 2 * np.pi, 300)
+        ell = (A_hat @ np.stack([np.cos(t), np.sin(t)])) + c0[:, None]
+        ax.plot(ell[0], ell[1], color=BLU, lw=1.0)
+        ax.plot(*c0, "+", color=BLU, ms=6, mew=1.2)
+        ax.annotate("$\\hat{\\mathbf{b}}$", c0, textcoords="offset points",
+                    xytext=(4, -9), fontsize=6.5, color=BLU)
+        ax.set_xlabel("$X$ (H2)"); ax.set_ylabel("$Y$ (H1)")
+        ax.set_title("(c) 实测观测椭圆", fontsize=7.0)
+        ax.ticklabel_format(axis="x", style="sci", scilimits=(-2, 2))
+        ax.margins(x=0.22, y=0.12)
+        c += 1
+        ax = axs[c]
+        ax.plot(us[:, 0], us[:, 1], ".", ms=1.3, color=GRN)
+        ax.add_patch(Circle((0, 0), 1, fill=False, ec=INK, lw=0.8, ls="--"))
+        ax.set_xlabel("$\\hat u_x$"); ax.set_ylabel("$\\hat u_y$")
+        ax.set_title(f"(d) 回拉单位圆\n$\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$", fontsize=7.0)
+        ax.set_aspect("equal"); ax.margins(0.22)
+    fig.tight_layout(); fig.savefig(os.path.join(out, "fig_expcal_mzm.pdf"))
+    plt.close(fig); print("[fig] fig_expcal_mzm.pdf")
+
+
+def fig_expperf_mzm(data, out):
+    """fig_expperf_mzm — 1x4 cross-column strip: (a) kappa(A_hat) vs pilot
+    depth m with J1/J2 theory (same data as fig_expkappa), (b) 16-target-point
+    lock error affine vs H1 baseline (same data as fig_exp2), (c) RF-loaded H1
+    fade vs J0 fit (same data as fig_exprf panel a), (d) lock rms vs RF power
+    (same data as fig_exprf panel b). Each panel is skipped independently if
+    its source .npz/.csv is missing."""
+    pdp = os.path.join(data, "pilot_depth.csv")
+    lsp = os.path.join(data, "lock_sweep.npz")
+    rfp = os.path.join(data, "rf_lock.npz")
+    have_pilot = os.path.exists(pdp)
+    have_lock = os.path.exists(lsp)
+    have_rf = os.path.exists(rfp)
+    if not (have_pilot or have_lock or have_rf):
+        print("[skip] fig_expperf_mzm: pilot_depth.csv / lock_sweep.npz / rf_lock.npz not found")
+        return
+    ncol = int(have_pilot) + int(have_lock) + 2 * int(have_rf)
+    fig, axs = plt.subplots(1, ncol, figsize=(TW, 1.7))
+    if ncol == 1:
+        axs = [axs]
+    c = 0
+    if have_pilot:
+        from scipy.special import jv
+        rows = _read_csv(pdp)
+        m = np.array([float(r["m"]) for r in rows])
+        kap = np.array([float(r["kappa"]) for r in rows])
+        order = np.argsort(m); m = m[order]; kap = kap[order]
+        ax = axs[c]
+        mm = np.linspace(max(0.02, m.min() * 0.8), m.max() * 1.12, 300)
+        ax.plot(mm, np.abs(jv(1, mm) / jv(2, mm)), color=BLU, lw=1.0,
+                label="$J_1/J_2$")
+        ax.plot(m, kap, "o-", color=GRN, ms=3, lw=0.7, label="实测")
+        ax.set_yscale("log"); ax.set_xlabel("导频深度 $m$")
+        ax.set_ylabel("$\\kappa(\\hat A)$")
+        ax.set_title("(a) $\\kappa$ vs 导频深度", fontsize=7.0)
+        ax.legend(fontsize=5.5, loc="best"); ax.grid(True, which="both", alpha=0.25)
+        c += 1
+    if have_lock:
+        d = np.load(lsp)
+        ps = d["phi_star"]; aff = np.abs(d["affine_err"]) * 1e3
+        base = np.abs(d["baseline_err"]) * 1e3
+        ax = axs[c]
+        ax.semilogy(ps, base, "s-", color=RED, ms=2.5, lw=0.7, label="H1 基线")
+        ax.semilogy(ps, np.maximum(aff, 1e-1), "o-", color=GRN, ms=2.5, lw=0.7, label="仿射")
+        ax.set_xlabel("目标相位 $\\varphi^\\ast$ (rad)")
+        ax.set_ylabel("$|\\varphi_{\\rm lock}-\\varphi^\\ast|$ (mrad)")
+        ax.set_title("(b) 16 目标点锁定误差", fontsize=7.0)
+        ax.legend(fontsize=5.5, loc="best"); ax.grid(True, which="both", alpha=0.25)
+        c += 1
+    if have_rf:
+        from scipy.special import j0 as bessel_j0
+        from scipy.optimize import curve_fit
+        d = np.load(rfp)
+        powers = d["powers_dbm"]; rms = d["rms_mrad"]
+        h1 = d["h1"]; fade = d["h1_fade"] if "h1_fade" in d.files else h1 / h1[0]
+        off = ~np.isfinite(powers); on = np.isfinite(powers)
+        vpk = _vpk_from_dbm(powers[on])
+        fade_on = fade[on]
+        try:
+            vpi_rf = float(curve_fit(lambda v, vp: bessel_j0(np.pi * v / vp),
+                                     vpk, fade_on, p0=[3.0], maxfev=20000)[0][0])
+        except Exception:
+            vpi_rf = 2.8
+        m_eff = np.pi * vpk / vpi_rf
+        ax = axs[c]
+        mm = np.linspace(0, float(m_eff.max()) * 1.12 + 1e-3, 200)
+        ax.plot(mm, bessel_j0(mm), color=BLU, lw=1.0, label="$J_0$ 预测")
+        ax.plot(m_eff, fade_on, "o", color=GRN, ms=3.5, label="实测衰落")
+        ax.set_xlabel("$m_{\\rm RF}$")
+        ax.set_ylabel("H1 相对幅度")
+        ax.set_title(f"(c) RF 加载 H1 衰落\n$V_\\pi^{{\\rm RF}}{{\\approx}}{vpi_rf:.1f}$ V", fontsize=7.0)
+        ax.legend(fontsize=5.5, loc="lower left"); ax.grid(True, alpha=0.25)
+        ax.set_ylim(top=1.04, bottom=0)
+        c += 1
+        ax = axs[c]
+        order = np.argsort(powers[on])
+        ax.plot(powers[on][order], rms[on][order], "o-", color=GRN, ms=3.5, lw=0.8,
+                label="仿射锁定 (RF 开)")
+        if np.any(off):
+            rms_off = float(np.mean(rms[off]))
+            ax.axhline(rms_off, color=RED, ls="--", lw=0.9,
+                       label=f"RF 关 ({rms_off:.0f} mrad)")
+        ax.set_xlabel("RF 功率 (dBm)")
+        ax.set_ylabel("锁定 rms (mrad)")
+        ax.set_title("(d) 锁定 rms vs RF 功率", fontsize=7.0)
+        ax.legend(fontsize=5.5, loc="best"); ax.grid(True, alpha=0.25)
+        ax.set_ylim(bottom=0)
+    fig.tight_layout(); fig.savefig(os.path.join(out, "fig_expperf_mzm.pdf"))
+    plt.close(fig); print("[fig] fig_expperf_mzm.pdf")
+
+
+def fig_expstab_mzm(data, out):
+    """fig_expstab_mzm — single-column (CW) narrow relayout of fig_exp3's two
+    panels: (a) 3 h long-term stability (bias drift band + lock-error
+    scatter, twin y-axes) and (b) residual-triggered detection/recovery
+    (twin y-axes). Same data/logic as _panel_stability/_panel_drift above,
+    just redrawn at column width with smaller fonts, shortened Chinese
+    annotations, and thinned ticks so nothing overlaps or gets clipped at
+    3.45 in. Offline/deterministic (reads stability.npz/drift.npz; no RNG),
+    so this is an ordinary new function, not a capture-replot."""
+    sp = os.path.join(data, "stability.npz"); dp = os.path.join(data, "drift.npz")
+    has_s, has_d = os.path.exists(sp), os.path.exists(dp)
+    if not (has_s or has_d):
+        print("[skip] fig_expstab_mzm: stability.npz / drift.npz not found"); return
+    nrows = int(has_s) + int(has_d)
+    fig, axs = plt.subplots(nrows, 1, figsize=(CW, 1.15 * nrows + 0.35), squeeze=False)
+    r = 0
+    if has_s:
+        ax1 = axs[r, 0]
+        d = np.load(sp)
+        th = d["t"] / 3600.0; V = d["V"]
+        dt = d["dmm_t"] / 3600.0; de = np.abs(d["dmm_err_mrad"])
+        rec = int(d["recal_events"]); hrs = float(d["t"][-1]) / 3600
+        vdrift = float(V.max() - V.min())
+        ax1.plot(th, V, color=INK, lw=0.6, alpha=0.85)
+        ax1.set_ylabel("$V_b$ (V)", color=INK, fontsize=6.8, labelpad=1)
+        ax1.set_xlabel("时间 (h)", fontsize=6.8, labelpad=1)
+        ax1.tick_params(axis="y", labelcolor=INK, labelsize=6.3, pad=1)
+        ax1.tick_params(axis="x", labelsize=6.3, pad=1)
+        ax1.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
+        ax1.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+        ax1.set_title(f"(a) 长期稳定性 ({hrs:.1f} h, 漂移 {vdrift:.2f} V, "
+                      f"重定标{rec}次)", fontsize=6.5, pad=2)
+        ax2 = ax1.twinx()
+        ax2.plot(dt, de, "o", color=GRN, ms=1.8)
+        ax2.set_ylabel("锁定误差 (mrad)", color=GRN, fontsize=6.8, labelpad=1)
+        ax2.tick_params(axis="y", labelcolor=GRN, labelsize=6.3, pad=1)
+        ax2.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+        ax2.set_ylim(0, max(800.0, float(de.max()) * 1.25))
+        r += 1
+    if has_d:
+        ax1 = axs[r, 0]
+        d = np.load(dp)
+        err = np.abs(d["err_mrad"]); rho = d["rho_bar"]
+        step = int(d["step_at"]); lat = int(d["latency"])
+        recal = int(d["recal_at"]) if "recal_at" in d.files else (
+            step + lat if lat >= 0 else -1)
+        ax1.plot(err, color=GRN, lw=0.7)
+        ax1.set_xlabel("控制周期", fontsize=6.8, labelpad=1)
+        ax1.set_ylabel("误差 (mrad)", color=GRN, fontsize=6.8, labelpad=1)
+        ax1.tick_params(axis="y", labelcolor=GRN, labelsize=6.3, pad=1)
+        ax1.tick_params(axis="x", labelsize=6.3, pad=1)
+        ax1.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
+        ax1.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+        ax1.axvline(step, color=RED, ls="--", lw=0.8)
+        ax1.annotate("突变", xy=(step, ax1.get_ylim()[1]), xytext=(-3, -7),
+                     textcoords="offset points", color=RED, fontsize=6.0,
+                     ha="right", va="top")
+        if recal >= 0:
+            ax1.axvline(recal, color=BLU, ls=":", lw=0.8)
+            ax1.annotate(f"+{lat}→重标", xy=(recal, ax1.get_ylim()[1]),
+                         xytext=(3, -18), textcoords="offset points",
+                         color=BLU, fontsize=6.0, ha="left", va="top")
+        ax1.set_title("(b) 残差触发检测与恢复", fontsize=6.5, pad=2)
+        ax2 = ax1.twinx()
+        ax2.plot(rho, color=INK, lw=0.8, alpha=0.85)
+        ax2.set_ylabel("残差 $\\bar\\rho$", color=INK, fontsize=6.8, labelpad=1)
+        ax2.tick_params(axis="y", labelcolor=INK, labelsize=6.3, pad=1)
+        ax2.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+    fig.subplots_adjust(left=0.145, right=0.86, top=0.90, bottom=0.13, hspace=0.65)
+    fig.savefig(os.path.join(out, "fig_expstab_mzm.pdf"))
+    plt.close(fig); print("[fig] fig_expstab_mzm.pdf")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -509,6 +763,9 @@ def main():
     fig_dp_torus(a.data_dir, a.out_dir)
     fig_dp_obs(a.data_dir, a.out_dir)
     fig_dp_lock(a.data_dir, a.out_dir)
+    fig_expcal_mzm(a.data_dir, a.out_dir)
+    fig_expperf_mzm(a.data_dir, a.out_dir)
+    fig_expstab_mzm(a.data_dir, a.out_dir)
 
 
 if __name__ == "__main__":
