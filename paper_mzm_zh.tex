@@ -268,12 +268,12 @@ B\triangleq R(-\hat\varphi_c)\,F\,M^{1/2},\qquad
 
 图~\ref{fig:affine}(a)(b) 给出含增益失配、解调轴非正交、交叉耦合与偏置的标定示例；标定与闭环流程汇总于算法~\ref{alg:mzm}，其含残差监测与重定标的监督层见第~\ref{sec:algo} 节的算法~\ref{alg:cal}--\ref{alg:run}。
 
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{figs/fig_affine_mzm.pdf}
+\includegraphics[width=\columnwidth]{figs/fig_affine_mzm.pdf}
 \caption{仿射标定与导频深度设计。(a)(b)~标定示例（$m{=}1.2$、$\sigma{=}0.005$、$N{=}360$，含增益失配、$10^\circ$ 非正交、交叉耦合~$\varepsilon{=}0.10$ 与偏置）：(a)~原始观测平面上的拟合椭圆、中心~$\hat\bv$ 与~$\varphi{=}\pi$ 基准点；(b)~回拉样本~$\hat\uv=B(\zv-\hat\bv)$ 落于单位圆。(c)~设计曲线：$J_1(m)$、$J_2(m)$（左轴）与条件数~$\kappa(A)$（理想链路下为~$J_1/J_2$，$m\gtrsim2.6$ 后两者互换）及其小~$m$ 渐近~$4/m$（右轴，对数）；竖线为仿真所用~$m{=}1.2$：理想比值~$J_1/J_2=3.13$，含失配的仿真真值矩阵~$\kappa(A)=2.59$。}
 \label{fig:affine}
-\end{figure*}
+\end{figure}
 
 \begin{figure}[!t]
 \centering
@@ -434,19 +434,19 @@ $m{=}1.2$ 处的~$\kappa(A)$（受扰真值） & $2.59$（理想比值~$3.13$）
 \label{fig:mzmloop}
 \end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{figs/fig_sweep.pdf}
+\includegraphics[width=\columnwidth]{figs/fig_sweep_mzm.pdf}
 \caption{任意点性能随目标相位的分布。(a)~传统两类方案的闭式静差（幅值匹配为式~\eqref{eq:staticAM}，谐波比值为锁定条件的数值根）在各自死区附近放大，仿射环路的实测闭环~rms（圆点，含同源漂移与噪声）随目标点变化较小；(b)~解调噪声地板随相位的分布：式~\eqref{eq:var} 理论曲线、蒙特卡洛实测与上界~$\sigma/\sigma_{\min}(A)$。}
 \label{fig:sweep}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{figs/fig_gauge.pdf}
+\includegraphics[width=\columnwidth]{figs/fig_gauge_mzm.pdf}
 \caption{规范固定方案对照。(a)~$N{=}360$ 时标定引入的解调偏差分布：直流回归规范对~argmin 基准（横杠为中位数）；(b)~偏差中位数随扫描样本数~$N$ 的标度：回归规范按~$N^{-1/2}$ 收缩，argmin 基准受平坦极小值限制几乎不收缩。}
 \label{fig:gauge}
-\end{figure*}
+\end{figure}
 
 \subsection{算法级行为验证}
 图~\ref{fig:acqstep} 与图~\ref{fig:recal} 验证算法~\ref{alg:cal}--\ref{alg:run} 的动态行为。捕获瞬态如图~\ref{fig:acqstep}(a) 所示：从~$1.5$~rad 的初始偏差出发，不同目标点的误差衰减曲线基本重合，并与理论包络~$(1-G)^n$ 一致，对应时间常数~$1/G\approx5.6$ 个周期。
@@ -479,12 +479,12 @@ $m{=}1.2$ 处的~$\kappa(A)$（受扰真值） & $2.59$（理想比值~$3.13$）
 
 \emph{独立交叉验证。}板上自报的直流与谐波读数由两台台式仪器经~LAN/SCPI 独立比对：RIGOL DM858E 万用表接直流测点（DE4）测~PD 直流（正比于光功率，对应板~CH1）；Siglent SDS824X HD 示波器接交流测点（DE2、通道~C1）测~TIA 交流输出，并由其~FFT 读取导频谐波（对应板~CH0）。板上~ADC 满量程为~$\pm1.2$~V，而~PD 直流峰值约~$1.49$~V 会使板~CH1 在高透过区削顶；规范固定所需的整条直流传递曲线~$P(V_b)$ 因此取自~DM858E（未削顶），板~CH1 仅在中段用于一致性核对，是该交叉测量的承重环节。
 
-\begin{figure*}[!tb]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{figs/fig_exp_mzm.pdf}
+\includegraphics[width=\columnwidth]{figs/fig_exp_mzm.pdf}
 \caption{实测链路。DFB 激光（约~$9$~dBm）入射~MZM，输出经~1:9 耦合器分出~$10\%$ 至~PD；PD 电流经~TIA 后由~STM32H523 板的~ADS131M02 采集（CH0 交流/导频、CH1 直流），板上~Goertzel 提取~H1/H2/DC。板子作导频~$+$~偏置发生与谐波采集，仿射控制律与经典基线均在上位机执行（\texttt{gen}/\texttt{acq}）。DM858E（DE4，直流）与~SDS824X HD（DE2，交流~FFT）经~LAN/SCPI 独立交叉验证；射频口接地、RF 关断。}
 \label{fig:exp_mzm}
-\end{figure*}
+\end{figure}
 
 \emph{相位真值与精度评定。}任意点锁定精度的实验评定需要一个独立于交流控制环的偏置相位参考。为此用开环慢扫描、由~DM858E 记录整条直流传递曲线~$P(V_b)$：由相邻极值定出~$V_\pi$ 与~$\varphi_0$，从而把任一直流偏压标定为相位~$\hat\varphi(V_b)$，作为锁定误差~$|\varphi_{\rm lock}-\varphi^\ast|$ 的基准，并由直流功率极值提供绝对相位锚点。该直流支路与高速谐波支路同源（同一~PD 输出），故评定的是相对一致性而非绝对光功率定标。
 
@@ -519,19 +519,19 @@ RF 加载锁定~rms（$50$~MHz，开/关） & --- & 仿射~$192.5$ / $166.1$~mra
 \par\footnotesize 注：仿真列取~$m{=}1.2$，实验列受交流通道余量限制~$m\approx0.09$–$0.12$，两列绝对量级不可直接比较，对比应看趋势与相对优势。
 \end{table*}
 
-\begin{figure*}[!tb]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{figs/fig_expcal_mzm.pdf}
+\includegraphics[width=\columnwidth]{figs/fig_expcal_mzm.pdf}
 \caption{阶段（0）--（1）实测直流标定与仿射标定。(a) DM858E 双向慢扫的直流传递曲线~$P(V_b)$ 及其余弦拟合，上/下行各测得~$V_\pi=5.36/5.20$~V（劈裂~$0.16$~V 即慢扫期间偏置漂移所致），双向平均给出无偏~$V_\pi=5.28$~V；峰值~$\approx1.5$~V 未削顶（取自~DM858E，板~CH1 在此区饱和于~$1.2$~V）。(b) 同一数据按相位~$\varphi=\pi(V_b{-}V_0)/V_\pi$ 重绘，呈洁净余弦，确认正弦传递与规范固定。(c) 导频幅度~$A_p=0.15$~V（$m=0.092$）下的实测观测椭圆，由~DM858E 慢扫相位参考完成规范固定，椭圆较扁，$\kappa(\hat A)=45.24$。(d) 回拉样本落于单位圆，自检中位误差为~$27.3$~mrad。}
 \label{fig:expcal}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!tb]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{figs/fig_expperf_mzm.pdf}
+\includegraphics[width=\columnwidth]{figs/fig_expperf_mzm.pdf}
 \caption{任意点锁定实测性能。(a) 噪声地板~$\kappa(\hat A)$ 随导频深度~$m$ 的趋势（阶段（3））：实测（绿）在可分辨区与理想~Bessel 比~$J_1(m)/J_2(m)$（蓝）几乎重合并随~$m$ 增大而下降，小~$m$ 处~H2 淹没于噪声、椭圆拟合无法分辨真实轴比，故低于理论；可用~$m$ 受~ADC 余量约束于~$\lesssim0.12$（再大~H1 饱和），$\kappa$ 因而难降至仿真~$m{=}1.2$（$\kappa{=}2.59$）的量级，与仿真图~\ref{fig:affine}(c) 对照。(b) 任意点锁定精度随目标相位的分布：$\varphi^\ast$ 取~$[0,2\pi)$ 上~$16$ 点，以~DM858E 在锁定点的直流就地线性化作漂移免疫的相位评定；仿射控制器在全部目标点有界锁定（rms~$\approx246$~mrad，$\kappa\approx45$ 受限），上位机重建的~H1 幅值匹配基线在死区/分支点完全失锁（误差达~$\pm\pi$，rms~$\approx1241$~mrad），与仿真图~\ref{fig:mzmloop}、\ref{fig:sweep} 对照。(c) $50$~MHz RF 加载下板上 H1 幅度随 RF 调制深度~$m_{\rm RF}$ 衰落，与理论~$J_0(m_{\rm RF})$ 重合，拟合等效~$V_\pi^{\rm RF}\approx2.8$~V。(d) 任意点锁定~rms 随施加 RF 功率（$0$--$13$~dBm）的变化：全程有界，与 RF 关参考（$166$~mrad，红虚线）同量级；每个功率态均重新辨识椭圆，$\kappa(\hat A)$ 保持~$\approx45$ 不变。}
 \label{fig:expperf}
-\end{figure*}
+\end{figure}
 
 \begin{figure}[!t]
 \centering
