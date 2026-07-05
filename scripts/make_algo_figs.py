@@ -364,8 +364,19 @@ for xd,yd,col,ls,lw,lab in acq_a_lines:
 ax.set_xlabel('control step',fontsize=7,labelpad=1)
 ax.set_ylabel('$|e|$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
-ax.legend(loc='upper right',ncol=2,borderpad=0.2,handlelength=1.0,labelspacing=0.25,
-          columnspacing=0.8,handletextpad=0.4,fontsize=5.6,frameon=False)
+# two legends stacked in the empty upper-right corner: the four target phases
+# as a 2x2 block, the theory line on its own row below it (user request)
+_h,_l=ax.get_legend_handles_labels()
+_th=[(h,l) for h,l in zip(_h,_l) if 'theory' in l]
+_tg=[(h,l) for h,l in zip(_h,_l) if 'theory' not in l]
+_leg1=ax.legend([h for h,_ in _tg],[l for _,l in _tg],loc='upper right',ncol=2,
+                bbox_to_anchor=(1.0,1.0),borderpad=0.2,handlelength=1.0,
+                labelspacing=0.25,columnspacing=0.8,handletextpad=0.4,
+                fontsize=5.6,frameon=False)
+ax.add_artist(_leg1)
+ax.legend([h for h,_ in _th],[l for _,l in _th],loc='upper right',ncol=1,
+          bbox_to_anchor=(1.0,0.70),borderpad=0.2,handlelength=1.0,
+          handletextpad=0.4,fontsize=5.6,frameon=False)
 ax.set_ylim(acq_a_ylim)
 ax.set_title('(a) acquisition (4 targets)',fontsize=7,pad=2)
 ax=axs[1]
