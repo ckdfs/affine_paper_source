@@ -26,7 +26,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt              # noqa: E402
 from matplotlib import font_manager          # noqa: E402
-from matplotlib.patches import Rectangle, Circle  # noqa: E402
+from matplotlib.patches import (Rectangle, Circle, FancyBboxPatch,  # noqa: E402
+                                Ellipse, Polygon, PathPatch)
+from matplotlib.path import Path             # noqa: E402
+from matplotlib.lines import Line2D          # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import exp_common as ec  # noqa: E402
@@ -81,36 +84,189 @@ def _arr(ax, x0, y0, x1, y1, color=INK, ls="-"):
 
 
 # --------------------------------------------------------------------------- #
-#  data-free schematics                                                       #
+#  data-free schematics                                                        #
 # --------------------------------------------------------------------------- #
+#  Skeuomorphic icon primitives (matplotlib patches only, deterministic).      #
+#  Each draws inside an axis-data cell centred at (cx, cy) with half-size s;    #
+#  a rounded "chip" frame is drawn by _chip, the icon glyph on top.            #
+OPT = "#1699A8"          # optical path (cyan/teal) — arrows + fibre glyphs
+CIRC = INK               # electrical path (ink/black)
+
+
+def _chip(ax, cx, cy, w, h, fc="#F5F8F4", ec=INK, lw=0.8, r=0.10):
+    ax.add_patch(FancyBboxPatch(
+        (cx - w / 2, cy - h / 2), w, h,
+        boxstyle=f"round,pad=0,rounding_size={r}",
+        fc=fc, ec=ec, lw=lw, mutation_aspect=1.0, zorder=2))
+
+
+def _label(ax, cx, cy, t, fs=5.4, color=INK, va="center"):
+    ax.text(cx, cy, t, ha="center", va=va, fontsize=fs, color=color, zorder=5)
+
+
+def _ic_laser(ax, cx, cy, s=0.30, color=CIRC):
+    """Laser diode: triangle + bar (diode) with slanted emission arrows."""
+    ax.add_patch(Polygon([(cx - s, cy - s * 0.7), (cx - s, cy + s * 0.7),
+                          (cx + s * 0.1, cy)], closed=True, fc="none",
+                         ec=color, lw=0.9, zorder=4))
+    ax.plot([cx + s * 0.1, cx + s * 0.1], [cy - s * 0.7, cy + s * 0.7],
+            color=color, lw=0.9, zorder=4)
+    for dy in (0.35, -0.05):
+        ax.annotate("", xy=(cx + s * 0.95, cy + s * (dy + 0.35)),
+                    xytext=(cx + s * 0.35, cy + s * (dy - 0.05)),
+                    arrowprops=dict(arrowstyle="->", lw=0.7, color=color),
+                    zorder=4)
+
+
+def _ic_pd(ax, cx, cy, s=0.30, color=CIRC):
+    """Photodiode: triangle + bar with two incoming (received-light) arrows."""
+    ax.add_patch(Polygon([(cx + s, cy - s * 0.7), (cx + s, cy + s * 0.7),
+                          (cx - s * 0.1, cy)], closed=True, fc="none",
+                         ec=color, lw=0.9, zorder=4))
+    ax.plot([cx - s * 0.1, cx - s * 0.1], [cy - s * 0.7, cy + s * 0.7],
+            color=color, lw=0.9, zorder=4)
+    for dy in (0.4, -0.1):
+        ax.annotate("", xy=(cx - s * 0.15, cy + s * (dy - 0.1)),
+                    xytext=(cx - s * 0.95, cy + s * (dy + 0.4)),
+                    arrowprops=dict(arrowstyle="->", lw=0.7, color=OPT),
+                    zorder=4)
+
+
+def _ic_opamp(ax, cx, cy, s=0.32, color=CIRC):
+    """Operational amplifier: right-pointing triangle with +/- inputs."""
+    ax.add_patch(Polygon([(cx - s, cy - s), (cx - s, cy + s), (cx + s, cy)],
+                         closed=True, fc="none", ec=color, lw=0.9, zorder=4))
+    ax.text(cx - s * 0.55, cy + s * 0.42, "$-$", ha="center", va="center",
+            fontsize=5.0, color=color, zorder=5)
+    ax.text(cx - s * 0.55, cy - s * 0.42, "$+$", ha="center", va="center",
+            fontsize=5.0, color=color, zorder=5)
+
+
+def _ic_lpf(ax, cx, cy, s=0.32, color=CIRC):
+    """Low-pass response glyph: flat plateau then roll-off."""
+    xr = np.linspace(0, 1, 60)
+    yy = cy + s * (0.9 / (1 + (xr / 0.5) ** 6) - 0.45)
+    ax.plot(cx - s + 2 * s * xr, yy, color=color, lw=0.9, zorder=4)
+
+
+def _ic_hpf(ax, cx, cy, s=0.32, color=CIRC):
+    """High-pass response glyph: rise then flat plateau."""
+    xr = np.linspace(0, 1, 60)
+    yy = cy + s * (0.9 * (xr ** 6 / (xr ** 6 + 0.5 ** 6)) - 0.45)
+    ax.plot(cx - s + 2 * s * xr, yy, color=color, lw=0.9, zorder=4)
+
+
+def _ic_cap(ax, cx, cy, s=0.30, color=CIRC):
+    """DC-block capacitor: two parallel plates with leads."""
+    g = s * 0.28
+    ax.plot([cx - g, cx - g], [cy - s * 0.75, cy + s * 0.75], color=color,
+            lw=1.1, zorder=4)
+    ax.plot([cx + g, cx + g], [cy - s * 0.75, cy + s * 0.75], color=color,
+            lw=1.1, zorder=4)
+    ax.plot([cx - s, cx - g], [cy, cy], color=color, lw=0.8, zorder=4)
+    ax.plot([cx + g, cx + s], [cy, cy], color=color, lw=0.8, zorder=4)
+
+
+def _ic_coupler(ax, cx, cy, s=0.30, color=OPT):
+    """Fibre tap/coupler: small ellipse with a branch-off stub."""
+    ax.add_patch(Ellipse((cx, cy), 1.7 * s, 1.1 * s, fc="none", ec=color,
+                         lw=0.9, zorder=4))
+    ax.plot([cx + s * 0.55, cx + s * 1.05], [cy + s * 0.25, cy + s * 0.8],
+            color=color, lw=0.8, zorder=4)
+
+
+def _ic_mzm(ax, cx, cy, s=0.34, color=OPT):
+    """Mach–Zehnder waveguide: split into two arms and recombine."""
+    x = np.array([-1.0, -0.55, 0.0, 0.55, 1.0]) * s
+    yt = np.array([0.0, 0.55, 0.55, 0.55, 0.0]) * s
+    yb = np.array([0.0, -0.55, -0.55, -0.55, 0.0]) * s
+    ax.plot(cx + x, cy + yt, color=color, lw=0.9, zorder=4)
+    ax.plot(cx + x, cy + yb, color=color, lw=0.9, zorder=4)
+    ax.plot([cx - s, cx - 1.35 * s], [cy, cy], color=color, lw=0.9, zorder=4)
+    ax.plot([cx + s, cx + 1.35 * s], [cy, cy], color=color, lw=0.9, zorder=4)
+    # bias electrode over the lower arm
+    ax.plot([cx - 0.55 * s, cx + 0.55 * s], [cy - 0.78 * s, cy - 0.78 * s],
+            color=CIRC, lw=1.2, zorder=4)
+
+
 def fig_setup_mzm(out):
-    fig, ax = plt.subplots(figsize=(TW, 2.35)); ax.set_xlim(0, 16)
-    ax.set_ylim(0, 5.0); ax.axis("off")
-    _box(ax, 0.2, 2.4, 1.5, 0.9, "DFB 激光\n~9 dBm")
-    _box(ax, 2.2, 2.2, 1.9, 1.3, "MZM\n$V_\\pi{\\approx}5.5$V\nRF 接地")
-    _box(ax, 4.6, 2.4, 1.6, 0.9, "1:9\n耦合器")
-    _box(ax, 6.7, 2.4, 1.2, 0.9, "PD")
-    _box(ax, 8.3, 2.4, 1.2, 0.9, "TIA")
-    _box(ax, 10.0, 1.5, 3.0, 2.6,
-         "STM32H523 板\nDAC8568→×4 减法→偏压\nADS131M02 (CH0/CH1)\nGoertzel: H1/H2/DC", 5.6,
-         fc="#EAF1F7")
-    _box(ax, 13.6, 2.4, 2.2, 1.0, "上位机\n仿射 + 基线\n(gen/acq)", 5.8, fc="#F7F0EA")
-    for (x0, x1) in [(1.7, 2.2), (4.1, 4.6), (6.2, 6.7), (7.9, 8.3),
-                     (9.5, 10.0), (13.0, 13.6)]:
-        _arr(ax, x0, 2.85, x1, 2.85)
-    # feedback bias board -> MZM
-    _arr(ax, 11.5, 1.5, 11.5, 0.7); _arr(ax, 11.5, 0.7, 3.15, 0.7)
-    _arr(ax, 3.15, 0.7, 3.15, 2.2, color=BLU)
-    ax.text(7.3, 0.5, "偏置 $V_b$ + 导频 $m\\sin\\omega t$ (写回)", fontsize=5.8,
-            ha="center", color=BLU)
-    # cross-validation taps
-    _box(ax, 6.4, 4.0, 2.0, 0.8, "DM858E (DE4)\nPD 直流", 5.6, fc="#F2F2F2")
-    _box(ax, 8.7, 4.0, 2.4, 0.8, "SDS824X HD (DE2)\nTIA 交流 FFT", 5.6, fc="#F2F2F2")
-    _arr(ax, 7.3, 3.3, 7.3, 4.0, color="0.5", ls=":")
-    _arr(ax, 8.9, 3.3, 9.7, 4.0, color="0.5", ls=":")
-    ax.text(8.0, 4.95, "LAN/SCPI 独立交叉验证", fontsize=5.8, ha="center",
-            color="0.4")
-    fig.tight_layout(); fig.savefig(os.path.join(out, "fig_exp_mzm.pdf"))
+    """Single-column (3.45 in) skeuomorphic single-MZM bench schematic.
+    Optical path (cyan) along the TOP row L->R: LD -> MZM -> 1:9 tap -> PD.
+    Electrical processing (ink) along the BOTTOM row R->L closing the loop:
+    DC-block -> TIA -> HPF -> voltage amp -> LPF -> STM32 -> ext-DAC -> back to
+    the MZM bias electrode.  Icons are matplotlib patches (laser/PD diode
+    symbols, op-amp triangles, LPF/HPF response glyphs, cap plates, fibre
+    tap/MZM waveguides); STM32 and the DAC stay plain labelled chips."""
+    fig, ax = plt.subplots(figsize=(CW, 2.55))
+    ax.set_xlim(0, 10); ax.set_ylim(0, 7.2); ax.axis("off")
+    ax.set_aspect("equal")
+    yT, yB = 6.0, 1.5                # top (optical) / bottom (electrical) rows
+
+    def cell(cx, cy, w, h, glyph, lab, fc="#F5F8F4", labdy=None, fs=5.2):
+        _chip(ax, cx, cy, w, h, fc=fc)
+        if glyph is not None:
+            glyph(ax, cx, cy + h * 0.16)
+            _label(ax, cx, cy - h * 0.34, lab, fs=fs)
+        else:
+            _label(ax, cx, cy, lab, fs=fs)
+
+    # ---- optical (top) row: LD -> MZM -> tap -> PD --------------------------
+    cell(1.15, yT, 1.7, 1.55, _ic_laser, "DFB 激光\n~9 dBm")
+    cell(3.55, yT, 1.9, 1.55, _ic_mzm, "MZM  $V_\\pi{\\approx}5.5$V\nRF 接地")
+    cell(5.95, yT, 1.7, 1.55, _ic_coupler, "1:9 耦合器")
+    cell(8.35, yT, 1.7, 1.55, _ic_pd, "PD 光电探测")
+    for x0, x1 in [(2.0, 2.6), (4.5, 5.1), (6.8, 7.5)]:
+        ax.annotate("", xy=(x1, yT), xytext=(x0, yT),
+                    arrowprops=dict(arrowstyle="-|>", lw=1.1, color=OPT),
+                    zorder=3)
+    ax.text(5.95, yT + 1.15, "光路", fontsize=5.0, color=OPT, ha="center")
+
+    # PD -> down into electrical chain
+    ax.annotate("", xy=(8.35, yB + 0.85), xytext=(8.35, yT - 0.8),
+                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC), zorder=3)
+
+    # ---- electrical (bottom) row R->L: cap -> TIA -> HPF -> amp -> LPF ------
+    ex = [8.35, 6.95, 5.75, 4.55, 3.35]
+    cell(ex[0], yB, 1.15, 1.5, _ic_cap, "隔直\n电容", fs=5.0)
+    cell(ex[1], yB, 1.15, 1.5, _ic_opamp, "TIA\n跨阻", fs=5.0)
+    cell(ex[2], yB, 1.05, 1.5, _ic_hpf, "高通\n滤波", fs=5.0)
+    cell(ex[3], yB, 1.05, 1.5, _ic_opamp, "电压\n放大", fs=5.0)
+    cell(ex[4], yB, 1.05, 1.5, _ic_lpf, "低通\n滤波", fs=5.0)
+    for i in range(len(ex) - 1):
+        ax.annotate("", xy=(ex[i + 1] + 0.55, yB), xytext=(ex[i] - 0.6, yB),
+                    arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC),
+                    zorder=3)
+    ax.text(6.0, yB - 1.0, "模拟信号调理", fontsize=5.0, color=CIRC, ha="center")
+
+    # ---- digital chips: STM32 (ADC/Goertzel) + ext-DAC --------------------
+    cell(1.75, yB, 1.9, 1.7, None,
+         "STM32H523\nADS131M02 采集\nGoertzel:H1/H2/DC", fs=5.0, fc="#E7EFF7")
+    # LPF -> STM32
+    ax.annotate("", xy=(2.7, yB), xytext=(ex[4] - 0.55, yB),
+                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC), zorder=3)
+    # ext-DAC chip (bias write-back), between STM32 and MZM electrode
+    cell(1.75, 3.75, 1.9, 1.05, None, "外接 DAC8568\n×4 减法→偏压",
+         fs=5.0, fc="#E7EFF7")
+    ax.annotate("", xy=(1.75, 3.75 - 0.55), xytext=(1.75, yB + 0.86),
+                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC), zorder=3)
+    # bias + pilot write-back (dashed) DAC -> MZM electrode
+    ax.annotate("", xy=(3.35, yT - 0.82),
+                xytext=(2.0, 3.75 + 0.53),
+                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=BLU,
+                                ls="--", connectionstyle="arc3,rad=-0.30"),
+                zorder=3)
+    ax.text(3.55, 4.55, "偏置 $V_b$+导频 $m\\sin\\omega t$", fontsize=4.9,
+            color=BLU, ha="center", va="center")
+
+    # legend for the arrow colours
+    handles = [Line2D([0], [0], color=OPT, lw=1.1, label="光路"),
+               Line2D([0], [0], color=CIRC, lw=1.0, label="电路"),
+               Line2D([0], [0], color=BLU, lw=1.0, ls="--", label="导频/偏压反馈")]
+    ax.legend(handles=handles, loc="lower center", ncol=3, frameon=False,
+              fontsize=4.8, bbox_to_anchor=(0.5, -0.02), handlelength=1.4,
+              columnspacing=1.0, handletextpad=0.4)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.02)
+    fig.savefig(os.path.join(out, "fig_exp_mzm.pdf"))
     plt.close(fig); print("[fig] fig_exp_mzm.pdf")
 
 
@@ -508,8 +664,9 @@ def fig_expcal_mzm(data, out):
     if not (have_vpi or have_cal):
         print("[skip] fig_expcal_mzm: vpi.csv and calib.npz/calib_fit.json not found")
         return
-    ncol = 2 * int(have_vpi) + 2 * int(have_cal)
-    fig, axs = plt.subplots(1, ncol, figsize=(TW, 1.7))
+    # single-column 2x2 layout (was cross-column 1x4)
+    fig, axg = plt.subplots(2, 2, figsize=(CW, 3.25))
+    axs = axg.ravel()
     c = 0
     if have_vpi:
         rows = _read_csv(vp)
@@ -529,25 +686,34 @@ def fig_expcal_mzm(data, out):
             bu, du = sel(None); bd, dd = np.array([]), np.array([])
             a, b, vpi, v0 = ec.fit_dc_transfer(bu, du)
         ax = axs[c]
-        ax.plot(bu, du, ".", ms=1.8, color=GRN, label="上行")
+        ax.plot(bu, du, ".", ms=1.6, color=GRN, label="上行")
         if has_dir:
-            ax.plot(bd, dd, ".", ms=1.8, color=RED, label="下行")
+            ax.plot(bd, dd, ".", ms=1.6, color=RED, label="下行")
         allb = np.concatenate([bu, bd]) if has_dir else bu
         vv = np.linspace(allb.min(), allb.max(), 400)
         ax.plot(vv, a + b * np.cos(np.pi * (vv - v0) / vpi), color=BLU, lw=1.0, label="拟合")
-        ax.set_xlabel("偏压 $V_b$ (V)"); ax.set_ylabel("PD 直流 (V)")
-        ax.set_title(f"(a) 双向直流传递\n$V_\\pi{{=}}{vpi:.3f}$ V", fontsize=7.0)
-        ax.legend(fontsize=5.5, loc="best")
+        ax.set_xlabel("偏压 $V_b$ (V)", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("PD 直流 (V)", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title(f"(a) 双向直流传递  $V_\\pi{{=}}{vpi:.3f}$ V", fontsize=6.6, pad=2)
+        # headroom so the horizontal legend never overlaps the curve
+        ax.margins(y=0.05)
+        y0, y1 = ax.get_ylim(); ax.set_ylim(y0, y1 + 0.42 * (y1 - y0))
+        ax.legend(fontsize=5.5, loc="upper center", ncol=3, frameon=False,
+                  handlelength=1.1, handletextpad=0.3, columnspacing=0.8,
+                  borderpad=0.1)
         c += 1
         ax = axs[c]
         ph = lambda bb: ((np.pi * (bb - v0) / vpi + np.pi) % (2 * np.pi)) - np.pi
-        ax.plot(ph(bu), du, ".", ms=1.8, color=GRN)
+        ax.plot(ph(bu), du, ".", ms=1.6, color=GRN)
         if has_dir:
-            ax.plot(ph(bd), dd, ".", ms=1.8, color=RED)
+            ax.plot(ph(bd), dd, ".", ms=1.6, color=RED)
         pp = np.linspace(-np.pi, np.pi, 300)
         ax.plot(pp, a + b * np.cos(pp), color=BLU, lw=1.0)
-        ax.set_xlabel("偏置相位 $\\varphi$ (rad)"); ax.set_ylabel("PD 直流 (V)")
-        ax.set_title("(b) 按拟合相位归一重排", fontsize=7.0)
+        ax.set_xlabel("偏置相位 $\\varphi$ (rad)", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("PD 直流 (V)", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title("(b) 按拟合相位归一重排", fontsize=6.6, pad=2)
         c += 1
     if have_cal:
         d = np.load(cnpz, allow_pickle=True)
@@ -557,25 +723,32 @@ def fig_expcal_mzm(data, out):
         us = (B @ np.stack([X - c0[0], Y - c0[1]])).T
         A_hat = np.linalg.inv(B)
         ax = axs[c]
-        ax.plot(X, Y, ".", ms=1.3, color="0.45")
+        ax.plot(X, Y, ".", ms=1.2, color="0.45")
         t = np.linspace(0, 2 * np.pi, 300)
         ell = (A_hat @ np.stack([np.cos(t), np.sin(t)])) + c0[:, None]
         ax.plot(ell[0], ell[1], color=BLU, lw=1.0)
         ax.plot(*c0, "+", color=BLU, ms=6, mew=1.2)
         ax.annotate("$\\hat{\\mathbf{b}}$", c0, textcoords="offset points",
                     xytext=(4, -9), fontsize=6.5, color=BLU)
-        ax.set_xlabel("$X$ (H2)"); ax.set_ylabel("$Y$ (H1)")
-        ax.set_title("(c) 实测观测椭圆", fontsize=7.0)
+        ax.set_xlabel("$X$ (H2)", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("$Y$ (H1)", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title("(c) 实测观测椭圆", fontsize=6.6, pad=2)
         ax.ticklabel_format(axis="x", style="sci", scilimits=(-2, 2))
+        ax.xaxis.get_offset_text().set_fontsize(5.5)
         ax.margins(x=0.22, y=0.12)
         c += 1
         ax = axs[c]
-        ax.plot(us[:, 0], us[:, 1], ".", ms=1.3, color=GRN)
+        ax.plot(us[:, 0], us[:, 1], ".", ms=1.2, color=GRN)
         ax.add_patch(Circle((0, 0), 1, fill=False, ec=INK, lw=0.8, ls="--"))
-        ax.set_xlabel("$\\hat u_x$"); ax.set_ylabel("$\\hat u_y$")
-        ax.set_title(f"(d) 回拉单位圆\n$\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$", fontsize=7.0)
+        ax.set_xlabel("$\\hat u_x$", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("$\\hat u_y$", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title(f"(d) 回拉单位圆  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
+                     fontsize=6.6, pad=2)
         ax.set_aspect("equal"); ax.margins(0.22)
-    fig.tight_layout(); fig.savefig(os.path.join(out, "fig_expcal_mzm.pdf"))
+    fig.tight_layout(pad=0.4, h_pad=0.8, w_pad=0.6)
+    fig.savefig(os.path.join(out, "fig_expcal_mzm.pdf"))
     plt.close(fig); print("[fig] fig_expcal_mzm.pdf")
 
 
@@ -595,10 +768,9 @@ def fig_expperf_mzm(data, out):
     if not (have_pilot or have_lock or have_rf):
         print("[skip] fig_expperf_mzm: pilot_depth.csv / lock_sweep.npz / rf_lock.npz not found")
         return
-    ncol = int(have_pilot) + int(have_lock) + 2 * int(have_rf)
-    fig, axs = plt.subplots(1, ncol, figsize=(TW, 1.7))
-    if ncol == 1:
-        axs = [axs]
+    # single-column 2x2 layout (was cross-column 1x4)
+    fig, axg = plt.subplots(2, 2, figsize=(CW, 3.25))
+    axs = axg.ravel()
     c = 0
     if have_pilot:
         from scipy.special import jv
@@ -611,10 +783,14 @@ def fig_expperf_mzm(data, out):
         ax.plot(mm, np.abs(jv(1, mm) / jv(2, mm)), color=BLU, lw=1.0,
                 label="$J_1/J_2$")
         ax.plot(m, kap, "o-", color=GRN, ms=3, lw=0.7, label="实测")
-        ax.set_yscale("log"); ax.set_xlabel("导频深度 $m$")
-        ax.set_ylabel("$\\kappa(\\hat A)$")
-        ax.set_title("(a) $\\kappa$ vs 导频深度", fontsize=7.0)
-        ax.legend(fontsize=5.5, loc="best"); ax.grid(True, which="both", alpha=0.25)
+        ax.set_yscale("log")
+        ax.set_xlabel("导频深度 $m$", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("$\\kappa(\\hat A)$", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title("(a) $\\kappa$ vs 导频深度", fontsize=6.6, pad=2)
+        ax.legend(fontsize=5.5, loc="best", frameon=False, handlelength=1.3,
+                  handletextpad=0.3, borderpad=0.1)
+        ax.grid(True, which="both", alpha=0.25)
         c += 1
     if have_lock:
         d = np.load(lsp)
@@ -623,10 +799,17 @@ def fig_expperf_mzm(data, out):
         ax = axs[c]
         ax.semilogy(ps, base, "s-", color=RED, ms=2.5, lw=0.7, label="H1 基线")
         ax.semilogy(ps, np.maximum(aff, 1e-1), "o-", color=GRN, ms=2.5, lw=0.7, label="仿射")
-        ax.set_xlabel("目标相位 $\\varphi^\\ast$ (rad)")
-        ax.set_ylabel("$|\\varphi_{\\rm lock}-\\varphi^\\ast|$ (mrad)")
-        ax.set_title("(b) 16 目标点锁定误差", fontsize=7.0)
-        ax.legend(fontsize=5.5, loc="best"); ax.grid(True, which="both", alpha=0.25)
+        ax.set_xlabel("目标相位 $\\varphi^\\ast$ (rad)", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("$|\\varphi_{\\rm lock}-\\varphi^\\ast|$ (mrad)",
+                      fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title("(b) 16 目标点锁定误差", fontsize=6.6, pad=2)
+        # add top headroom and float a compact horizontal legend clear of data
+        ax.set_ylim(top=ax.get_ylim()[1] * 22)
+        ax.legend(fontsize=5.5, loc="upper center", ncol=2, frameon=False,
+                  handlelength=1.3, handletextpad=0.3, columnspacing=0.9,
+                  borderpad=0.1)
+        ax.grid(True, which="both", alpha=0.25)
         c += 1
     if have_rf:
         from scipy.special import j0 as bessel_j0
@@ -647,26 +830,38 @@ def fig_expperf_mzm(data, out):
         mm = np.linspace(0, float(m_eff.max()) * 1.12 + 1e-3, 200)
         ax.plot(mm, bessel_j0(mm), color=BLU, lw=1.0, label="$J_0$ 预测")
         ax.plot(m_eff, fade_on, "o", color=GRN, ms=3.5, label="实测衰落")
-        ax.set_xlabel("$m_{\\rm RF}$")
-        ax.set_ylabel("H1 相对幅度")
-        ax.set_title(f"(c) RF 加载 H1 衰落\n$V_\\pi^{{\\rm RF}}{{\\approx}}{vpi_rf:.1f}$ V", fontsize=7.0)
-        ax.legend(fontsize=5.5, loc="lower left"); ax.grid(True, alpha=0.25)
+        ax.set_xlabel("$m_{\\rm RF}$", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("H1 相对幅度", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title(f"(c) RF 加载 H1 衰落  $V_\\pi^{{\\rm RF}}{{\\approx}}{vpi_rf:.1f}$ V",
+                     fontsize=6.6, pad=2)
+        ax.legend(fontsize=5.5, loc="lower left", frameon=False,
+                  handlelength=1.3, handletextpad=0.3, borderpad=0.1)
+        ax.grid(True, alpha=0.25)
         ax.set_ylim(top=1.04, bottom=0)
         c += 1
         ax = axs[c]
         order = np.argsort(powers[on])
         ax.plot(powers[on][order], rms[on][order], "o-", color=GRN, ms=3.5, lw=0.8,
                 label="仿射锁定 (RF 开)")
+        rms_off = None
         if np.any(off):
             rms_off = float(np.mean(rms[off]))
             ax.axhline(rms_off, color=RED, ls="--", lw=0.9,
                        label=f"RF 关 ({rms_off:.0f} mrad)")
-        ax.set_xlabel("RF 功率 (dBm)")
-        ax.set_ylabel("锁定 rms (mrad)")
-        ax.set_title("(d) 锁定 rms vs RF 功率", fontsize=7.0)
-        ax.legend(fontsize=5.5, loc="best"); ax.grid(True, alpha=0.25)
-        ax.set_ylim(bottom=0)
-    fig.tight_layout(); fig.savefig(os.path.join(out, "fig_expperf_mzm.pdf"))
+        ax.set_xlabel("RF 功率 (dBm)", fontsize=6.5, labelpad=1)
+        ax.set_ylabel("锁定 rms (mrad)", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.0)
+        ax.set_title("(d) 锁定 rms vs RF 功率", fontsize=6.6, pad=2)
+        # top headroom + horizontal legend above the data (data sits low)
+        top_d = float(rms[on].max()) if rms_off is None else max(float(rms[on].max()), rms_off)
+        ax.set_ylim(bottom=0, top=top_d * 2.0)
+        ax.legend(fontsize=5.2, loc="upper center", ncol=2, frameon=False,
+                  handlelength=1.2, handletextpad=0.3, columnspacing=0.7,
+                  borderpad=0.1, bbox_to_anchor=(0.5, 0.98))
+        ax.grid(True, alpha=0.25)
+    fig.tight_layout(pad=0.4, h_pad=0.8, w_pad=0.6)
+    fig.savefig(os.path.join(out, "fig_expperf_mzm.pdf"))
     plt.close(fig); print("[fig] fig_expperf_mzm.pdf")
 
 
@@ -692,18 +887,30 @@ def fig_expstab_mzm(data, out):
         th = d["t"] / 3600.0; V = d["V"]
         dt = d["dmm_t"] / 3600.0; de = np.abs(d["dmm_err_mrad"])
         rec = int(d["recal_events"]); hrs = float(d["t"][-1]) / 3600
-        vdrift = float(V.max() - V.min())
-        ax1.plot(th, V, color=INK, lw=0.6, alpha=0.85)
+        vdrift = float(V.max() - V.min())     # caption number: full raw range
+        # The raw V toggles fast between two dither states (a dense "band" that
+        # buries the lock-error scatter). Show the DRIFT as a thin smoothed
+        # trend line (centred rolling mean) instead, and draw the error scatter
+        # as prominent open circles on top so both are legible.
+        w = max(5, (len(V) // 120) | 1)       # odd window ~1/120 of the record
+        kern = np.ones(w) / w
+        Vtrend = np.convolve(V, kern, mode="same")
+        edge = w // 2
+        ax1.plot(th[edge:-edge], Vtrend[edge:-edge], color=INK, lw=0.8,
+                 alpha=0.85, zorder=2, label="$V_b$ 漂移趋势")
         ax1.set_ylabel("$V_b$ (V)", color=INK, fontsize=6.8, labelpad=1)
         ax1.set_xlabel("时间 (h)", fontsize=6.8, labelpad=1)
         ax1.tick_params(axis="y", labelcolor=INK, labelsize=6.3, pad=1)
         ax1.tick_params(axis="x", labelsize=6.3, pad=1)
         ax1.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
         ax1.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+        vlo, vhi = float(Vtrend[edge:-edge].min()), float(Vtrend[edge:-edge].max())
+        ax1.set_ylim(vlo - 0.08 * (vhi - vlo), vhi + 0.12 * (vhi - vlo))
         ax1.set_title(f"(a) 长期稳定性 ({hrs:.1f} h, 漂移 {vdrift:.2f} V, "
                       f"重定标{rec}次)", fontsize=6.5, pad=2)
         ax2 = ax1.twinx()
-        ax2.plot(dt, de, "o", color=GRN, ms=1.8)
+        ax2.plot(dt, de, "o", mfc="none", mec=GRN, mew=0.9, ms=3.2,
+                 alpha=0.9, zorder=4, label="锁定误差")
         ax2.set_ylabel("锁定误差 (mrad)", color=GRN, fontsize=6.8, labelpad=1)
         ax2.tick_params(axis="y", labelcolor=GRN, labelsize=6.3, pad=1)
         ax2.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))

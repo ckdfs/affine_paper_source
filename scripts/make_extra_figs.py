@@ -176,6 +176,44 @@ ax.legend(loc='lower center', bbox_to_anchor=(0.5, 0.99), ncol=3, frameon=False,
           borderpad=0.1, handlelength=1.2, columnspacing=0.8, fontsize=6)
 plt.tight_layout(); plt.savefig('figs/fig_sweep.pdf'); plt.close()
 
+# ------- single-column narrow variant of fig_sweep (stacked, for 2-col IEEE) -------
+# Re-plots the SAME already-computed arrays (ph, dAM, ph_r, dRT, tgts16, rms16,
+# ph24, sig_mc, sig_th) stacked vertically instead of side-by-side, sized to a
+# single 3.45in column. No RNG draws here — pure capture-replot.
+fig, axs = plt.subplots(2, 1, figsize=(CW, 3.7))
+with plt.rc_context({'font.size': 6.5, 'axes.labelsize': 6.5, 'legend.fontsize': 6,
+                      'xtick.labelsize': 6.5, 'ytick.labelsize': 6.5}):
+    ax = axs[0]
+    ax.semilogy(ph, np.maximum(dAM, 1e-1), color=RED, label='amplitude matching')
+    ax.semilogy(ph_r, np.maximum(dRT, 1e-1), color=GLD, ls='-.', label='harmonic ratio')
+    ax.semilogy(tgts16, rms16, 'o', color=GRN, ms=3.0, label='affine loop rms')
+    ax.axhline(np.median(rms16), color=GRN, lw=0.7, ls=':')
+    ax.set_xlabel('target phase $\\varphi^*$ (rad)', labelpad=1)
+    ax.set_ylabel('$|$static error$|$ (mrad)')
+    ax.set_xticks([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
+    ax.set_xticklabels(['0', '$\\pi/2$', '$\\pi$', '$3\\pi/2$', '$2\\pi$'])
+    ax.set_ylim(0.5, 4000)
+    ax.text(0.02, 0.90, '(a)', transform=ax.transAxes, fontsize=7, weight='bold')
+    ax.legend(loc='upper left', bbox_to_anchor=(1.01, 1.03), ncol=1, frameon=False,
+              borderpad=0.1, handlelength=1.2, labelspacing=0.35)
+    ax = axs[1]
+    ax.plot(ph, sig_th, color=INK, lw=0.9,
+            label='$\\sigma\\sqrt{\\mathbf{t}^{\\mathsf{T}}(A^{\\mathsf{T}}A)^{-1}\\mathbf{t}}$')
+    ax.plot(ph24, sig_mc, 'o', color=GRN, ms=3.0, label='Monte Carlo')
+    ax.axhline(P1['sigma']/smin*1e3, color=BLU, lw=0.8, ls='--',
+               label='$\\sigma/\\sigma_{\\min}(A)$')
+    ax.set_xlabel('bias phase $\\varphi_b$ (rad)', labelpad=1)
+    ax.set_ylabel('$\\sigma_{\\hat\\varphi}$ (mrad)')
+    ax.set_xticks([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
+    ax.set_xticklabels(['0', '$\\pi/2$', '$\\pi$', '$3\\pi/2$', '$2\\pi$'])
+    ax.set_ylim(0, 1.05*P1['sigma']/smin*1e3*1.15)
+    ax.text(0.02, 0.90, '(b)', transform=ax.transAxes, fontsize=7, weight='bold')
+    ax.legend(loc='upper left', bbox_to_anchor=(1.01, 1.03), ncol=1, frameon=False,
+              borderpad=0.1, handlelength=1.2, labelspacing=0.35)
+plt.tight_layout()
+plt.savefig('figs/fig_sweep_mzm.pdf', bbox_inches='tight')
+plt.close()
+
 # =================== DPMZM machinery (ported) ===================
 def feat(p):
     c1,s1=np.cos(p[0]/2),np.sin(p[0]/2); c2,s2=np.cos(p[1]/2),np.sin(p[1]/2)
@@ -315,4 +353,34 @@ ax.set_xticks(Ns); ax.set_xticklabels([str(n) for n in Ns])
 ax.set_title('(b) gauge variance vs $N$', fontsize=7.5)
 ax.legend(borderpad=0.25, handlelength=1.4, fontsize=6)
 plt.tight_layout(); plt.savefig('figs/fig_gauge.pdf'); plt.close()
+
+# ------- single-column narrow variant of fig_gauge (stacked, for 2-col IEEE) -------
+# Re-plots the SAME already-computed arrays (bias_reg, bias_arg, Ns, med_reg,
+# med_arg) stacked vertically instead of side-by-side, sized to a single
+# 3.45in column. No RNG draws here -- pure capture-replot.
+fig, axs = plt.subplots(2, 1, figsize=(CW, 3.5))
+with plt.rc_context({'font.size': 6.5, 'axes.labelsize': 6.5, 'legend.fontsize': 6,
+                      'xtick.labelsize': 6.5, 'ytick.labelsize': 6.5}):
+    ax = axs[0]
+    # Deterministic jitter (linspace, not RNG) since the original jitter draws
+    # were never stored -- only the resulting scatter was plotted before.
+    for i, (d, col, lab) in enumerate([(bias_reg, GRN, 'DC regression\n(proposed)'),
+                                       (bias_arg, RED, 'argmin\nfiducial')]):
+        xj = i + np.linspace(-0.13, 0.13, len(d))
+        ax.semilogy(xj, np.maximum(d, 0.05), 'o', color=col, ms=2.6, alpha=0.7)
+        ax.hlines(np.median(d), i-0.25, i+0.25, color=INK, lw=1.2)
+    ax.set_xticks([0,1]); ax.set_xticklabels(['DC regression\n(proposed)','argmin\nfiducial'])
+    ax.set_ylabel('$|$demod bias$|$ (mrad)'); ax.set_xlim(-0.6,1.6)
+    ax.set_title('(a) calibration bias, $N{=}360$', fontsize=6.8)
+    ax = axs[1]
+    ax.loglog(Ns, med_reg, 'o-', color=GRN, ms=3.2, label='DC regression')
+    ax.loglog(Ns, med_arg, 's-', color=RED, ms=3.2, label='argmin fiducial')
+    ax.loglog(Ns, med_reg[2]*np.sqrt(360/Ns), 'k:', lw=0.8, label='$N^{-1/2}$')
+    ax.set_xlabel('sweep samples $N$', labelpad=1); ax.set_ylabel('median bias (mrad)')
+    ax.set_xticks(Ns); ax.set_xticklabels([str(n) for n in Ns], rotation=0)
+    ax.set_title('(b) gauge variance vs $N$', fontsize=6.8)
+    ax.legend(borderpad=0.25, handlelength=1.4, labelspacing=0.3, fontsize=6)
+plt.tight_layout()
+plt.savefig('figs/fig_gauge_mzm.pdf', bbox_inches='tight')
+plt.close()
 print('extra figures done:', sorted(f for f in os.listdir('figs') if f.startswith('fig_')))

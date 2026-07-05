@@ -181,12 +181,18 @@ bessel_kappa_lines = _capture_lines(ax2)
 bessel_k12 = (1.2, k12)
 plt.tight_layout(); plt.savefig('figs/fig_bessel.pdf'); plt.close()
 
-# ---- Fig affine (mzm): 1x3 composite strip (a) raw ellipse (b) unit circle
-#      (c) kappa(A) theory curve -- capture-replot of the three panels above,
-#      for a cross-column narrow strip layout used in paper_mzm_zh. Pure
-#      re-draw of already-captured line/marker/annotation data; no RNG. ----
-fig,axs=plt.subplots(1,3,figsize=(7.16,1.7))
-ax=axs[0]
+# ---- Fig affine (mzm): single-column 2+1 mosaic -- (a) raw ellipse and
+#      (b) unit circle side by side on the top row (near-square scatter
+#      panels so points aren't squashed), (c) kappa(A) theory curve spanning
+#      the full column width on the bottom row. Replaces the old cross-column
+#      1x3 narrow strip (515.5pt wide) with a single-column-width figure
+#      (target ~248pt = 3.45in) per user feedback that the strip was too
+#      spread out. Capture-replot of the three panels captured above; pure
+#      re-draw of already-captured line/marker/annotation data, no RNG. ----
+fig=plt.figure(figsize=(CW,3.3))
+gs=fig.add_gridspec(2,2,height_ratios=[1.15,1],hspace=0.62,wspace=0.55,
+                     left=0.13,right=0.97,top=0.94,bottom=0.085)
+ax=fig.add_subplot(gs[0,0])
 for xd,yd,col,ls,mk,ms,mfc,mec,mew,lw in ellipse_a_lines:
     ax.plot(xd,yd,color=col,linestyle=ls,marker=(mk if mk!='None' else None),
             markersize=ms,markerfacecolor=mfc,markeredgecolor=mec,
@@ -196,22 +202,27 @@ for xy,txt,col,ha in ellipse_a_annots:
         off, ha = (-9,-11), 'right'
     else:
         off = (-7,4)
-    ax.annotate(txt,xy,textcoords='offset points',xytext=off,fontsize=7,
+    ax.annotate(txt,xy,textcoords='offset points',xytext=off,fontsize=6.5,
                 color=col,ha=ha)
-ax.set_xlabel('$X$'); ax.set_ylabel('$Y$')
-ax.set_title('(a) raw observable plane',fontsize=7.5)
+ax.set_xlabel('$X$',fontsize=7,labelpad=1); ax.set_ylabel('$Y$',fontsize=7,labelpad=1)
+ax.set_title('(a) raw observable plane',fontsize=7)
 ax.set_aspect('equal'); ax.set_xlim(ellipse_a_xlim); ax.set_ylim(ellipse_a_ylim)
-ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=2, prune='both'))
-ax=axs[1]
+ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=3, prune='both'))
+ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=3, prune='both'))
+ax.tick_params(labelsize=6.5,pad=1)
+ax=fig.add_subplot(gs[0,1])
 for xd,yd,col,ls,mk,ms,mfc,mec,mew,lw in ellipse_b_lines:
     ax.plot(xd,yd,color=col,linestyle=ls,marker=(mk if mk!='None' else None),
             markersize=ms,markerfacecolor=mfc,markeredgecolor=mec,
             markeredgewidth=mew,linewidth=lw)
 ax.add_patch(plt.Circle((0,0),1,fill=False,ec=INK,lw=0.8,ls='--'))
-ax.set_xlabel('$\\hat u_x$'); ax.set_ylabel('$\\hat u_y$')
-ax.set_title('(b) after affine inversion',fontsize=7.5)
+ax.set_xlabel('$\\hat u_x$',fontsize=7,labelpad=1); ax.set_ylabel('$\\hat u_y$',fontsize=7,labelpad=1)
+ax.set_title('(b) after affine inversion',fontsize=7)
 ax.set_aspect('equal'); ax.set_xlim(ellipse_b_xlim); ax.set_ylim(ellipse_b_ylim)
-ax=axs[2]
+ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=3))
+ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=3))
+ax.tick_params(labelsize=6.5,pad=1)
+ax=fig.add_subplot(gs[1,:])
 for xd,yd,col,ls,mk,ms,mfc,mec,mew,lw in bessel_kappa_lines:
     ax.semilogy(xd,yd,color=col,linestyle=ls,linewidth=lw,
                 marker=(mk if mk!='None' else None),markersize=ms,
@@ -221,9 +232,11 @@ ax.plot(bessel_k12[0],bessel_k12[1],'o',color=GLD,ms=4)
 ax.annotate('$J_1/J_2{=}%.2f$'%bessel_k12[1],bessel_k12,textcoords='offset points',
             xytext=(6,3),fontsize=6.5,color=GLD)
 ax.set_ylim(1,200)
-ax.set_xlabel('dither depth $m$ (rad)'); ax.set_ylabel('$\\kappa(A)$')
-ax.set_title('(c) $\\kappa(A)$ theory curve',fontsize=7.5)
-plt.tight_layout(); plt.savefig('figs/fig_affine_mzm.pdf'); plt.close()
+ax.set_xlabel('dither depth $m$ (rad)',fontsize=7,labelpad=1)
+ax.set_ylabel('$\\kappa(A)$',fontsize=7,labelpad=1)
+ax.set_title('(c) $\\kappa(A)$ theory curve',fontsize=7)
+ax.tick_params(labelsize=6.5,pad=1)
+plt.savefig('figs/fig_affine_mzm.pdf'); plt.close()
 
 # ---- Fig 4: MZM closed loop ----
 def mzm_loop(p, phi_ref, n=2600, G=0.18):

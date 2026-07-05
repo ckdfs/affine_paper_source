@@ -319,24 +319,34 @@ plt.tight_layout(); plt.savefig('figs/fig_step_mzm.pdf'); plt.close()
 #      (b) setpoint-step tracking. Pure re-plot of acq_a_lines/step_a_lines
 #      (captured above from the already-drawn panel (a) axes of fig_acq.pdf
 #      and fig_step.pdf); no new computation, no RNG draws.
-#      Redraw (v2): the four per-target curves are no longer individually
-#      listed in the legend (they'd overlap the data at this small size) --
-#      only the "(1-G)^n theory" reference line gets a legend entry; the
-#      panel caption itself explains that the phi* curves coincide. Tick/
-#      label fonts trimmed to <=7pt and margins tightened via
-#      subplots_adjust so the axes occupy most of the frame. ----
+#      Redraw (v3, legend fix): panel (a) previously had no legend entry at
+#      all for the four per-target curves (incomplete legend) -- now they
+#      get one merged grey representative-color handle ("各目标相位") plus
+#      the "(1-G)^n theory" line, 2 entries total, placed upper right (the
+#      curves decay toward the lower-right/noisy tail, so upper right is the
+#      empty corner -- confirmed by rendering before/after). Panel (b)'s
+#      legend previously sat upper right, covering the phi_b response curve
+#      near its first step transition -- moved to lower left, an empty
+#      corner for this staircase (first step target is low, ~0.7 rad, and
+#      the curve only rises after settling), frameon=False so it doesn't
+#      add a box over data. Tick/label fonts trimmed to <=6.5pt and margins
+#      tightened via subplots_adjust so the axes occupy most of the frame. ----
 fig,axs=plt.subplots(1,2,figsize=(CW,1.35))
 ax=axs[0]
+target_line_added=False
 for xd,yd,col,ls,lw,lab in acq_a_lines:
     if 'theory' in lab:
-        ax.semilogy(xd,yd,color='k',linestyle=ls,linewidth=lw,label='$(1-G)^n$',zorder=5)
+        ax.semilogy(xd,yd,color='k',linestyle=ls,linewidth=lw,label='$(1-G)^n$ theory',zorder=5)
     else:
-        ax.semilogy(xd,yd,color=col,linestyle='-',linewidth=0.7,alpha=0.85,zorder=3)
+        lbl = 'all targets $\\varphi^*$' if not target_line_added else None
+        ax.semilogy(xd,yd,color='0.55',linestyle='-',linewidth=0.7,alpha=0.85,
+                    zorder=3,label=lbl)
+        target_line_added=True
 ax.set_xlabel('control step',fontsize=7,labelpad=1)
 ax.set_ylabel('$|e|$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
-leg=ax.legend(loc='upper right',borderpad=0.25,handlelength=1.2,
-              handletextpad=0.4,fontsize=6.5,frameon=False)
+ax.legend(loc='upper right',borderpad=0.25,handlelength=1.2,
+          handletextpad=0.4,fontsize=6.5,frameon=False)
 ax.set_ylim(acq_a_ylim)
 ax.set_title('(a) acquisition (4 targets)',fontsize=7,pad=2)
 ax=axs[1]
@@ -346,7 +356,7 @@ for xd,yd,col,ls,lw,lab in step_a_lines:
 ax.set_xlabel('control step',fontsize=7,labelpad=1)
 ax.set_ylabel('$\\varphi_b$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
-ax.legend(loc='upper right',borderpad=0.25,handlelength=1.2,
+ax.legend(loc='lower left',borderpad=0.25,handlelength=1.2,
           handletextpad=0.4,fontsize=6.5,frameon=False)
 ax.set_ylim(step_a_ylim)
 ax.set_title('(b) setpoint steps',fontsize=7,pad=2)
