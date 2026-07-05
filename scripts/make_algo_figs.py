@@ -352,20 +352,20 @@ plt.tight_layout(); plt.savefig('figs/fig_step_mzm.pdf'); plt.close()
 #      tightened via subplots_adjust so the axes occupy most of the frame. ----
 fig,axs=plt.subplots(1,2,figsize=(CW,1.35))
 ax=axs[0]
-target_line_added=False
+# list every target phase individually (user request): each per-target curve
+# keeps its own colour + $\varphi^*$ label; theory line drawn last. Curves decay
+# to the lower-right noisy tail, so the upper-right corner holds the 5-entry
+# legend without covering data.
 for xd,yd,col,ls,lw,lab in acq_a_lines:
     if 'theory' in lab:
         ax.semilogy(xd,yd,color='k',linestyle=ls,linewidth=lw,label='$(1-G)^n$ theory',zorder=5)
     else:
-        lbl = 'all targets $\\varphi^*$' if not target_line_added else None
-        ax.semilogy(xd,yd,color='0.55',linestyle='-',linewidth=0.7,alpha=0.85,
-                    zorder=3,label=lbl)
-        target_line_added=True
+        ax.semilogy(xd,yd,color=col,linestyle='-',linewidth=0.8,zorder=3,label=lab)
 ax.set_xlabel('control step',fontsize=7,labelpad=1)
 ax.set_ylabel('$|e|$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
-ax.legend(loc='upper right',borderpad=0.25,handlelength=1.2,
-          handletextpad=0.4,fontsize=6.5,frameon=False)
+ax.legend(loc='upper right',borderpad=0.2,handlelength=1.0,labelspacing=0.25,
+          handletextpad=0.4,fontsize=5.6,frameon=False)
 ax.set_ylim(acq_a_ylim)
 ax.set_title('(a) acquisition (4 targets)',fontsize=7,pad=2)
 ax=axs[1]

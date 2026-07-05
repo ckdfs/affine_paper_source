@@ -853,12 +853,14 @@ def fig_expperf_mzm(data, out):
         ax.set_ylabel("锁定 rms (mrad)", fontsize=6.5, labelpad=1)
         ax.tick_params(labelsize=6.0)
         ax.set_title("(d) 锁定 rms vs RF 功率", fontsize=6.6, pad=2)
-        # top headroom + horizontal legend above the data (data sits low)
+        # top headroom + vertical legend tucked in the empty upper-right corner
+        # (labels are long, so ncol=2 overran the axis width -> stack them ncol=1
+        # inside the frame; rms descends left-to-right so upper-right is clear)
         top_d = float(rms[on].max()) if rms_off is None else max(float(rms[on].max()), rms_off)
-        ax.set_ylim(bottom=0, top=top_d * 2.0)
-        ax.legend(fontsize=5.2, loc="upper center", ncol=2, frameon=False,
-                  handlelength=1.2, handletextpad=0.3, columnspacing=0.7,
-                  borderpad=0.1, bbox_to_anchor=(0.5, 0.98))
+        ax.set_ylim(bottom=0, top=top_d * 1.9)
+        ax.legend(fontsize=5.2, loc="upper right", ncol=1, frameon=False,
+                  handlelength=1.2, handletextpad=0.3, labelspacing=0.25,
+                  borderpad=0.2)
         ax.grid(True, alpha=0.25)
     fig.tight_layout(pad=0.4, h_pad=0.8, w_pad=0.6)
     fig.savefig(os.path.join(out, "fig_expperf_mzm.pdf"))
