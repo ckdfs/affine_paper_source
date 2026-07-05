@@ -364,8 +364,8 @@ for xd,yd,col,ls,lw,lab in acq_a_lines:
 ax.set_xlabel('control step',fontsize=7,labelpad=1)
 ax.set_ylabel('$|e|$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
-ax.legend(loc='upper right',borderpad=0.2,handlelength=1.0,labelspacing=0.25,
-          handletextpad=0.4,fontsize=5.6,frameon=False)
+ax.legend(loc='upper right',ncol=2,borderpad=0.2,handlelength=1.0,labelspacing=0.25,
+          columnspacing=0.8,handletextpad=0.4,fontsize=5.6,frameon=False)
 ax.set_ylim(acq_a_ylim)
 ax.set_title('(a) acquisition (4 targets)',fontsize=7,pad=2)
 ax=axs[1]
