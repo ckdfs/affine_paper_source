@@ -409,7 +409,8 @@ def fig_calib(data, out):
     ax.plot(us[:, 0], us[:, 1], ".", ms=1.5, color=GRN)
     ax.add_patch(Circle((0, 0), 1, fill=False, ec=INK, lw=0.8, ls="--"))
     ax.set_xlabel("$\\hat u_x$"); ax.set_ylabel("$\\hat u_y$")
-    ax.set_title(f"(b) 回拉单位圆  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
+    pullback = "监督回归回拉" if fit.get("method") == "phase-ref" else "椭圆标定回拉"
+    ax.set_title(f"(b) {pullback}  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
                  fontsize=7.5)
     ax.set_aspect("equal"); ax.margins(0.22)
     fig.tight_layout(); fig.savefig(os.path.join(out, "fig_exp1.pdf"))
@@ -751,7 +752,8 @@ def fig_expcal_mzm(data, out):
         ax.set_xlabel("$\\hat u_x$", fontsize=7.2, labelpad=1)
         ax.set_ylabel("$\\hat u_y$", fontsize=7.2, labelpad=1)
         ax.tick_params(labelsize=6.8)
-        ax.set_title(f"(d) 回拉单位圆  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
+        pullback = "监督回归回拉" if fit.get("method") == "phase-ref" else "椭圆标定回拉"
+        ax.set_title(f"(d) {pullback}  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
                      fontsize=7.2, pad=2)
         ax.set_aspect("equal"); ax.margins(0.22)
     fig.tight_layout(pad=0.4, h_pad=0.8, w_pad=0.6)
@@ -805,12 +807,13 @@ def fig_expperf_mzm(data, out):
         base = np.abs(d["baseline_err"]) * 1e3
         ax = axs[c]
         ax.semilogy(ps, base, "s-", color=RED, ms=2.5, lw=0.7, label="H1 基线")
-        ax.semilogy(ps, np.maximum(aff, 1e-1), "o-", color=GRN, ms=2.5, lw=0.7, label="仿射")
+        ax.semilogy(ps, np.maximum(aff, 1e-1), "o-", color=GRN, ms=2.5, lw=0.7,
+                    label="监督式仿射")
         ax.set_xlabel("目标相位 $\\varphi^\\ast$ (rad)", fontsize=7.2, labelpad=1)
         ax.set_ylabel("$|\\varphi_{\\rm lock}-\\varphi^\\ast|$ (mrad)",
                       fontsize=7.2, labelpad=1)
         ax.tick_params(labelsize=6.8)
-        ax.set_title("(b) 16 目标点锁定误差", fontsize=7.2, pad=2)
+        ax.set_title("(b) 16 目标点监督式锁定误差", fontsize=7.2, pad=2)
         # add top headroom and float a compact horizontal legend clear of data
         ax.set_ylim(top=ax.get_ylim()[1] * 22)
         ax.legend(fontsize=6.3, loc="upper center", ncol=2, frameon=False,

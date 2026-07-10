@@ -18,6 +18,8 @@ unmeasured stays "待测"):
   calib     stage 1: full-period sweep; default phase-reference regression plus
             an ellipse+DC-gauge offline diagnostic -> calib_fit.json, fig metric
   lock      stage 2: >=16 phi* grid, affine vs H1-match baseline -> lock_sweep
+  acceptance pre-registered evidence run: fresh label-free calibration per
+            repetition, randomized full/diagonal-2D/H1 comparison, clustered CI
   pilot     stage 3: sweep pilot amplitude Ap -> kappa(A), residual vs phi
   drift     stage 4: inject step, residual-triggered recal -> latency, recovery
   rf        stage 5: arbitrary-point lock robustness under an applied out-of-band
@@ -33,8 +35,10 @@ from __future__ import annotations
 import argparse
 from contextlib import ExitStack
 import csv
+import hashlib
 import json
 import os
+import subprocess
 import sys
 import time
 
@@ -263,6 +267,7 @@ class SimBoard:
     A1, A2 = 0.42, 0.27           # H1/H2 amplitudes
     DELTA = np.deg2rad(12)        # reference-phase skew (lands some signal in Q)
     BX, BY = 0.018, -0.011        # observation offsets
+    MIX_XY, MIX_YX = 0.16, -0.11  # receiver cross-mixing for acceptance HIL stress
     SIGMA = 0.004
     DC_A, DC_B = 0.80, 0.69       # PD DC: a + b cos(phi) (peak ~1.49 V)
     CH1_FS = 1.20                 # board CH1 ADC full scale (clips)
@@ -292,9 +297,12 @@ class SimBoard:
         # H1 ~ sin(phi+delta), split into I/Q by the skew; H2 ~ cos(phi)
         Y = self.BY + self._gy * a1 * np.sin(phi)
         X = self.BX + self._gx * a2 * np.cos(phi)
-        I1 = Y * np.cos(self.DELTA) + s * self.rng.standard_normal()
-        Q1 = Y * np.sin(self.DELTA) + s * self.rng.standard_normal()
-        I2 = X + s * self.rng.standard_normal()
+        x0, y0 = X - self.BX, Y - self.BY
+        Ymix = Y + self.MIX_YX * x0
+        Xmix = X + self.MIX_XY * y0
+        I1 = Ymix * np.cos(self.DELTA) + s * self.rng.standard_normal()
+        Q1 = Ymix * np.sin(self.DELTA) + s * self.rng.standard_normal()
+        I2 = Xmix + s * self.rng.standard_normal()
         Q2 = 0.20 * X + s * self.rng.standard_normal()
         dc_true = self.DC_A + self._fringe(phi)
         dc_board = min(dc_true, self.CH1_FS)      # board CH1 clips
@@ -895,14 +903,19 @@ def _load_fit(datadir):
 
 
 def lock_affine(board, dmm, fit, phi_star, G=0.35, iters=40, n_blocks=16,
-                n_avg=1, v_start=None, settle_frac=0.4):
-    """PC affine controller: demod via B, PI on bias. The locked operating point
+                n_avg=1, v_start=None, settle_frac=0.4, B_override=None):
+    """PC affine controller: demod via B, integral update on bias.
+
+    ``B_override`` supports an equal-information diagonal 2-D baseline: it uses
+    the same two observations, center, calibration scan and control law while
+    deliberately removing the off-diagonal correction. The locked operating point
     is the STEADY-STATE mean bias over the last settle_frac of iterations (so
     per-iteration demod jitter at large kappa averages out), not a single noisy
     final sample. Returns trace dict."""
     V = fit["v0"] if v_start is None else v_start
     slope = fit["slope"] if abs(fit["slope"]) > 1e-6 else np.pi / fit["vpi"]
-    cal = {"c0": fit["c0"], "B": fit["B"]}
+    B = fit["B"] if B_override is None else np.asarray(B_override, float)
+    cal = {"c0": fit["c0"], "B": B}
     errs = []; rhos = []; Vs = []
     for _ in range(iters):
         acq, _ = average_acq_point(board, None, V, fit["pilot_v"], n_blocks, n_avg)
@@ -919,6 +932,29 @@ def lock_affine(board, dmm, fit, phi_star, G=0.35, iters=40, n_blocks=16,
     return dict(V=V_ss, V_final=float(V), V_trace=np.array(Vs),
                 err=np.array(errs), rho=np.array(rhos),
                 lock_err=float(ec.wrap(truth - phi_star)))
+
+
+def diagonal_demod_matrix(fit):
+    """Return the calibrated-diagonal inverse used by the strong 2-D baseline.
+
+    The full fit obeys z-b = A u with A=B^{-1}.  The baseline retains the same
+    fitted center and the two fitted diagonal gains but sets A12=A21=0 before
+    inversion.  It therefore has the same channels and calibration samples as
+    the full method, while isolating the value of non-diagonal affine correction.
+    """
+    A = np.linalg.inv(np.asarray(fit["B"], float))
+    d = np.diag(A)
+    scale = max(float(np.linalg.norm(A, ord=2)), 1.0)
+    if np.min(np.abs(d)) <= 1e-8 * scale:
+        raise RuntimeError("diagonal 2-D baseline is singular: fitted A diagonal "
+                           f"is {d.tolist()}")
+    return np.diag(1.0 / d)
+
+
+def lock_diag2d(board, dmm, fit, phi_star, **kwargs):
+    """Equal-information diagonal-calibrated 2-D atan2 controller."""
+    return lock_affine(board, dmm, fit, phi_star,
+                       B_override=diagonal_demod_matrix(fit), **kwargs)
 
 
 def lock_h1match(board, dmm, fit, phi_star, G=0.35, iters=40, n_blocks=16,
@@ -1048,6 +1084,329 @@ def stage_lock(board, dmm, datadir, n_grid=16, iters=40, n_blocks=16, n_avg=1,
         print("[lock] diagnostic only (not trustworthy enough to auto-promote); "
               "tab:exp lock row stays 待测")
     ec.save_results(res)
+
+
+def _circular_mean(values):
+    values = np.asarray(values, float)
+    return float(np.arctan2(np.mean(np.sin(values)), np.mean(np.cos(values))))
+
+
+def stage_acceptance_lock(board, dmm, datadir, n_grid=16, iters=40,
+                          n_blocks=16, n_avg=1, gain=0.6, seed=0,
+                          eval_repeats=5, start_offsets=(-1.0, 1.0)):
+    """Randomized, equal-information lock comparison for one fresh calibration.
+
+    The calibration MUST be the label-free ``ellipse`` path.  For every target,
+    the execution order of the full affine, calibrated H1/H2 (diagonal 2-D), and
+    H1-only controllers is balanced.  Paired controllers receive identical
+    opposite-side initial phases and are evaluated by a bidirectional-scan map
+    plus repeated DMM sensitivity reads.  This stage never promotes values into
+    the paper's headline ``data/exp/results.json``.
+    """
+    if dmm is None:
+        raise RuntimeError("acceptance lock requires the unclipped DMM DC path")
+    if n_grid < 4 or iters < 8 or eval_repeats < 1:
+        raise ValueError("acceptance lock needs n_grid>=4, iters>=8, eval_repeats>=1")
+    fit = _load_fit(datadir)
+    if fit.get("method") != "ellipse":
+        raise RuntimeError("acceptance lock requires cal_method='ellipse'; got "
+                           f"{fit.get('method')!r}")
+
+    configure_dc_fast(dmm)
+    prepare_mzm_frontend(board, fit["pilot_v"])
+    names = ("full_affine", "calibrated_h1h2", "h1_match")
+    start_offsets = np.asarray(start_offsets, float)
+    if start_offsets.ndim != 1 or len(start_offsets) < 2:
+        raise ValueError("acceptance comparison requires at least two start offsets")
+    n_start = len(start_offsets)
+    grid = np.linspace(0, 2 * np.pi, n_grid, endpoint=False)
+    rng = np.random.default_rng(seed)
+    target_order = rng.permutation(n_grid)
+    execution_order = np.empty((n_grid, len(names) * n_start), dtype="U32")
+    errors = np.full((len(names), n_grid, n_start), np.nan)
+    dmm_errors = np.full_like(errors, np.nan)
+    eval_samples = np.full((len(names), n_grid, n_start, eval_repeats), np.nan)
+    dmm_used = np.zeros((len(names), n_grid, n_start, eval_repeats), dtype=bool)
+    p_samples = np.full_like(eval_samples, np.nan)
+    v_lock = np.full_like(errors, np.nan)
+    v_final = np.full_like(errors, np.nan)
+    traces = np.full((len(names), n_grid, n_start, iters), np.nan)
+    tail_std = np.full_like(errors, np.nan)
+    settling_cycles = np.full_like(errors, np.nan)
+    success = np.zeros_like(errors, dtype=bool)
+    scan_vpi = float(fit.get("scan_vpi", fit["vpi"]))
+    scan_v0 = float(fit.get("scan_v0", fit["v0"]))
+
+    def first_settled(trace, tol=0.35, hold=5):
+        good = np.abs(trace) <= tol
+        for q in range(0, len(good) - hold + 1):
+            if np.all(good[q:q + hold]):
+                return float(q + hold)
+        return float("nan")
+
+    for idx in target_order:
+        ps = float(grid[idx])
+        order = np.roll(np.arange(len(names)), (seed + idx) % len(names))
+        cursor = 0
+        for pos, j in enumerate(order):
+            starts = np.arange(n_start)
+            if (seed + idx + pos) % 2:
+                starts = starts[::-1]
+            for sidx in starts:
+                execution_order[idx, cursor] = f"{names[j]}@{start_offsets[sidx]:+.3f}"
+                cursor += 1
+                start_phase = float(ec.wrap(ps + start_offsets[sidx]))
+                start_v = float(scan_v0 + scan_vpi * start_phase / np.pi)
+                common = dict(G=gain, iters=iters, n_blocks=n_blocks, n_avg=n_avg,
+                              v_start=start_v)
+                if names[j] == "full_affine":
+                    run = lock_affine(board, dmm, fit, ps, **common)
+                elif names[j] == "calibrated_h1h2":
+                    run = lock_diag2d(board, dmm, fit, ps, **common)
+                else:
+                    run = lock_h1match(board, dmm, fit, ps, **common)
+                for k in range(eval_repeats):
+                    e, used, power = eval_lock_err_dmm(board, dmm, fit, run["V"], ps)
+                    eval_samples[j, idx, sidx, k] = e
+                    dmm_used[j, idx, sidx, k] = used
+                    p_samples[j, idx, sidx, k] = power
+                dmm_errors[j, idx, sidx] = _circular_mean(
+                    eval_samples[j, idx, sidx])
+                phase_map = float(ec.bias_to_phase(run["V"], scan_vpi, scan_v0))
+                errors[j, idx, sidx] = float(ec.wrap(phase_map - ps))
+                v_lock[j, idx, sidx] = run["V"]
+                v_final[j, idx, sidx] = run["V_final"]
+                traces[j, idx, sidx] = run["err"]
+                tail = np.unwrap(run["err"][max(0, int(0.6 * iters)):])
+                tail_std[j, idx, sidx] = float(np.std(tail))
+                settling_cycles[j, idx, sidx] = first_settled(run["err"])
+                rail = abs(run["V_final"]) >= 0.995 * BIAS_LIMIT
+                success[j, idx, sidx] = bool(
+                    abs(errors[j, idx, sidx]) <= 0.35 and
+                    tail_std[j, idx, sidx] <= 0.15 and not rail and
+                    abs(errors[j, idx, sidx]) < np.pi / 2)
+                print(f"[accept-lock] target={idx:02d}/{n_grid} phi*={ps:5.2f} "
+                      f"start={start_offsets[sidx]:+.2f} "
+                      f"controller={names[j]:>16s} "
+                      f"error={errors[j, idx, sidx]*1e3:8.1f} mrad "
+                      f"success={success[j, idx, sidx]}", flush=True)
+
+    np.savez(os.path.join(datadir, "acceptance_lock.npz"),
+             controller_names=np.array(names), phi_star=grid,
+             target_order=target_order, execution_order=execution_order,
+             start_offsets=start_offsets, error_map=errors,
+             error_dmm_sensitivity=dmm_errors, eval_error=eval_samples,
+             dmm_used=dmm_used, p_eval=p_samples, v_lock=v_lock,
+             v_final=v_final, demod_trace=traces, tail_std=tail_std,
+             settling_cycles=settling_cycles, success=success, seed=int(seed),
+             n_grid=int(n_grid), iters=int(iters), n_blocks=int(n_blocks),
+             n_avg=int(n_avg), eval_repeats=int(eval_repeats), gain=float(gain),
+             calibration_method=fit["method"], primary_truth="bidirectional_scan_map",
+             sensitivity_truth="same-optical-branch_local_DMM")
+    summary = {}
+    for j, name in enumerate(names):
+        x = errors[j]
+        summary[name] = dict(
+            rms_mrad=float(np.sqrt(np.mean(x * x)) * 1e3),
+            median_abs_mrad=float(np.median(np.abs(x)) * 1e3),
+            p95_abs_mrad=float(np.percentile(np.abs(x), 95) * 1e3),
+            max_abs_mrad=float(np.max(np.abs(x)) * 1e3),
+            branch_success_fraction=float(np.mean(np.abs(x) < np.pi / 2)),
+            preregistered_success_fraction=float(np.mean(success[j])),
+            dmm_evaluation_fraction=float(np.mean(dmm_used[j])),
+            rail_fraction=float(np.mean(np.abs(v_final[j]) >= 0.995 * BIAS_LIMIT)))
+    with open(os.path.join(datadir, "acceptance_lock_summary.json"), "w") as f:
+        json.dump(summary, f, indent=2)
+    return errors, summary
+
+
+def _cluster_bootstrap_rms_delta(errors, baseline, full=0, seed=0, draws=4000):
+    """Paired cluster bootstrap over independent calibration repetitions."""
+    errors = np.asarray(errors, float)
+    n_rep = errors.shape[0]
+    estimate = (np.sqrt(np.mean(errors[:, baseline] ** 2)) -
+                np.sqrt(np.mean(errors[:, full] ** 2))) * 1e3
+    if n_rep < 2:
+        return dict(estimate_mrad=float(estimate), ci95_mrad=None,
+                    cluster_count=int(n_rep))
+    rng = np.random.default_rng(seed)
+    boot = np.empty(draws)
+    for i in range(draws):
+        take = rng.integers(0, n_rep, n_rep)
+        b = errors[take, baseline]
+        f = errors[take, full]
+        boot[i] = (np.sqrt(np.mean(b * b)) - np.sqrt(np.mean(f * f))) * 1e3
+    return dict(estimate_mrad=float(estimate),
+                ci95_mrad=[float(v) for v in np.percentile(boot, [2.5, 97.5])],
+                cluster_count=int(n_rep))
+
+
+def stage_acceptance(board, dmm, datadir, repeats=10, n_grid=16, iters=40,
+                     n_points=181, n_blocks=16, cal_n_avg=4, lock_n_avg=1,
+                     gain=0.3, seed=20260710, eval_repeats=5, pilot_v=0.15,
+                     run_id=None, simulated=False, metadata=None):
+    """Acceptance-grade repeated experiment orchestrator.
+
+    Each repetition performs a fresh bidirectional Vpi scan, a fresh label-free
+    ellipse+DC-gauge calibration, and a randomized three-controller comparison.
+    Real and simulated runs are isolated below ``acceptance/<run-id>`` and never
+    overwrite the manuscript's current measured-data contract.
+    """
+    if dmm is None:
+        raise RuntimeError("acceptance stage requires DM858E (or SimDMM)")
+    if repeats < 1:
+        raise ValueError("repeats must be positive")
+    run_id = run_id or time.strftime("%Y%m%dT%H%M%S")
+    if not all(ch.isalnum() or ch in "-_" for ch in run_id):
+        raise ValueError("run_id may contain only letters, digits, '-' and '_'")
+    seed_token = f"{seed}:{run_id}".encode()
+    session_seed = int.from_bytes(hashlib.sha256(seed_token).digest()[:4], "little")
+    root = os.path.join(datadir, "acceptance", run_id)
+    os.makedirs(root, exist_ok=False)
+    metadata = dict(metadata or {})
+    try:
+        repo_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ec.REPO, text=True).strip()
+    except Exception:
+        repo_commit = "unknown"
+    protocol = dict(
+        run_id=run_id, simulated=bool(simulated), repeats=int(repeats),
+        n_grid=int(n_grid), iters=int(iters), calibration_points=int(n_points),
+        n_blocks=int(n_blocks), cal_n_avg=int(cal_n_avg),
+        lock_n_avg=int(lock_n_avg), gain=float(gain),
+        eval_repeats=int(eval_repeats), pilot_v=float(pilot_v),
+        master_seed=int(seed), session_seed=int(session_seed),
+        calibration_method="ellipse", controllers=["full_affine",
+                                                    "calibrated_h1h2", "h1_match"],
+        start_offsets_rad=[-1.0, 1.0],
+        randomization="target order; balanced controller and start-side order",
+        primary_comparison="paired RMS error; repetition-cluster bootstrap",
+        primary_truth="bidirectional shared-branch DC bias-to-phase map",
+        truth_limitation="not an independent optical validation channel",
+        branch_success_definition="absolute phase error < pi/2",
+        headline_promotion=False, repo_commit=repo_commit, metadata=metadata)
+    with open(os.path.join(root, "protocol.json"), "w") as f:
+        json.dump(protocol, f, indent=2)
+
+    old_data = ec.DATA
+    all_errors = []
+    rep_summaries = []
+    failed_repetitions = []
+    try:
+        for rep in range(repeats):
+            repdir = os.path.join(root, f"rep_{rep:02d}")
+            os.makedirs(repdir)
+            ec.DATA = repdir
+            started = time.time()
+            print(f"[accept] repetition {rep + 1}/{repeats} -> "
+                  f"{os.path.relpath(repdir, ec.REPO)}", flush=True)
+            status = "complete"
+            failure = None
+            try:
+                vpi, v0 = stage_vpi(board, dmm, repdir, pilot_v=pilot_v)
+                stage_calib(board, dmm, repdir, vpi, v0, n=n_points,
+                            pilot_v=pilot_v, n_blocks=n_blocks, n_avg=cal_n_avg,
+                            cal_method="ellipse")
+                errors, summary = stage_acceptance_lock(
+                    board, dmm, repdir, n_grid=n_grid, iters=iters,
+                    n_blocks=n_blocks, n_avg=lock_n_avg, gain=gain,
+                    seed=session_seed + rep, eval_repeats=eval_repeats)
+                all_errors.append(errors)
+                rep_summaries.append(summary)
+            except Exception as exc:
+                # Preserve every attempted block.  The offline audit treats a
+                # missing lock file as a failed/incomplete block; it must never
+                # disappear through complete-case filtering.
+                status = "failed"
+                failure = f"{type(exc).__name__}: {exc}"
+                failed_repetitions.append(dict(repetition=int(rep), error=failure))
+                print(f"[accept] repetition {rep + 1} FAILED: {failure}", flush=True)
+            with open(os.path.join(repdir, "manifest.json"), "w") as f:
+                json.dump(dict(repetition=int(rep), seed=int(session_seed + rep),
+                               started_unix=started, ended_unix=time.time(),
+                               session_id=metadata.get("session_id"),
+                               repo_commit=repo_commit, status=status,
+                               failure=failure), f, indent=2)
+    finally:
+        ec.DATA = old_data
+
+    if not all_errors:
+        aggregate = {}
+        comparisons = {}
+        gate = dict(acquisition_minimum=False, complete_acquisition=False,
+                    controller_evidence_passed=False,
+                    independent_optical_truth=False,
+                    paper_acceptance_ready=False)
+        result = dict(protocol=protocol, aggregate=aggregate,
+                      paired_cluster_bootstrap=comparisons, gate=gate,
+                      repetition_summaries=rep_summaries,
+                      failed_repetitions=failed_repetitions)
+        with open(os.path.join(root, "summary.json"), "w") as f:
+            json.dump(result, f, indent=2)
+        all_errors = None
+    else:
+        all_errors = np.asarray(all_errors)
+    names = ("full_affine", "calibrated_h1h2", "h1_match")
+    if all_errors is not None:
+        aggregate = {}
+        for j, name in enumerate(names):
+            x = all_errors[:, j]
+            per_rep_rms = np.sqrt(np.mean(x * x, axis=(1, 2))) * 1e3
+            aggregate[name] = dict(
+                rms_mrad=float(np.sqrt(np.mean(x * x)) * 1e3),
+                per_repeat_rms_mrad=[float(v) for v in per_rep_rms],
+                median_abs_mrad=float(np.median(np.abs(x)) * 1e3),
+                p95_abs_mrad=float(np.percentile(np.abs(x), 95) * 1e3),
+                branch_success_fraction=float(np.mean(np.abs(x) < np.pi / 2)))
+        comparisons = dict(
+            calibrated_h1h2_minus_full=_cluster_bootstrap_rms_delta(
+                all_errors, baseline=1, seed=seed + 10000),
+            h1_minus_full=_cluster_bootstrap_rms_delta(
+                all_errors, baseline=2, seed=seed + 20000))
+        ci_diag = comparisons["calibrated_h1h2_minus_full"]["ci95_mrad"]
+        ci_h1 = comparisons["h1_minus_full"]["ci95_mrad"]
+        full = aggregate["full_affine"]
+        per_block_full = np.asarray(full["per_repeat_rms_mrad"])
+        complete = not failed_repetitions and len(all_errors) == repeats
+        gate = dict(
+            acquisition_minimum=bool(repeats >= 6 and n_grid >= 16 and
+                                     eval_repeats >= 3 and cal_n_avg >= 4 and
+                                     not simulated),
+            complete_acquisition=bool(complete),
+            full_branch_success=bool(full["branch_success_fraction"] >= 92 / 96),
+            full_rms_le_400_mrad=bool(full["rms_mrad"] <= 400),
+            full_p95_le_750_mrad=bool(full["p95_abs_mrad"] <= 750),
+            no_block_rms_gt_500_mrad=bool(np.max(per_block_full) <= 500),
+            full_noninferior_h1h2=bool(ci_diag is not None and ci_diag[0] > -50),
+            full_beats_h1_ci=bool(ci_h1 is not None and ci_h1[0] > 0),
+            independent_optical_truth=False)
+        gate["controller_evidence_passed"] = bool(all(
+            v for k, v in gate.items() if k != "independent_optical_truth"))
+        gate["paper_acceptance_ready"] = bool(gate["controller_evidence_passed"] and
+                                               gate["independent_optical_truth"])
+        result = dict(protocol=protocol, aggregate=aggregate,
+                      paired_cluster_bootstrap=comparisons, gate=gate,
+                      repetition_summaries=rep_summaries,
+                      failed_repetitions=failed_repetitions)
+        with open(os.path.join(root, "summary.json"), "w") as f:
+            json.dump(result, f, indent=2)
+    hashes = {}
+    for base, _, files in os.walk(root):
+        for filename in sorted(files):
+            path = os.path.join(base, filename)
+            rel = os.path.relpath(path, root)
+            if rel == "checksums.json":
+                continue
+            h = hashlib.sha256()
+            with open(path, "rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    h.update(chunk)
+            hashes[rel] = h.hexdigest()
+    with open(os.path.join(root, "checksums.json"), "w") as f:
+        json.dump(hashes, f, indent=2, sort_keys=True)
+    print(f"[accept] summary -> {os.path.relpath(os.path.join(root, 'summary.json'), ec.REPO)}")
+    print(f"[accept] gate={gate}")
+    return result
 
 
 def stage_pilot(board, dmm, datadir, amps=(0.05, 0.10, 0.20, 0.40),
@@ -2112,7 +2471,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("stage", choices=["bringup", "vpi", "calib", "pilotdiag",
-                                       "lock", "pilot", "drift", "stability",
+                                       "lock", "acceptance", "pilot", "drift", "stability",
                                        "rf", "all",
                                        "dp-vpi", "dp-calib", "dp-obs", "dp-lock",
                                        "dp-all"])
@@ -2149,6 +2508,32 @@ def main():
     ap.add_argument("--cal-method", choices=["phase-ref", "ellipse"],
                     default="phase-ref",
                     help="calibration gauge method for stage calib")
+    ap.add_argument("--accept-repeats", type=int, default=10,
+                    help="fresh calibration/lock repetitions for acceptance stage (default 10)")
+    ap.add_argument("--accept-seed", type=int, default=20260710,
+                    help="recorded randomization/bootstrap seed for acceptance stage")
+    ap.add_argument("--accept-eval-repeats", type=int, default=5,
+                    help="DMM evaluation reads per controller/target (default 5)")
+    ap.add_argument("--accept-cal-n-avg", type=int, default=4,
+                    help="averaged acquisitions per calibration point (default 4)")
+    ap.add_argument("--accept-lock-n-avg", type=int, default=1,
+                    help="averaged acquisitions per lock iteration (default 1)")
+    ap.add_argument("--accept-pilot-v", type=float, default=0.15,
+                    help="acceptance-stage pilot amplitude in volts (default 0.15)")
+    ap.add_argument("--accept-gain", type=float, default=0.3,
+                    help="acceptance-stage controller gain (default 0.3)")
+    ap.add_argument("--accept-run-id",
+                    help="stable acceptance run directory name; default local timestamp")
+    ap.add_argument("--device-id", help="MZM model/serial or anonymized stable ID")
+    ap.add_argument("--firmware-rev", help="bias-board firmware commit/revision")
+    ap.add_argument("--ambient-c", type=float, help="ambient temperature in degC")
+    ap.add_argument("--operator", help="operator initials or anonymized stable ID")
+    ap.add_argument("--session-id", help="independent bench session/day identifier")
+    ap.add_argument("--instrument-ids",
+                    help="comma-separated stable IDs for DMM/board/scope/laser/PD")
+    ap.add_argument("--validation-channel-id",
+                    help="separate optical validation channel ID, if acquired externally")
+    ap.add_argument("--run-notes", default="", help="free-form acceptance-run notes")
     ap.add_argument("--scope-every", action="store_true",
                     help="in pilotdiag, take scope FFT at every point, not just quad")
     ap.add_argument("--rf-hz", type=float, default=RF_HZ,
@@ -2214,6 +2599,27 @@ def main():
         if a.stage in ("lock", "all"):
             stage_lock(board, dmm, datadir, n_grid=a.n_grid, iters=a.iters,
                        n_blocks=a.n_blocks or 16, n_avg=a.n_avg, gain=a.gain)
+        if a.stage == "acceptance":
+            meta = dict(device_id=a.device_id, firmware_rev=a.firmware_rev,
+                        ambient_c=a.ambient_c, operator=a.operator,
+                        session_id=a.session_id, instrument_ids=a.instrument_ids,
+                        validation_channel_id=a.validation_channel_id,
+                        notes=a.run_notes)
+            if not a.sim:
+                missing = [k for k in ("device_id", "firmware_rev", "ambient_c",
+                                        "operator", "session_id", "instrument_ids")
+                           if meta[k] is None]
+                if missing:
+                    raise RuntimeError("real acceptance run requires metadata: " +
+                                       ", ".join(missing))
+            stage_acceptance(
+                board, dmm, datadir, repeats=a.accept_repeats,
+                n_grid=a.n_grid, iters=a.iters, n_points=a.n_points or 181,
+                n_blocks=a.n_blocks or 16, cal_n_avg=a.accept_cal_n_avg,
+                lock_n_avg=a.accept_lock_n_avg, gain=a.accept_gain,
+                seed=a.accept_seed, eval_repeats=a.accept_eval_repeats,
+                pilot_v=a.accept_pilot_v, run_id=a.accept_run_id,
+                simulated=a.sim, metadata=meta)
         if a.stage in ("pilot", "all"):
             stage_pilot(board, dmm, datadir, amps=_pilot_list(), vpi=vpi, v0=v0,
                         n=a.n_points or 121, n_blocks=a.n_blocks or 16,
@@ -2266,7 +2672,13 @@ def main():
             board = SimBoardDP(); scope = siggen = specan = None
             dmm = None if a.no_dmm else SimDMM(board)
         else:
-            board = SimBoard(); scope = None
+            if a.stage == "acceptance":
+                token = f"{a.accept_seed}:{a.accept_run_id or 'timestamp'}".encode()
+                sim_seed = int.from_bytes(hashlib.sha256(token).digest()[:4], "little")
+                board = SimBoard(seed=sim_seed)
+            else:
+                board = SimBoard()
+            scope = None
             dmm = None if a.no_dmm else SimDMM(board)
             siggen = SimSigGen(board, vpi=board.VPI); specan = SimSpecAn(board)
         print(f"[sim] writing to {os.path.relpath(datadir, ec.REPO)} (gitignored)")

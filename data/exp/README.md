@@ -55,6 +55,35 @@ simulation-number contracts, and the literal experiment-number contract.  The
 last command prints the read-only cross-validation, paired truth-convention,
 and 3 h descriptive sensitivity analysis used in the revised discussion.
 
+## Acceptance experiment contract (not yet measured)
+
+The current snapshot contains no `acceptance/` directory. New label-free
+hardware evidence must be written to a new immutable
+`data/exp/acceptance/<run-id>/` directory with:
+
+- a fresh bidirectional Vpi scan and ellipse+DC-gauge calibration per repetition;
+- randomized target order and balanced controller/start-side order;
+- paired full-affine, calibrated-H1/H2 and H1-only traces;
+- at least six calibration blocks across at least two bench sessions;
+- a separate optical validation-channel pre/post scan (`truth_prepost.npz`).
+
+The analyzer deliberately keeps the independent-truth gate false until the
+isolated-channel acquisition and blind scoring schema are implemented. Merely
+placing a file with this name cannot pass the paper gate. Interrupted repetitions
+remain in their immutable session directory and count as failed/incomplete blocks.
+
+The preregistered acquisition and analysis are implemented by:
+
+```bash
+/opt/miniconda3/bin/python scripts/measure_bench.py acceptance --help
+/opt/miniconda3/bin/python scripts/analyze_mzm_acceptance.py --help
+```
+
+Simulated smoke runs are isolated under `build/exp_sim/acceptance/`, are marked
+`simulated=true`, and cannot set `paper_acceptance_ready=true`. The full frozen
+protocol and thresholds are recorded in
+`reviews/mzm_acceptance_experiment_protocol.md`.
+
 ## SHA-256 snapshot
 
 ```text

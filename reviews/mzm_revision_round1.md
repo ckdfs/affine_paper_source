@@ -92,3 +92,46 @@ equal-information hardware baseline, and no independent randomized repeats.
 English conversion, author/funding metadata, and acquisition-package metadata
 also require author input or missing artifacts.  Stopping textual revision at
 this boundary prevents unsupported claims or fabricated evidence.
+
+## Round 4: acceptance experiment readiness
+
+A new Zotero audit found the directly relevant 2026 DLA2C paper (DOI
+`10.3788/COL202624.011201`).  The manuscript now positions it as a complementary
+data-driven arbitrary-point method: DLA2C avoids independent H2 detection using
+multidimensional features, DNN coarse positioning and PSO refinement, whereas
+the present method uses explicit H1/H2 affine identifiability and closed-form
+inference.  No cross-paper accuracy superiority is claimed.
+
+The previously missing experiment is now preregistered in
+`reviews/mzm_acceptance_experiment_protocol.md`.  `measure_bench.py acceptance`
+implements fresh label-free calibration blocks, balanced controller/start-side
+order, opposite-side initial conditions, a calibrated H1/H2 equal-information
+baseline, immutable per-session artifacts and checksums.  The read-only
+`analyze_mzm_acceptance.py` treats calibration blocks as the independent unit and
+performs session/repetition/target clustered bootstrap analysis.  Two simulated
+sessions with six calibration blocks passed every controller/tooling gate, while
+the deliberately unavailable independent optical truth kept
+`paper_acceptance_ready=false`.  These simulations validate orchestration only;
+they are excluded from the paper and do not replace the required live bench runs.
+
+## Round 5: adversarial self-verification
+
+The final main-agent re-review found and corrected two evidence-pipeline defects.
+First, an interrupted repetition previously stopped acquisition and could later
+be lost through complete-case aggregation; every attempted block now receives a
+manifest, failed blocks remain immutable, and any incomplete block forces the
+controller-evidence gate false.  Second, the analysis previously treated the
+existence of `truth_prepost.npz` plus a channel identifier as independent truth.
+Because isolated-channel acquisition, temporal interpolation and blind scoring
+are not yet implemented, file presence is now explicitly insufficient and the
+paper-acceptance gate is hard-coded false.
+
+The bibliography was also reordered to match first citation, and a final build,
+number/citation/experiment reconciliation, PDF text extraction and visual page
+inspection found no new blocking manuscript defect.  The current paper is
+therefore internally honest and mechanically submission-clean, but it is not an
+acceptance-ready evidence package: that status still requires live label-free
+runs in at least two sessions, six complete calibration blocks, a genuinely
+isolated optical truth path with frozen blind scoring, and real author/funding/
+submission metadata.  These items require new physical measurements or author
+input and cannot be resolved by further textual iteration.
