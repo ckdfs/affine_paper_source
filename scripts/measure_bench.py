@@ -15,13 +15,14 @@ unmeasured stays "待测"):
 
   bringup   sanity: board state, board-CH1 vs DMM (find the CH1 clip region)
   vpi       stage 0: slow bias sweep, DMM P(V_b) -> Vpi, V0
-  calib     stage 1: full-period sweep, fit ellipse + gauge fix -> calib_fit.json, fig metric
+  calib     stage 1: full-period sweep; default phase-reference regression plus
+            an ellipse+DC-gauge offline diagnostic -> calib_fit.json, fig metric
   lock      stage 2: >=16 phi* grid, affine vs H1-match baseline -> lock_sweep
   pilot     stage 3: sweep pilot amplitude Ap -> kappa(A), residual vs phi
   drift     stage 4: inject step, residual-triggered recal -> latency, recovery
   rf        stage 5: arbitrary-point lock robustness under an applied out-of-band
             RF drive (DG922pro 50 MHz on the MZM RF port, FSV30 verifies the tone
-            at DE2) -> lock rms RF-on vs RF-off + J0(m_RF) harmonic fading
+            at DE1) -> per-state-recalibrated lock rms + J0(m_RF) harmonic fading
 
   --sim     replace the bench with an analytic MZM model; writes ONLY to
             build/exp_sim/ (gitignored).  For tooling validation, NOT the paper.
@@ -401,7 +402,8 @@ class SimDMM:
 # --------------------------------------------------------------------------- #
 def read_dc_at_bias(board, dmm, bias, settle=0.15):
     """Set the bias and read the (unclipped) DMM DC there. Used for the
-    drift-robust, controller-independent per-point phase truth in stage_lock."""
+    drift-robust, electronics-independent DC phase estimate in stage_lock.
+    The DMM and controller still share the same optical path."""
     if isinstance(board, SimBoard):
         board._last_dc_true = board.dc_true_at(bias)
         return board.dc_true_at(bias) if dmm is None else dmm.measure_dc_voltage()
@@ -802,7 +804,13 @@ def stage_vpi(board, dmm, datadir, lo=-9.0, hi=9.0, n=151, pilot_v=PILOT_V):
 
 def stage_calib(board, dmm, datadir, vpi, v0, n=181, pilot_v=PILOT_V,
                 n_blocks=16, n_avg=1, cal_method="phase-ref"):
-    """Stage 1: full-period sweep -> ellipse fit + gauge fixing + self-check."""
+    """Stage 1 full-period sweep.
+
+    The default ``phase-ref`` path uses DMM-derived phase labels to regress A,b;
+    the ellipse+DC-gauge path is always computed as an offline diagnostic and is
+    used for control only when ``cal_method='ellipse'`` is requested explicitly.
+    The self-check is in-sample for both paths, not a held-out accuracy metric.
+    """
     v0 = ec.canonical_period_center(v0, vpi, lo=-BIAS_LIMIT, hi=BIAS_LIMIT)
     configure_dc_fast(dmm)
     prepare_mzm_frontend(board, pilot_v)
@@ -1079,9 +1087,13 @@ def stage_pilot(board, dmm, datadir, amps=(0.05, 0.10, 0.20, 0.40),
 
 def _recalibrate(board, dmm, pilot_v, vpi, v0, n=121, n_blocks=16, n_avg=2,
                  label=None):
-    """Quick re-calibration sweep (no file output) -> fresh demod dict; used by
-    the drift-recovery to re-identify the ellipse at the CURRENT pilot depth.
-    Pass `label` to print sweep progress (long silent sweeps look hung)."""
+    """Full-period, 121-point phase-reference recalibration (no file output).
+
+    Used by drift recovery and the per-RF-state test.  Despite the historical
+    helper name, this is neither a local micro-arc update nor ellipse-only
+    identification: DMM DC labels are converted to phase and passed to
+    ``calibrate_phase_ref``.  Pass ``label`` to print sweep progress.
+    """
     configure_dc_fast(dmm)
     prepare_mzm_frontend(board, pilot_v)
     bias = np.linspace(v0 - vpi, v0 + vpi, n)
@@ -1373,20 +1385,20 @@ def _rf_save(datadir, rows, saved, grid, rf_hz, n_grid, meta):
 def stage_rf(board, dmm, siggen, specan, datadir, rf_hz=RF_HZ, rf_ch=RF_CH,
              powers_dbm=(None, 0.0), n_grid=8, iters=40, n_blocks=16, n_avg=1,
              gain=0.3):
-    """Stage 5: hold the affine arbitrary-point lock while an out-of-band RF tone
-    is applied to the MZM RF port, and compare to the RF-off reference.
+    """Stage 5: re-identify and test the affine lock at each static RF state.
 
     Theory (Sec. affine): a 50 MHz drive sits far above the PD/ADC band, so the
     detector averages it to a J0(m_RF) factor multiplying the WHOLE harmonic
     observation,  z = A u(phi)+b  ->  (J0 A) u(phi)+b.  The affine structure and
-    the phase u(phi) are untouched (J0 is reabsorbed by calibration); only the
-    SNR drops, so kappa(A) rises ~1/J0(m_RF).  Expectation: the lock holds with an
-    RF-on rms close to RF-off, and H1/H2 fade together by J0(m_RF).
+    the phase u(phi) are untouched (J0 is reabsorbed by calibration).  A common
+    scalar leaves kappa(A) unchanged, while sigma_min(A) and absolute SNR fall by
+    |J0|.  This stage does not test fixed-calibration online RF robustness.
 
     For each RF power (None = RF off): set + verify the tone, RE-IDENTIFY the
     ellipse under that RF state (so calibration and DC-truth share the same J0
-    fade), affine-lock across a phi* grid, and score each point by the drift-
-    immune DMM truth.  Records lock rms, the verified tone, kappa and the H1/H2
+    fade), affine-lock across a phi* grid, and score each point by the hybrid
+    local-DMM/bias-map convention used by eval_lock_err_dmm.  Records lock rms,
+    the verified tone, kappa and the H1/H2
     fade per power."""
     from scipy.special import j0 as bessel_j0
     fit = _load_fit(datadir)

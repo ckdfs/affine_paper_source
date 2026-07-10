@@ -96,10 +96,12 @@ def calibrate_from_data(X, Y, dc, j0_sign: float = 1.0) -> dict:
 
 
 def calibrate_phase_ref(X, Y, phase_truth) -> dict:
-    """Fit z = A [cos(phi), sin(phi)] + b using the independent DC-derived
-    phase reference from the slow Vpi scan. This is the experiment-friendly
-    gauge-fixing path: the DC branch supplies phi(V_b), while the AC branch
-    supplies z=(H2,H1)."""
+    """Fit z = A [cos(phi), sin(phi)] + b using DC-derived phase labels.
+
+    The slow Vpi scan and the AC harmonics share one optical branch.  The DC
+    labels are independent of the board ADC/Goertzel electronics, but are not
+    an independent optical phase reference.
+    """
     X = np.asarray(X, float); Y = np.asarray(Y, float)
     phi = np.asarray(phase_truth, float)
     F = np.stack([np.cos(phi), np.sin(phi), np.ones_like(phi)], 1)
@@ -126,8 +128,11 @@ def circle_residual(z, cal: dict) -> float:
 
 
 def self_check_mrad(X, Y, cal: dict, phase_truth) -> dict:
-    """Demodulate the calibration sweep and compare to the independent DC
-    phase truth; return {median, p95, rms} of |error| in mrad."""
+    """Compare a calibration sweep with its same-scan DC-derived phase labels.
+
+    Return {median, p95, rms} of |error| in mrad.  This is an in-sample
+    consistency check, not an independent test error.
+    """
     U = cal["B"] @ np.stack([np.asarray(X) - cal["c0"][0],
                              np.asarray(Y) - cal["c0"][1]])
     phi_hat = np.arctan2(U[1], U[0])
@@ -137,7 +142,7 @@ def self_check_mrad(X, Y, cal: dict, phase_truth) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-#  DC transfer curve  ->  independent phase truth  phi(V_b)                    #
+#  DC transfer curve  ->  auxiliary phase labels  phi(V_b)                     #
 # --------------------------------------------------------------------------- #
 def fit_dc_transfer(bias, dc):
     """Fit P(V_b) = a + b*cos(pi*(V_b - V0)/Vpi) to the slow DC sweep.
@@ -172,17 +177,19 @@ def fit_dc_transfer(bias, dc):
 
 
 def bias_to_phase(bias, vpi, v0):
-    """Independent phase truth from the DC-curve fit."""
+    """Auxiliary phase labels from the fitted DC transfer curve."""
     return np.pi * (np.asarray(bias, float) - v0) / vpi
 
 
 def phase_truth_from_dc(dc, a, b, sin_sign):
-    """Drift-robust, controller-INDEPENDENT phase truth at a single point.
+    """Drift-robust DC-derived phase estimate at a single point.
 
     From the DC transfer P = a + b cos(phi):  |phi| = acos((P-a)/b).  The
     sign of sin(phi) (which branch) is supplied externally from the LOCAL DC
     slope sign (dP/dV = -b*(pi/Vpi)*sin(phi)), so this does not depend on V0 and
     survives slow drift of the operating point between calibration and locking.
+    It is independent of the controller electronics, but shares the same optical
+    path and therefore is not an independent optical truth reference.
     """
     c = float(np.clip((dc - a) / b, -1.0, 1.0))
     mag = float(np.arccos(c))

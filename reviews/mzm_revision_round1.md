@@ -1,0 +1,94 @@
+# MZM manuscript review and revision log
+
+Date: 2026-07-10
+Target: JLT/Q1 photonics journal
+Baseline commit: `b44661c`
+
+## Round 1 editorial result
+
+The five-reviewer panel returned one Reject and four Major Revision decisions.
+The common reason was not the affine identity itself, but a mismatch between the
+claimed end-to-end self-calibrating experiment and the recorded bench procedure.
+The headline controller used `phase-ref` regression, the recalibration code used
+a 121-point full-period sweep, RF states were recalibrated separately, and the
+reported experiments had no independent repetitions or equal-information strong
+baseline.
+
+## Revision roadmap
+
+### P1: claim and method integrity
+
+- [x] Add the full-rank condition for full-cycle phase inversion.
+- [x] Generalize the DC gauge equation to arbitrary periodic pilot waveforms.
+- [x] Separate condition number from absolute weak-axis noise gain.
+- [x] State the orthogonal/gauge-rotation blind spot of the circle residual.
+- [x] Rename the implemented control update as an incremental integral update.
+- [x] Replace the claimed micro-arc bench recalibration with the actual full-period scan.
+- [x] Disclose that the hardware headline uses phase-reference regression and that
+      the ellipse-only path is an offline diagnostic.
+- [x] Report both available lock-error truth conventions (246 and 342 mrad) and
+      limit the H1 result to a qualitative branch-loss comparison.
+- [x] Limit the 3 h, drift-step, and RF results to their actual single-run/static-state scope.
+
+### P2: field positioning and evidence
+
+- [x] Add the 2014, 2018, 2022, 2023, and 2025 nearest-neighbor literature.
+- [x] Add a capability/evidence comparison table and stop treating all prior
+      arbitrary-point methods as single-amplitude readers.
+- [x] State explicitly that the H1 baseline is not a state-of-the-art benchmark.
+- [x] Add a data/code availability statement and a reproducibility-gap disclosure.
+- [x] Add interleaved five-fold sensitivity analysis for both phase-reference and
+      ellipse calibration paths, while identifying the shared-scan limitation.
+- [x] Add a favorable equal-information diagonal 2-D baseline in simulation.
+- [x] Add a processed-data manifest, provenance notes, checksums, and a read-only
+      reanalysis script.
+- [ ] Run the ellipse+DC-gauge controller in hardware with no phase labels.
+- [ ] Add an equal-information published arbitrary-point baseline.
+- [ ] Repeat independent calibration/lock runs with randomized order and uncertainty.
+- [ ] Test fixed-calibration RF switching and record application-level RF metrics.
+
+### P3: artifact quality
+
+- [x] Fix CJK embedding so Poppler renders and maps all Chinese text.
+- [x] Increase the experimental composite-figure label and legend sizes.
+- [x] Compile and visually inspect the 10-page PDF.
+- [x] Pass the manuscript number, citation, figure, and experiment contracts.
+- [ ] Replace author/date/funding placeholders with final submission metadata.
+
+## Evidence boundary after Round 1
+
+The revised paper is now internally honest and reproducible from the committed
+processed data. It is not yet an acceptance-grade experimental validation of the
+ellipse self-calibrating controller. Closing that gap requires new bench runs;
+it cannot be repaired by prose or reanalysis of the existing lock data.
+
+## Round 2 result
+
+The second review round no longer found a fatal mathematical inconsistency or a
+misrepresentation of the recorded bench procedure.  The remaining Major
+Revision decisions converge on evidence that does not exist in the current
+dataset: a label-free ellipse+DC-gauge hardware loop, an equal-information
+hardware baseline, independent randomized repeats, and final submission
+metadata/English preparation.  The diagonal 2-D simulation baseline and
+same-scan cross-validation improve diagnosis but do not satisfy those hardware
+requirements.
+
+## Round 3 acceptance gate
+
+Three focused reviewers independently returned Major Revision.  They found no
+remaining fatal mathematical inconsistency, procedure misrepresentation,
+number-contract failure, or PDF rendering defect.  The manuscript was therefore
+repositioned explicitly as an exact structural/identifiability framework with a
+supervised hardware feasibility study: the contribution list no longer presents
+the phase-reference experiment as end-to-end validation of the label-free path,
+the simulation advantage is labeled a model stress test, and full-cycle
+identifiability is stated as a necessary-and-sufficient proposition.  The table
+label for kappa(A) was also changed from a noise-floor claim to observation
+anisotropy.
+
+The acceptance gate remains closed for reasons that cannot be repaired from the
+current dataset: no label-free ellipse+DC-gauge hardware loop, no
+equal-information hardware baseline, and no independent randomized repeats.
+English conversion, author/funding metadata, and acquisition-package metadata
+also require author input or missing artifacts.  Stopping textual revision at
+this boundary prevents unsupported claims or fabricated evidence.

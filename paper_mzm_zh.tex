@@ -24,14 +24,23 @@
 \edef\@tmp{\noexpand\DeclareFontFamilySubstitution{TU}{ptm}{\rmdefault}}\@tmp
 \makeatother
 \usepackage{xeCJK}
-\setCJKmainfont[
-  BoldFont={FandolSong-Bold.otf},
-  ItalicFont={FandolKai-Regular.otf}
-]{FandolSong-Regular.otf}
-\setCJKsansfont[
-  BoldFont={FandolHei-Bold.otf}
-]{FandolHei-Regular.otf}
-\setCJKmonofont{FandolFang-Regular.otf}
+% On macOS, Songti produces a Poppler-readable CID embedding; fall back to the
+% TeX-distributed Fandol files on systems without Songti.  The prior unconditional
+% Fandol embedding rendered as blank CJK glyphs in Poppler despite being embedded.
+\IfFontExistsTF{Songti SC}{
+  \setCJKmainfont[AutoFakeBold=2.5,AutoFakeSlant=0.18]{Songti SC}
+  \setCJKsansfont[AutoFakeBold=2.5]{Heiti SC}
+  \setCJKmonofont{Songti SC}
+}{
+  \setCJKmainfont[
+    BoldFont={FandolSong-Bold.otf},
+    ItalicFont={FandolKai-Regular.otf}
+  ]{FandolSong-Regular.otf}
+  \setCJKsansfont[
+    BoldFont={FandolHei-Bold.otf}
+  ]{FandolHei-Regular.otf}
+  \setCJKmonofont{FandolFang-Regular.otf}
+}
 % IEEE journal 惯例：段首缩进由 IEEEtran 提供，首段不缩进（去掉 indentfirst）。
 % 中文正文用两个汉字宽度的段首缩进：10pt 正文下一个汉字宽 10pt=1em，故 2em=2 汉字，
 % 比 IEEE 默认 1em 更符合中文排版。
@@ -79,7 +88,7 @@
 \maketitle
 
 \begin{abstract}
-基于导频（dither）的马赫--曾德尔调制器（MZM）偏压控制通常依赖一、二次谐波误差信号，因而最容易工作在正交点、零点和峰值点等特殊位置。许多微波光子和相干发射应用要求偏置停在传递曲线上的任意相位；此时，单个标量谐波信号会遇到死区、分支歧义以及增益标定敏感性，传统特殊点控制难以直接外推。本文从受导频扰动的传递函数出发，证明在任意周期导频波形和任意线性接收链下，MZM 的谐波解调观测向量是偏置相位单位圆~$\mathbb{S}^1$ 的精确仿射像。增益失配、参考相位误差、导频波形失真、相干串扰和有限消光比等线性非理想因素均进入仿射参数~$(A,\bv)$，而不需要改变模型形式。基于这一结构，任意点控制可写成椭圆辨识、规范固定和~$\atan$ 相位解调的组合；同一模型还给出特殊点锁定、幅值匹配和谐波比值法静态误差的闭式表达。相应的标定可由单条满周期扫描上的线性回归完成，运行时解调为闭式~$\atan$，每控制周期计算量远低于~$10^3$ 次乘加。数值验证显示：零噪声下辨识与解调闭合到数值精度；含噪声时相位残差为毫弧度量级；在任意目标点处，仿射控制器相对于传统多环锁定可将静差降低一至两个数量级。在自研偏压控制平台上，实测结果与上述仿射结构一致，任意点锁定在全部目标相位上保持有界（rms~246~mrad，标定自检中位~27.3~mrad），约为~H1 幅值匹配基线（1241~mrad，死区与分支点完全失锁）的五分之一，并演示了残差触发的检测--重定标--恢复闭环、小时级长期稳定以及~50~MHz 射频加载下的鲁棒性；受交流通道余量限制，实测绝对精度由观测条件数~$\kappa(A)$ 设定。该结论覆盖线性接收链路；光电探测非线性和偏压相关吸收等效应作为模型边界单独处理。
+基于导频（dither）的马赫--曾德尔调制器（MZM）偏压控制常以单个谐波或谐波比值构造误差信号；在连续设定点上，这类标量读出容易受到局部低灵敏度、分支选择和链路标定误差的共同影响。本文证明：对任意周期导频波形和任意线性接收--解调链，二维谐波观测必为偏置相位单位圆~$\mathbb{S}^1$ 的精确仿射像。该结论把增益失配、参考相位误差、相干串扰和偏置无关的有限消光比统一吸收到~$(A,\bv)$ 中；当~$A$ 满秩且存在独立相位锚点时，可经椭圆辨识、规范固定和~$\atan$ 实现全周期相位反演。本文进一步给出传统标量读出的静差表达、噪声传播和重标定边界。数值验证在规定模型内闭合到数值精度，并在含噪条件下得到毫弧度量级残差。硬件实验为隔离几何辨识误差与闭环链路误差，采用直流相位参考辅助回归~$(A,\bv)$；纯椭圆路径作为同批数据上的离线诊断。实测~16 个目标点的跨目标静态误差均方根为~246~mrad，而重构的~H1 幅值匹配基线为~1241~mrad并出现分支失锁；两种现有真值口径给出的仿射误差分别为~246 和~342~mrad。单次~3~h 运行未出现误差增长，单次导频幅度阶跃在~6 个控制周期后触发满周期重标定；在各射频功率状态分别重标定后，50~MHz 单音加载下的锁定误差保持有界。实验精度同时受弱轴绝对增益~$\sigma_{\min}(A)$、观测噪声、慢环带宽与漂移限制；$\kappa(A)$ 仅表征各向异性。光电探测非线性、偏压相关吸收和未被圆残差观测的规范旋转构成方法边界。
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -108,20 +117,39 @@
 % 会把汉字挤出下沉框、破坏首句字序，故此处按普通段首处理（中文期刊惯例）。
 铌酸锂（LiNbO$_3$）和磷化铟（InP）马赫--曾德尔调制器（MZM）会受到温度、电荷积累和光折变效应的影响，偏置点随时间缓慢漂移~\cite{salvestrini2011,chen2011}。类似问题也出现在薄膜铌酸锂器件中~\cite{wang2018,wang2022}。由于这种漂移缓慢且发生在业务运行期间，需要一种无需中断信号、能对慢漂移持续在线校正的手段。因此，基于小幅低频导频（dither）的闭环偏压控制已经成为常用方案：探测光电流的一次谐波在零点/峰值点附近过零，二次谐波在正交点附近过零，由此形成可实现的误差信号。面向开关键控（OOK）、IQ 调制器和偏振复用发射机的特殊点锁定及其多环扩展已经比较成熟~\cite{cho2006,sotoodeh2011,kawakami2012,fu2013,li2017}。
 
-问题在于，许多应用并不只需要这些特殊点。微波光子移相器与矢量调制器~\cite{yao2009,capmany2007}、单边带（SSB）权重控制~\cite{izutsu1981}、模拟光计算~\cite{shen2017} 和啁啾管理都要求偏置能够稳定在传递曲线的连续设定点上。已有任意点方案通常从特殊点机制外推~\cite{wang2010,yuan2019,peng2025}：一种做法是把某个谐波幅值调到标称参考值，另一种做法是取两个谐波的比值。这两类方法能够在局部工作，但会同时遇到三个结构性问题：部分相位附近环路增益趋零，$\varphi\leftrightarrow\pi-\varphi$ 的分支歧义仍然存在，且增益标定误差会直接转化为静态锁定偏差。这些都不是实现不善，而是源于同一选择——把本属二维的相位信息（单位圆~$\mathbb{S}^1$ 上的位置）压缩成单一标量谐波。前两者是其拓扑必然：标量误差函数在每个周期内必有零增益点、且无法单射（第~\ref{sec:conventional} 节命题~\ref{prop:rolle}）；第三者是其可辨识性代价：仅凭一个标量无法把链路增益与相位分开。恢复完整的二维观测，是同时消除三者的最小代价。
+许多应用并不只需要这些特殊点。微波光子移相器与矢量调制器~\cite{yao2009,capmany2007}、单边带（SSB）权重控制~\cite{izutsu1981}、模拟光计算~\cite{shen2017} 和啁啾管理都要求偏置稳定在传递曲线的连续设定点上。任意点控制已有多条路线，包括一、二次谐波比值~\cite{wang2010}、平均功率或导数与导频量的组合~\cite{tao2014,yuan2019}、相位抖动和相关检测的多参数辨识~\cite{li2018}，以及面向具体链路指标的模型或优化控制~\cite{teng2023,weller2025,peng2025}。这些工作已经证明任意点控制可以实现，但在观测维数、相位标签或标称增益需求、分支处理、导频代价和应用指标上采用不同折中。本文不把这些路线等同于单一幅值匹配；本文针对的缺口是：在线性接收链含通道混合与确定性偏置时，如何以一个波形无关的二维模型显式描述可辨识性、规范自由度和全周期反演。标量幅值读出仍受周期函数的临界点和非单射性约束（第~\ref{sec:conventional} 节命题~\ref{prop:rolle}）；比值或相关检测虽使用多路测量，其标定假设与分母弱信号区仍需分别处理。保留二维原始观测并直接辨识其仿射像，可把这些问题转化为~$A$ 的满秩性、绝对尺度和规范固定三个可检验条件。
 
 本文的基本观点是，MZM 的导频解调观测具有可利用的仿射结构。只要接收链和解调过程保持线性，偏置相位与导频时间波形可以在传递函数中分离；非理想因素改变的是仿射参数，而不是相位特征的形式。沿着这一思路，任意点控制可以写成“标定模型参数，再反演相位”的问题。本文的主要贡献如下：
 
 \begin{enumerate}
 \item \emph{精确仿射定理}。对任意周期导频波形与任意线性接收链，解调观测向量满足~$\zv = A\uv(\varphi_b)+\bv+\nv$，其中~$\uv=(\cos\varphi_b,\sin\varphi_b)^{\T}$。本文给出~$A$、$\bv$ 和~$\nv$ 关于传统导频量的闭式表达，并分析导频二次谐波失真带来的~$O(\varepsilon)$ 非对角元（附录~\ref{app:eps}）。
 \item \emph{传统方案的统一解释}。正交点锁定、零点/峰值点锁定、幅值匹配和谐波比值法都可看成对仿射观测的低维读出；相应静态误差可写成仿射元素比值，见表~\ref{tab:schemes}。
-\item \emph{自标定任意点控制}。观测轨迹为椭圆。椭圆辨识、全曲线直流回归规范固定和~$\atan$ 解调共同给出目标点无关的闭环增益，并避免用直流极小点定位相位基准时的病态问题。
-\item \emph{面向实现的标定与解调算法}。标定可由单条满周期扫描上的线性回归/椭圆拟合完成，运行时解调为闭式~$\atan$。数值验证显示，该算法在给定仿真条件下达到毫弧度量级残差，计算量适合 Cortex-M 级控制器。
+\item \emph{全周期可辨识条件与无相位标签标定路径}。本文证明满秩观测与唯一规范固定是全周期相位可辨识的充要条件（命题~\ref{prop:ident}）。在该条件下，椭圆辨识、全曲线直流回归规范固定和~$\atan$ 解调给出目标点无关的名义闭环增益，并避免用直流极小点定位相位基准时的病态问题。
+\item \emph{面向实现的标定与解调算法}。无相位标签路径可由单条满周期扫描上的椭圆拟合与直流回归完成，运行时解调为闭式~$\atan$；本文在仿真中验证该路径。硬件部分则使用直流相位标签监督回归验证二维仿射控制的可行性，不把它作为无监督路径的端到端实证。
 \end{enumerate}
 
-在本文的仿真条件下，由此得到的仿射控制器在任意目标点处把闭环静差降至毫弧度量级，相对传统幅值匹配/多环锁定基线降低一至两个数量级，每控制周期计算量远低于~$10^3$ 次乘加。
+在本文规定的非对角混合与偏置仿真模型下，完整仿射控制器在任意目标点处把闭环静差降至毫弧度量级，并显著低于重构的幅值匹配、谐波比值及对角二维读出；该差异是模型压力测试，不是对已有文献实验精度的横向宣称。运行时每控制周期计算量远低于~$10^3$ 次乘加。
 
-本文的辨识步骤与位移干涉测量中的~Heydemann 校正~\cite{heydemann1981,fitzgibbon1999} 有相同的几何基础，但这里的校正对象是偏压域中的谐波观测，并直接服务于闭环控制。
+本文的辨识步骤与位移干涉测量中的~Heydemann 校正~\cite{heydemann1981,fitzgibbon1999} 有相同的几何基础，但这里的校正对象是偏压域中的谐波观测，并直接服务于闭环控制。与相关检测任意点控制和精确模型控制~\cite{li2018,svarny2022} 相比，本文的差异不是再次证明“任意点可锁”，而是把未知线性通道统一为二维仿射作用、显式分离椭圆几何与相位规范，并给出满秩性和噪声条件下的可解调边界。表~\ref{tab:sota} 汇总代表性近邻工作的能力与验证口径。
+
+\begin{table*}[!t]
+\caption{代表性偏压控制工作的能力与验证口径。文献指标来自各文献所用真值和实验条件，不能直接横向换算。}
+\label{tab:sota}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.12\textwidth}p{0.19\textwidth}p{0.12\textwidth}p{0.19\textwidth}p{0.30\textwidth}@{}}
+\toprule
+工作 & 观测与标定 & 锁点范围 & 原文验证口径 & 与本文的关系\\
+\midrule
+Wang--Kowalczyk~\cite{wang2010} & H1/H2 比值及预标定 & 单~MZM 任意点 & 报告约~$0.1^\circ$、80~h & 证明任意点可行；比值在弱分母区和非对角混合下需额外处理\\
+Tao 等~\cite{tao2014} & 平均功率导数比 & 任意点 & 输出功率约~$\pm4\%$ & 以标量组合形成误差，指标为功率稳定度\\
+Li 等~\cite{li2018} & 相关检测辨识多~MZM 参数 & IQ 调制器任意点 & 约~$0.4^\circ$，含业务信号验证 & 强任意点先例；依赖专门抖动序列与参数辨识\\
+Svarny--Chladek~\cite{svarny2022} & 精确器件模型与~FFT & 正交点 & 3~h、约~$\pm0.08^\circ$ & 强模型型先例，但不覆盖连续设定点\\
+本文 & 二维 H1/H2 仿射像；椭圆规范（仿真）/相位标签回归（实测） & 单~MZM 全周期 & 16 点跨目标~rms：246/342~mrad（两真值口径） & 新意在未知线性链的仿射/规范表述；尚缺纯椭圆闭环和等信息强基线\\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 第~\ref{sec:model} 节回顾信号模型与传统锁定；第~\ref{sec:affine}--\ref{sec:noise} 节建立精确仿射理论；第~\ref{sec:algo} 节给出标定与运行流程；第~\ref{sec:numerics} 节报告数值验证；第~\ref{sec:exp} 节给出平台实测；第~\ref{sec:discussion} 节讨论适用边界与推广方向。
 
@@ -170,13 +198,17 @@ $3\omega$ & $-\eta\rho P_0 J_3(m)\sin\varphi_b$ & $\sin\varphi_b$ & （少用）
 
 \subsection{特殊点锁定及其静差}
 \label{sec:conventional}
-正交点锁定驱动~$X\to 0$：局部增益~$|\mathrm{d}X/\mathrm{d}\varphi_b|=\eta\kappa_2|\sin\varphi_b|$ 在~$\pi/2$ 处取极大，两个正交点由~$\operatorname{sgn}Y$ 判别，且过零点对共模功率波动一阶免疫。零/峰值点锁定驱动~$Y\to0$，增益~$\eta\kappa_1$，峰/谷由~$\operatorname{sgn}X$ 判别。预先借用第~\ref{sec:affine} 节的仿射记号（$A_{ij}$、$b_X$、$b_Y$），在特殊点邻域线性化锁定条件即得静差闭式
+正交点锁定驱动~$X\to 0$：局部增益~$|\mathrm{d}X/\mathrm{d}\varphi_b|=\eta\kappa_2|\sin\varphi_b|$ 在~$\pi/2$ 处取极大，两个正交点由~$\operatorname{sgn}Y$ 判别，且过零点对共模功率波动一阶免疫。零/峰值点锁定驱动~$Y\to0$，增益~$\eta\kappa_1$，峰/谷由~$\operatorname{sgn}X$ 判别。预先借用第~\ref{sec:affine} 节的仿射记号（$A_{ij}$、$b_X$、$b_Y$），分别在四个特殊点线性化锁定条件，得到
 \begin{equation}
-\Delta\varphi_{\mathrm Q}=\frac{A_{12}+b_X}{A_{11}},\qquad
-\Delta\varphi_{\mathrm N}=\frac{b_Y-A_{21}}{A_{22}},
+\begin{aligned}
+\Delta\varphi_{\mathrm Q}^{(\pi/2)}&=\frac{A_{12}+b_X}{A_{11}},&
+\Delta\varphi_{\mathrm Q}^{(3\pi/2)}&=\frac{A_{12}-b_X}{A_{11}},\\
+\Delta\varphi_{\mathrm N}^{(0)}&=-\frac{A_{21}+b_Y}{A_{22}},&
+\Delta\varphi_{\mathrm N}^{(\pi)}&=\frac{b_Y-A_{21}}{A_{22}}.
+\end{aligned}
 \label{eq:staticQ}
 \end{equation}
-文献中报道的残余偏置误差由此组织为“非对角/偏置元素与对角斜率之比”。
+上标标明展开点；不同半周期分支的偏置项符号不同。文献中报道的残余偏置误差由此组织为“非对角/偏置元素与对角斜率之比”。
 
 每种特殊点方案都只读取~$\uv(\varphi_b)=(\cos\varphi_b,\sin\varphi_b)^{\T}$ 的\emph{一个}坐标，且只工作在该坐标的过零点邻域——那里同时满足：(i)~局部斜率取极大；(ii)~误差量过零，故增益标定相消；(iii)~另一坐标恰可充当符号判别量。一旦离开过零点，三项便利同时失效。
 
@@ -233,7 +265,15 @@ $i=\tfrac{\rho P_0}{2}[1+\eta\cos(\varphi_b+\xi)]+i_x+i_n$，
 利用~$\Lc_{1,2}$ 的线性逐项收集即得；常数项~$\rho P_0/2$ 被两个泛函湮灭。
 \end{proof}
 
-该结构的几何意义见图~\ref{fig:affine}(a)(b)：含失配的观测轨迹是单位圆~$\mathbb{S}^1$ 的仿射像（一个椭圆），而仿射逆~$A^{-1}(\zv-\bv)$ 将其精确回拉至单位圆。直觉上，$\Lc_1,\Lc_2$ 是线性泛函，只能对信号作叠加，无法混入乘积或高次项；引理~\ref{lem:fact} 已把观测中的偏置相位与导频波形因子分开，两个相位因子~$\cos\varphi_b,\sin\varphi_b$ 各自被一个由波形决定的常向量线性加权，于是任何线性接收链的输出都只能是这两个因子的线性组合——即~$\uv(\varphi_b)$ 的仿射像，波形因子固化为~$A,\bv$ 而不再与~$\varphi_b$ 纠缠。任何超出仿射的项（如~$\cos 2\varphi_b$）都需要非线性运算，故被线性性排除。
+该结构的几何意义见图~\ref{fig:affine}(a)(b)：含失配的观测轨迹是单位圆~$\mathbb{S}^1$ 的仿射像。当且仅当~$\operatorname{rank}A=2$（等价于~$\sigma_{\min}(A)>0$）时，该像为非退化椭圆，仿射逆~$A^{-1}(\zv-\bv)$ 才能把观测唯一回拉至单位圆；秩亏链路只保留一个标量投影，不能支持全周期无歧义反演。$\Lc_1,\Lc_2$ 是线性泛函，只能对信号作叠加，无法混入乘积或高次项；引理~\ref{lem:fact} 已把偏置相位与导频波形分开，因此线性链输出只能是~$\cos\varphi_b$ 与~$\sin\varphi_b$ 的仿射组合。任何超出仿射的项（如~$\cos 2\varphi_b$）都需要非线性运算，故被线性性排除。
+
+\begin{proposition}[全周期可辨识的充要条件]
+\label{prop:ident}
+设无噪满周期扫描覆盖~$\mathbb{S}^1$，接收--解调参数在扫描期间不变。由无序轨迹和单次观测唯一确定~$\varphi_b\bmod 2\pi$，当且仅当：(i)~$\operatorname{rank}A=2$；(ii)~辅助信息唯一固定椭圆分解的~$O(2)$ 规范。
+\end{proposition}
+\begin{proof}
+若~$A$ 满秩，则其线性作用保持单位圆参数的单射性；规范固定后，$A^{-1}(\zv-\bv)=\uv(\varphi_b)$，故~$\atan$ 唯一给出模~$2\pi$ 相位。反之，若~$A$ 秩亏，观测至多为单位圆的一个标量投影，连续周期映射必有重复值；若规范未固定，则任意~$R\in O(2)$ 均产生同一轨迹，而对应相位相差未知旋转或反射。因此任一条件缺失都不能唯一辨识全周期相位。
+\end{proof}
 
 定理说明，线性非理想因素并不需要逐项改写相位模型。它们通过~$A$ 和~$\bv$ 改变观测椭圆的位置、尺度和方向；只要接收链与解调泛函保持线性，偏置相位仍只通过~$\uv(\varphi_b)$ 进入观测。以含二次谐波失真的实际导频~$\xi=m\sin\omega t+\varepsilon m\sin(2\omega t+\psi)$ 为例，至~$O(\varepsilon)$（附录~\ref{app:eps}）：
 \begin{align}
@@ -258,7 +298,13 @@ $\sigma_Y^2=G_1^2\bigl(2q\bar I+4k_BTF/R_T+\mathrm{RIN}\cdot\bar I^2\bigr)B_{\ma
 椭圆有五个参数，而~$(A,\bv)$ 有六个自由度。差额来自~$\mathbb{S}^1$ 的稳定子：对任意~$R\in O(2)$，$A\mapsto AR$ 不改变椭圆像集。因此，单靠椭圆几何只能把~$A$ 辨识到右乘正交阵的等价类，相位解调仍有~$\hat\varphi_b\mapsto\pm\hat\varphi_b+\varphi_c$ 的歧义。规范固定需要额外信息；在本文系统中，直流通道提供相位原点，扫描方向提供定向。
 
 \subsection{标定算法}
-标定过程分四步。(i)~对偏压作满周期慢扫描，记录~$\{\zv_i,\bar\imath_i\}_{i=1}^N$。(ii)~中心化/尺度归一后，以代数最小二乘拟合二次曲线~$ax^2{+}bxy{+}cy^2{+}dx{+}ey=1$；高噪声时可换用~Fitzgibbon 约束拟合~\cite{fitzgibbon1999} 以保证椭圆性。(iii)~由驻点方程解出中心~$\hat\bv$，平移后得到~$M\succ0$，取对称平方根~$M^{1/2}$，并由轨道环绕方向固定反射。(iv)~旋转规范由\emph{整条}直流序列对~$(1,\cos\theta_i,\sin\theta_i)$ 的回归固定，其中~$\theta_i$ 为预规范辐角。由~$\bar\imath_i=C_0+C_1\cos(\theta_i-\varphi_c)$ 可知，该回归是线性的，且~$\operatorname{Var}(\hat\varphi_c)\propto N^{-1}$。相比之下，用直流极小值的~\emph{argmin} 定位基准会受到二阶驻点局部平坦性的影响；本文仿真中，直流回归把标定引入的解调偏差中位从~${\sim}42$~mrad 降至~${\sim}2$~mrad（$\sigma=0.005$，第~\ref{sec:numerics} 节图~\ref{fig:gauge}）。当~$m>2.405$ 且~$J_0$ 变号时，符号由已知导频深度约定消解。解调器为
+标定过程分四步。(i)~对偏压作满周期慢扫描，记录~$\{\zv_i,\bar\imath_i\}_{i=1}^N$。(ii)~中心化/尺度归一后，以代数最小二乘拟合二次曲线~$ax^2{+}bxy{+}cy^2{+}dx{+}ey=1$；高噪声时可换用~Fitzgibbon 约束拟合~\cite{fitzgibbon1999} 以保证椭圆性。(iii)~由驻点方程解出中心~$\hat\bv$，平移后得到~$M\succ0$，取对称平方根~$M^{1/2}$，并由轨道环绕方向固定反射。(iv)~旋转规范由\emph{整条}直流序列固定。一般周期波形下，直流观测为
+\begin{equation}
+\bar\imath=C_0+C_c\cos\varphi_b+C_s\sin\varphi_b,
+\quad (C_c,C_s)\propto(\overline{\cos\xi},-\overline{\sin\xi}),
+\label{eq:dcgauge}
+\end{equation}
+故直流序列对~$(1,\cos\theta_i,\sin\theta_i)$ 的回归仍为线性，但回归相位包含由已知导频波形决定的~$\atan(C_s,C_c)$；只有当~$(C_c,C_s)\ne(0,0)$ 或另有相位锚点时，绝对规范才可辨识。对称正弦导频满足~$C_s=0$，回到~$\bar\imath_i=C_0+C_1\cos(\theta_i-\varphi_c)$，且~$\operatorname{Var}(\hat\varphi_c)\propto N^{-1}$。相比之下，用直流极小值的~\emph{argmin} 定位基准会受到二阶驻点局部平坦性的影响；本文仿真中，直流回归把标定引入的解调偏差中位从~${\sim}42$~mrad 降至~${\sim}2$~mrad（$\sigma=0.005$，第~\ref{sec:numerics} 节图~\ref{fig:gauge}）。当~$m>2.405$ 且~$J_0$ 变号时，符号由已知导频深度约定消解。解调器为
 \begin{equation}
 B\triangleq R(-\hat\varphi_c)\,F\,M^{1/2},\qquad
 \hat\varphi_b=\atan\!\bigl(B(\zv-\hat\bv)\bigr),
@@ -285,7 +331,7 @@ B\triangleq R(-\hat\varphi_c)\,F\,M^{1/2},\qquad
 \end{figure}
 
 \subsection{一致增益闭环}
-闭环架构如图~\ref{fig:arch} 所示。取~$e=\operatorname{wrap}_{(-\pi,\pi]}(\hat\varphi_b-\varphi^\ast)$。当仿射模型成立时，解调后的相位误差与真实偏差直接对应，不再依赖目标点所在位置；配合常数执行斜率~$\partial\varphi_b/\partial V_b=\pi/V_\pi$，同一组~PI(D) 参数可用于整个偏置周期。由于解调误差对应真实相位而与工作点无关，偏置漂移在闭环中即一个低频扰动，由积分环节抑制，其残余跟踪误差取决于环路带宽与漂移速率之比、而非工作点位置。表~\ref{tab:schemes} 中仿射法的零静差指模型内不含死区、分支歧义与增益标定偏差，它与漂移引起的跟踪误差是相互独立的两项。表~\ref{tab:schemes} 给出各方案对照，传统方案静差由式~\eqref{eq:staticQ}--\eqref{eq:staticAM} 给出。自标定与任意点闭环的完整流程汇总于算法~\ref{alg:mzm}：标定阶段一次性辨识规范固定后的解调算子~$(B,\hat\bv)$，运行阶段每周期以~$\atan$ 闭式解出与工作点无关的相位误差，再经~PI 写回偏压。
+闭环架构如图~\ref{fig:arch} 所示。取~$e=\operatorname{wrap}_{(-\pi,\pi]}(\hat\varphi_b-\varphi^\ast)$。当仿射模型成立时，解调后的相位误差与真实偏差直接对应，不再依赖目标点所在位置；配合常数执行斜率~$\partial\varphi_b/\partial V_b=\pi/V_\pi$，同一组控制参数可用于整个偏置周期。本文实现采用增量积分更新，而非含独立比例项的完整~PI。偏置漂移在闭环中表现为低频扰动，其残余跟踪误差取决于环路带宽与漂移速率之比。表~\ref{tab:schemes} 中仿射法的零静差仅指已标定模型内不存在标量读出的死区、分支歧义和标称增益偏差；噪声、有限带宽、执行器饱和及模型漂移仍产生误差。表~\ref{tab:schemes} 给出各方案对照，传统方案静差由式~\eqref{eq:staticQ}--\eqref{eq:staticAM} 给出。
 
 \begin{algorithm}[!t]
 \caption{自标定与任意点闭环（监督与重定标层见第~\ref{sec:algo} 节算法~\ref{alg:cal}--\ref{alg:run}）}
@@ -303,7 +349,7 @@ B\triangleq R(-\hat\varphi_c)\,F\,M^{1/2},\qquad
 \State 读锁相输出~$\zv=(X,Y)^{\T}$（H2、H1，与式~\eqref{eq:entries} 同序）
 \State $\hat\uv\gets B(\zv-\hat\bv)$；\quad $\hat\varphi_b\gets\atan(\hat u_y,\hat u_x)$
 \State $e\gets\operatorname{wrap}_{(-\pi,\pi]}(\hat\varphi_b-\varphi^\ast)$
-\State PI 更新~$V_b\gets V_b-G\,e\,V_\pi/\pi$ 写入偏压~DAC
+\State 积分更新~$V_b\gets V_b-G\,e\,V_\pi/\pi$ 写入偏压~DAC
 \State 残差~$\rho\gets\bigl|\,\|\hat\uv\|-1\bigr|$；持续越限则触发重定标（算法~\ref{alg:cal}）
 \end{algorithmic}
 \end{algorithm}
@@ -319,20 +365,20 @@ B\triangleq R(-\hat\varphi_c)\,F\,M^{1/2},\qquad
 方案 & 可锁点集 & 增益 & 静差 & 歧义性\\
 \midrule
 H2 过零（正交） & $\{\pi/2,3\pi/2\}$ & $\eta\kappa_2$ &
-$(A_{12}{+}b_X)/A_{11}$ & 半周期\\
+式~\eqref{eq:staticQ}（分支相关） & 半周期\\
 H1 过零（零/峰） & $\{0,\pi\}$ & $\eta\kappa_1$ &
-$(b_Y{-}A_{21})/A_{22}$ & 半周期\\
+式~\eqref{eq:staticQ}（分支相关） & 半周期\\
 幅值匹配 & 死区之外 & $\eta\kappa_1|\cos\varphi^\ast|$ &
 式~\eqref{eq:staticAM} & $\varphi\!\leftrightarrow\!\pi{-}\varphi$\\
 谐波比值 & $Y$ 非小 & 随目标点 & $\bv$ 主导 & 双象限\\
-\textbf{仿射法（本文）} & $[0,2\pi)$ & 一致 & $0$（模型内） & 无\\
+\textbf{仿射法（本文）} & $[0,2\pi)$（$A$ 满秩） & 一致 & $0$（已标定模型内） & 需规范锚点\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \section{噪声与导频深度设计}
 \label{sec:noise}
-本节回答导频深度~$m$ 的选取问题，结论是观测椭圆的条件数~$\kappa(A)$ 给出直接判据。沿切向~$\tv(\varphi)=(-\sin\varphi,\cos\varphi)^{\T}$ 对~\eqref{eq:affine} 作一阶摄动，相位估计方差为
+本节回答导频深度~$m$ 的选取问题。绝对相位噪声由~$A$ 相对观测噪声协方差的尺度决定，条件数~$\kappa(A)$ 只描述最坏与最好方向之间的各向异性。沿切向~$\tv(\varphi)=(-\sin\varphi,\cos\varphi)^{\T}$ 对~\eqref{eq:affine} 作一阶摄动，相位估计方差为
 \begin{equation}
 \begin{aligned}
 \sigma^2_{\hat\varphi}(\varphi)
@@ -344,18 +390,18 @@ $(b_Y{-}A_{21})/A_{22}$ & 半周期\\
 \end{equation}
 其几何含义为：偏置相位只沿椭圆切向移动，观测噪声须先投影到该方向、再经~$A^{-1}$ 拉回相位域，因此\emph{相位噪声等于测量噪声~$\sigma$ 除以椭圆在该方向上的拉伸量}；椭圆越扁，被压短方向上的相位噪声越大，最坏情形由最小奇异值~$\sigma_{\min}(A)$ 封顶。
 
-条件数~$\kappa(A)=\sqrt{\lambda_{\max}(M)/\lambda_{\min}(M)}$ 正是椭圆长短轴之比，即椭圆的扁度。理想链路下~$A=\operatorname{diag}(\eta\kappa_2,-\eta\kappa_1)$，故~$\kappa(A)=\kappa_1/\kappa_2=J_1(m)/J_2(m)$；小~$m$ 时~$J_1\approx m/2$、$J_2\approx m^2/8$，故~$\kappa(A)\to 4/m$。图~\ref{fig:affine}(c) 即据此绘制为选~$m$ 的设计曲线：左轴为两个谐波斜率~$J_1(m)$、$J_2(m)$，右轴（对数）为条件数~$\kappa(A)$ 及其小~$m$ 渐近~$4/m$。由此可读出选~$m$ 的两难：$m$ 过小时~$J_2\approx m^2/8$ 很小，H2 通道幅度被噪声淹没，$\kappa(A)$ 按~$1/J_2\approx 8/m^2$ 急剧放大，特殊点之外的相位解调噪声随之增大；$m$ 过大时导频本身对业务信号的调制损伤随~$m^2$ 增大，并激起更高次谐波。两者的折中区即设计取值，本文取~$m{=}1.2$（图~\ref{fig:affine}(c) 竖线），落在“H2 通道够强”与“导频够轻”之间。因此，$\kappa(A)$ 可作为选择导频深度的单一量化指标。
+条件数~$\kappa(A)=\sqrt{\lambda_{\max}(M)/\lambda_{\min}(M)}$ 是椭圆长短轴之比。理想链路下~$A=\operatorname{diag}(\eta\kappa_2,-\eta\kappa_1)$，故在~$J_1>J_2>0$ 的区间内~$\kappa(A)=J_1(m)/J_2(m)$；小~$m$ 时~$J_1\approx m/2$、$J_2\approx m^2/8$，所以~$\kappa(A)\sim4/m$。弱轴的\emph{绝对}噪声增益则为~$1/\sigma_{\min}(A)\propto1/J_2(m)\sim8/m^2$（固定接收增益与观测噪声时）。二者不能互换：整体缩放~$A$ 不改变~$\kappa(A)$，却会改变式~\eqref{eq:var} 的相位方差。图~\ref{fig:affine}(c) 因而给出两个互补读数：$J_1,J_2$ 决定绝对观测灵敏度，$\kappa(A)$ 决定方向间不均匀性。$m$ 过小时~H2 被噪声淹没；$m$ 过大时导频损伤随~$m^2$ 增大并激起更高次谐波。本文仿真取~$m{=}1.2$，是在这两项约束下的示例工作点，而不是仅由~$\kappa(A)$ 唯一决定的通用最优值。实际设计应最小化最坏相位方差~$\max_\varphi\tv^{\T}A^{-1}\Sigma_nA^{-\T}\tv$，并同时施加导频扰动预算。
 
-插入式估计~\eqref{eq:demod} 是一致估计但非有效估计：Fisher 信息为~$\sigma^{-2}\|A\tv\|^2$，按马氏度量向椭圆投影可达~Cram\'er--Rao 界；当~$\kappa(A)$ 适中时，二者差异为二阶。该框架并不改变特殊点处的噪声地板：在那里仍复现~$\sigma_Y/(\eta\kappa_1)$ 与~$\sigma_X/(\eta\kappa_2)$；它的作用是让特殊点之外的相位同样获得有界的解调噪声。
+当标定样本数与每点平均长度共同趋于无穷、且模型正确时，插入式估计~\eqref{eq:demod} 一致但通常非有效：Fisher 信息为~$\sigma^{-2}\|A\tv\|^2$，按马氏度量向椭圆投影可达~Cram\'er--Rao 界；当~$\kappa(A)$ 适中时，二者差异为二阶。该框架并不改变特殊点处的噪声地板：在那里仍复现~$\sigma_Y/(\eta\kappa_1)$ 与~$\sigma_X/(\eta\kappa_2)$；它的作用是让特殊点之外的相位同样获得有界的解调噪声。
 
 \section{基于仿射模型的偏压控制算法设计}
 \label{sec:algo}
-前述理论可组织成一个两阶段控制流程（图~\ref{fig:flow}）。标定阶段执行偏压扫描、模型拟合、规范固定和残差自检；运行阶段在每个控制周期读取锁相输出，完成相位解调、误差计算和 PI 更新，并用模型残差监测链路是否偏离标定状态。若残差持续越限，则触发微幅弧重定标。算法~\ref{alg:cal} 与算法~\ref{alg:run} 分别给出两阶段伪代码；二者在第~\ref{sec:calib} 节算法~\ref{alg:mzm} 的流程之上加入残差监测与重定标监督。
+前述理论可组织成一个两阶段控制流程（图~\ref{fig:flow}）。标定阶段执行偏压扫描、模型拟合、规范固定和残差自检；运行阶段在每个控制周期读取锁相输出，完成相位解调、误差计算和积分更新，并用圆残差监测椭圆中心、尺度或形状的变化。若残差持续越限，则触发具有充分激励的重定标扫描。算法~\ref{alg:cal} 与算法~\ref{alg:run} 分别给出两阶段伪代码；二者在第~\ref{sec:calib} 节算法~\ref{alg:mzm} 的流程之上加入残差监督。
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{figs/fig_flow_mzm.pdf}
-\caption{监督状态机：上为标定阶段（扫描$\to$拟合与规范固定$\to$自检），下为运行阶段的每周期回路（锁相读出$\to$解调$\to$PI$\to$残差监测），残差越限持续~$M$ 周期即触发微幅弧重定标并返回标定通道。}
+\caption{监督状态机：上为标定阶段（扫描$\to$拟合与规范固定$\to$自检），下为运行阶段的每周期回路（锁相读出$\to$解调$\to$积分更新$\to$残差监测）。残差越限持续~$M$ 周期后返回标定通道；本文实测采用满周期重扫。}
 \label{fig:flow}
 \end{figure}
 
@@ -381,16 +427,16 @@ $(b_Y{-}A_{21})/A_{22}$ & 半周期\\
 \Require 目标~$\varphi^\ast$、环路增益~$G$、阈值对~$(\rho_{\rm th},M)$
 \State 读取锁相输出~$\zv_k$
 \State $\hat\uv\gets B(\zv_k-\hat\bv)$；\quad $\hat\varphi\gets\atan(\hat u_y,\hat u_x)$；\quad $\rho_k\gets\bigl|\,\|\hat\uv\|-1\bigr|$
-\State $e\gets\operatorname{wrap}(\hat\varphi-\varphi^\ast)$；\quad PI 更新~$V\gets V-G\,e\cdot V_\pi/\pi$ 写入偏压~DAC
+\State $e\gets\operatorname{wrap}(\hat\varphi-\varphi^\ast)$；\quad 积分更新~$V\gets V-G\,e\cdot V_\pi/\pi$ 写入偏压~DAC
 \State 残差~EWMA：$\bar\rho\gets(1-\lambda)\bar\rho+\lambda\rho_k$
 \If{$\bar\rho>\rho_{\rm th}$ 连续~$M$ 周期}
-  \State 保持当前~$V$，执行微幅弧重定标（调用算法~\ref{alg:cal}）
+  \State 暂停闭环，执行满足满秩激励的重定标扫描（调用算法~\ref{alg:cal}）
 \EndIf
 \Ensure 进入下一周期；全周期代价远低于~$10^3$ 次乘加
 \end{algorithmic}
 \end{algorithm}
 
-实现时有三类参数需要整定。\emph{阈值整定}：$\rho_{\rm th}$ 由标定末尾的残差分布给出，配合~EWMA（$\lambda\approx0.05$）和连续~$M$ 周期判决（$M\approx20$--$30$），可在误触发率和检测延迟之间折中；延迟量级约为~$M+1/\lambda$ 个控制周期。\emph{重定标弧}：本文仿真采用~$\pm0.3$~rad 量级的微幅弧，以重新激励局部可辨识子空间；期间偏压保持在上一控制值附近，附加扰动与常规导频包络同量级。\emph{定点化}：$\atan$ 可由~CORDIC 或查表实现。参数存储量为六个标量。
+实现时有三类参数需要整定。\emph{阈值整定}：$\rho_{\rm th}$ 由标定末尾的残差分布给出，配合~EWMA 和连续~$M$ 周期判决，可在误触发率和检测延迟之间折中；本文只报告一次无变化运行和一次阶跃响应，尚未给出一般误报率或检出率。\emph{重定标激励}：完整椭圆与规范重新辨识要求覆盖充分相位范围。局部微弧只能在继承旧模型并施加正则约束时更新局部参数；本文仿真考察了~$\pm0.3$~rad 的受限更新，而台架实测调用~121 点满周期扫描。因此，实测结果不支持“低扰动微弧重标定”主张。\emph{残差可观测性}：$\rho=|\|B(\zv-\hat\bv)\|-1|$ 能检测径向、中心和椭圆形状变化，却不能检测~$A\mapsto AR$（$R\in O(2)$）这类保持椭圆集合不变的规范旋转；后者会造成相位偏移而不改变圆残差，需由直流相位锚点残差、周期参考点或受控激励补充监测。$\atan$ 可由~CORDIC 或查表实现，参数存储量为六个标量。
 
 \section{数值验证}
 \label{sec:numerics}
@@ -428,7 +474,7 @@ $\kappa(A)$（受扰真值） & $2.59$（理想比值~$3.13$） & $m{=}1.2$\\
 
 含噪标定主要考察规范固定和模型反演的稳定性。在~$\sigma{=}0.005$ 时，解调偏差中位为~$2.35$~mrad，P95 为~$6.25$~mrad。图~\ref{fig:gauge} 对比了直流回归规范和直流极小值~argmin 基准：前者的中位偏差约~$2$~mrad，并随~$N^{-1/2}$ 收缩；后者受平坦极小值影响，偏差停留在数十毫弧度量级。
 
-闭环对比显示，静差主要来自未辨识的仿射失配。在任意目标点~$\varphi^\ast=1.9$ 处，仿射控制器的 rms 误差为~$12.7$~mrad，而 H1 幅值匹配基线（按传统幅值匹配范式~\cite{wang2010,yuan2019,peng2025} 重构，非取自单一文献）为~$1315$~mrad（图~\ref{fig:mzmloop}）。图~\ref{fig:sweep} 将该比较扩展到目标相位网格，传统幅值匹配和谐波比值法在各自死区附近出现静差放大，仿射控制器的实测 rms 与式~\eqref{eq:var} 给出的逐相位噪声地板一致。
+闭环对比显示，静差主要来自未辨识的仿射失配。在任意目标点~$\varphi^\ast=1.9$ 处，仿射控制器的 rms 误差为~$12.7$~mrad，而 H1 幅值匹配基线（按传统幅值匹配范式~\cite{wang2010,yuan2019,peng2025} 重构，非取自单一文献）为~$1315$~mrad（图~\ref{fig:mzmloop}）。图~\ref{fig:sweep} 将比较扩展到目标相位网格，并加入一个有利的等信息二维基线：该基线使用真值偏置和对角增益，但忽略非对角混合。其残余相位偏差说明，二维观测本身还不足以消除非正交链路误差；完整仿射校正的作用在于辨识这些交叉项。该对比仍是仿真压力测试，不替代硬件强基线。
 
 \begin{figure}[!t]
 \centering
@@ -440,7 +486,7 @@ $\kappa(A)$（受扰真值） & $2.59$（理想比值~$3.13$） & $m{=}1.2$\\
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{figs/fig_sweep_mzm.pdf}
-\caption{任意点性能随目标相位的分布。(a)~传统两类方案的闭式静差（幅值匹配为式~\eqref{eq:staticAM}，谐波比值为锁定条件的数值根）在各自死区附近放大，仿射环路的实测闭环~rms（圆点，含同源漂移与噪声）随目标点变化较小；(b)~解调噪声地板随相位的分布：式~\eqref{eq:var} 理论曲线、蒙特卡洛实测与上界~$\sigma/\sigma_{\min}(A)$。}
+\caption{任意点性能随目标相位的分布。(a)~幅值匹配、谐波比值、对角校准二维~$\atan$ 与完整仿射环路。对角二维基线已使用真值偏置和对角增益，但忽略~$A$ 的非对角项；圆点为含同源漂移与噪声的仿射闭环~rms。(b)~式~\eqref{eq:var} 的理论噪声、蒙特卡洛结果与上界~$\sigma/\sigma_{\min}(A)$。}
 \label{fig:sweep}
 \end{figure}
 
@@ -474,31 +520,31 @@ $\kappa(A)$（受扰真值） & $2.59$（理想比值~$3.13$） & $m{=}1.2$\\
 
 \section{实验验证}
 \label{sec:exp}
-本节在自研偏压控制平台上对单~MZM 完成实测验证仿射框架。下文先固定测量链路与相位真值评定方法，再按阶段列出测试项目、指标，以及与数值仿真（第~\ref{sec:numerics} 节、表~\ref{tab:results}）的逐项对应。实测结果汇总于表~\ref{tab:exp}，测量链路见图~\ref{fig:exp_mzm}，各阶段曲线见下文分阶段引出的图~\ref{fig:expcal}、图~\ref{fig:expperf} 与图~\ref{fig:exp3}。
+本节在自研平台上检验二维仿射观测能否在真实单~MZM 链路中拟合并用于任意点闭环。实验没有直接验证第~\ref{sec:calib} 节的无监督椭圆控制器：为把几何辨识误差与闭环硬件误差分开，主结果路径用~DM858E 直流扫描生成的相位标签监督回归~$(A,\bv)$；纯椭圆加直流规范路径只在同批标定数据上作离线诊断。以下明确区分标定标签、闭环观测和评价口径，表~\ref{tab:exp} 汇总全部描述性指标。
 
 \emph{测量链路。}实验在自研偏压控制平台上完成，链路见图~\ref{fig:exp_mzm}。分布反馈激光器（$1550$~nm、输出约~$9$~dBm）入射被测~MZM；器件插入损耗约~$6$~dB、$V_\pi\approx5.5$~V（标称；实测~$5.28$~V 见阶段（0）），射频口须良好接地——悬空时它会充当~$50$~Hz 工频天线，使交流采集通道饱和。调制器输出经~1:9 耦合器，$10\%$ 支路送光电探测器（PD），PD 电流经跨阻放大（TIA）后送入自研~STM32H523 偏压控制板。该板为实时~DSP 前端：DAC8568 经~$\times4$ 减法级（$-10$~V 偏置）驱动~MZM 偏压口，偏压范围~$-10$ 至~$+10$~V；TIA 输出由~ADS131M02 型~24-bit ADC 以~$64$~kSPS 双通道采样，CH0 为交流/导频路、CH1 为直流路，板上以~Goertzel 算法在导频频点及谐波处提取~H1、H2 与直流分量。导频默认~$1$~kHz、二次谐波落于~$2$~kHz，Goertzel 块长~$20$~ms 对应~$50$~Hz 频率栅格，故~$1$/$2$~kHz 谱线天然无泄漏。
 
-\emph{控制与基线的实现。}本实验中偏压控制板仅作“导频/偏置发生器~$+$~谐波采集器”使用（\texttt{gen}/\texttt{acq} 命令），观测向量~$\zv$ 的采集在板上完成，而仿射标定、反演与~PI 更新均在上位机执行；用于对照的经典基线（H1 幅值匹配/正交锁定，见第~\ref{sec:model} 节）同样在上位机重新实现，与仿射控制器共用完全相同的~\texttt{gen}/\texttt{acq} 数据通路，二者仅控制律不同，从而构成公平对照——板载原生锁定环不参与对照。受串口通信与~Goertzel 块长限制，上位机环路速率为~Hz 量级，但仍远高于偏置漂移（毫弧度每分钟，见第~\ref{sec:discussion} 节），足以跟踪。导频幅度~$A_p$ 可调，深度~$m=\pi A_p/V_\pi$；由式~\eqref{eq:var}，小~$m$ 下观测椭圆偏扁、$\kappa(A)$ 增大，须以足够的~Goertzel 平均换取~H2 通道信噪比。框架验证时射频关断（对应式~\eqref{eq:mzm} 模型），加载~RF 数据则可考察鲁棒性。面向嵌入式的小型化（第~\ref{sec:algo} 节估计每周期远低于~$10^3$ 乘加）已可落入本板的~Cortex-M33 级固件。
+\emph{控制与基线的实现。}偏压控制板仅作导频/偏置发生器和谐波采集器（\texttt{gen}/\texttt{acq}）；监督式仿射回归、相位反演和积分更新在上位机执行。H1 幅值匹配基线共用相同数据通路，仅控制律不同。该基线用于暴露单坐标读出的死区，不代表当前最强任意点方法，因此本文不据此声称优于文献~\cite{wang2010,li2018} 的最佳精度。串口通信与~20~ms Goertzel 块使实测环路为~Hz 量级；第~\ref{sec:algo} 节的乘加计数只说明嵌入式计算可行性，不能等同于已实现的~1--10~ms 闭环。
 
-\emph{独立交叉验证。}板上自报的直流与谐波读数由两台台式仪器经~LAN/SCPI 独立比对：RIGOL DM858E 万用表接直流测点（DE4）测~PD 直流（正比于光功率，对应板~CH1）；Siglent SDS824X HD 示波器接交流测点（DE2、通道~C1）测~TIA 交流输出，并由其~FFT 读取导频谐波（对应板~CH0）。板上~ADC 满量程为~$\pm1.2$~V，而~PD 直流峰值约~$1.49$~V 会使板~CH1 在高透过区削顶；规范固定所需的整条直流传递曲线~$P(V_b)$ 因此取自~DM858E（未削顶），板~CH1 仅在中段用于一致性核对，是该交叉测量的承重环节。
+\emph{辅助仪器与真值链。}RIGOL DM858E 接直流测点~DE4，Siglent SDS824X HD 接交流测点~DE2 并以~FFT 核对导频谐波。二者独立于板上~ADC 和~Goertzel 电子链，但与控制器共享同一~PD 光学支路，因而属于电子交叉核对，不是独立光学真值。板上~ADC 满量程为~$\pm1.2$~V，而~PD 直流峰值约~$1.49$~V；完整直流传递曲线因此取自未削顶的~DM858E。
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{figs/fig_exp_mzm.pdf}
-\caption{实测链路。DFB 激光（约~$9$~dBm）入射~MZM，输出经~1:9 耦合器分出~$10\%$ 至~PD；PD 电流经~TIA 后由~STM32H523 板的~ADS131M02 采集（CH0 交流/导频、CH1 直流），板上~Goertzel 提取~H1/H2/DC。板子作导频~$+$~偏置发生与谐波采集，仿射控制律与经典基线均在上位机执行（\texttt{gen}/\texttt{acq}）。DM858E（DE4，直流）与~SDS824X HD（DE2，交流~FFT）经~LAN/SCPI 独立交叉验证；射频口接地、RF 关断。}
+\caption{实测链路。DFB 激光（约~$9$~dBm）入射~MZM，输出经~1:9 耦合器分出~$10\%$ 至~PD；PD 电流经~TIA 后由~STM32H523 板的~ADS131M02 采集（CH0 交流/导频、CH1 直流），板上~Goertzel 提取~H1/H2/DC。板子作导频~$+$~偏置发生与谐波采集，仿射控制律与~H1 基线均在上位机执行（\texttt{gen}/\texttt{acq}）。DM858E（DE4，直流）与~SDS824X HD（DE2，交流~FFT）经~LAN/SCPI 作电子链交叉核对；射频口接地、RF 关断。}
 \label{fig:exp_mzm}
 \end{figure}
 
-\emph{相位真值与精度评定。}任意点锁定精度的实验评定需要一个独立于交流控制环的偏置相位参考。为此用开环慢扫描、由~DM858E 记录整条直流传递曲线~$P(V_b)$：由相邻极值定出~$V_\pi$ 与~$\varphi_0$，从而把任一直流偏压标定为相位~$\hat\varphi(V_b)$，作为锁定误差~$|\varphi_{\rm lock}-\varphi^\ast|$ 的基准，并由直流功率极值提供绝对相位锚点。该直流支路与高速谐波支路同源（同一~PD 输出），故评定的是相对一致性而非绝对光功率定标。
+\emph{标定标签与精度评定。}开环慢扫描由~DM858E 记录~$P(V_b)$，相邻极值给出~$V_\pi$ 与~$\varphi_0$，进而生成每个标定样本的~$\varphi(V_b)$。主结果路径以这些标签直接回归~$\zv=A\uv(\varphi)+\bv$；同一扫描上的~27.3~mrad 是拟合内自检，不是独立测试误差。锁定后采用两种现有口径：(i)~DM858E 在目标附近的直流局部线性化，得到~246~mrad；(ii)~宽扫偏压--相位映射，得到~342~mrad。局部线性化在直流极值附近退回第二种口径，且不适合量化跨分支的大误差；因此~H1 基线的~1241~mrad 只作为“发生严重失锁”的描述性指标。
 
 \emph{分阶段流程与判据。}实测按以下阶段推进，每阶段对照一张仿真图：
 （0）平台与~$V_\pi$ 标定——\texttt{gen} 扫偏压、DM858E 记~$P(V_b)$ 全曲线，由相邻极值定~$V_\pi,\varphi_0$，双向扫描消除漂移偏差（图~\ref{fig:expcal}(a)(b)）、并与板上~\texttt{scan vpi} 交叉核对；
-（1）标定——满周期慢扫、椭圆拟合、规范固定（直流回归）、自检残差（图~\ref{fig:expcal}(c)(d)~$\leftrightarrow$~图~\ref{fig:affine}(a)(b)）；
-（2）任意点锁定——$\varphi^\ast$ 取~$\ge16$ 点逐点锁定，用相位基准读~rms 与静差，对比上位机~H1 幅值匹配基线（图~\ref{fig:expperf}(b)~$\leftrightarrow$~图~\ref{fig:mzmloop}、\ref{fig:sweep}）；
+（1）标定——满周期慢扫，以~DM858E 相位标签监督回归~$(A,\bv)$；另以纯椭圆路径作离线诊断（图~\ref{fig:expcal}(c)(d)~$\leftrightarrow$~图~\ref{fig:affine}(a)(b)）；
+（2）任意点锁定——$\varphi^\ast$ 取~16 点逐点锁定，每个目标报告一次稳态误差，以跨目标~rms 汇总，并对比上位机~H1 幅值匹配基线（图~\ref{fig:expperf}(b)）；
 （3）噪声与导频深度——测相位残差随~$\varphi$ 的分布并扫导频幅度~$m$，核对~$\kappa(A)$ 趋势（图~\ref{fig:expperf}(a)~$\leftrightarrow$~图~\ref{fig:affine}(c)）；
-（4）漂移与重定标——叠加慢漂与人为突变（阶跃改变偏置或导频幅度），由上位机残差监视触发重定标，记检测延迟、恢复~rms 与重定标次数，并作~$3$~h 连续运行（图~\ref{fig:exp3}~$\leftrightarrow$~图~\ref{fig:recal}）；
-（5）RF 加载鲁棒性——把原先接地的射频口改接信号源（DG922pro 一通道，$50$~MHz 正弦），在 RF 关及~$0$ 至~$+13$~dBm 逐功率重新辨识椭圆、于~$8$ 个目标相位逐点锁定，记录锁定~rms、$\kappa(\hat A)$ 与谐波随 RF 深度的衰落（图~\ref{fig:expperf}(c)(d)）；RF 是否真在调制光相位由 H1 与直流条纹的~$J_0$ 衰落直接判定（板上 Goertzel 与~DM858E），频谱仪在跨阻（TIA）前测点（DE1）核对加载音——该测点（TIA 后的 DE2 因带宽限制看不到~$50$~MHz）。该阶段无对应仿真图，直接检验仿射定理在有载荷时的预言。
-判据：仿射框架在任意目标点的闭环静差应与标定残差同量级、且不随目标相位系统性放大，并显著优于幅值匹配/谐波比值基线；受导频深度限制，各项绝对指标按式~\eqref{eq:var} 的~$\kappa(m)$ 趋势整体高于~$m{=}1.2$ 仿真（见下文实测）。RF 加载阶段（5）另有结构性预期：$50$~MHz 远高于~PD/ADC 带宽，探测对其取平均得到一个~$J_0(m_{\rm RF})$ 因子，整体缩放观测向量~\eqref{eq:affine}（$A\to J_0A$）而不改变相位~$\uv(\varphi_b)$；由于~$J_0$ 同时缩放~H1、H2，条件数~$\kappa(A)$（即椭圆轴比）保持不变，仅观测信噪比随~$J_0(m_{\rm RF})$ 下降，故锁定应在 RF 加载下保持有界、RF 开的~rms 与 RF 关接近。下文实测予以证实。
+（4）漂移与重定标——单次导频幅度阶跃触发~121 点满周期重扫，记录描述性检测延迟与恢复误差；另作单次~$3$~h 连续运行（图~\ref{fig:exp3}）；
+（5）RF 加载——射频口接~50~MHz 正弦，在 RF 关及~$0$ 至~$+13$~dBm 的每个功率态分别重新标定，再于~8 个目标点锁定（图~\ref{fig:expperf}(c)(d)）。该设计检验“静态 RF 状态经重新辨识后仍符合仿射模型”，不检验固定一次标定后在线切换载荷的鲁棒性，也不外推到宽带或~GHz 业务信号。
+在单音、时间尺度分离且电学串扰与偏置无关时，高频调制平均可使~$A$ 近似乘以~$J_0(m_{\rm RF})$；$\kappa(A)$ 理论上不变，但绝对信噪比随~$|J_0|$ 下降。实验只对这一结构趋势作描述性检验。
 
 \begin{table}[!t]
 \caption{实验测试矩阵。仿真对照值来自表~\ref{tab:results}。}
@@ -511,12 +557,12 @@ $\kappa(A)$（受扰真值） & $2.59$（理想比值~$3.13$） & $m{=}1.2$\\
 指标 & 条件 & 仿真值 & 实验值\\
 \midrule
 标定自检残差\textsuperscript{a} & $A_p{=}0.15$~V & 中位~$2.35$ & 中位~$27.3$~mrad\\
-任意点锁定：仿射~rms & $\varphi^\ast{=}1.9$~rad 网格 & $12.7$~mrad & $246$~mrad\\
+任意点锁定：仿射~rms & 16 点各一次稳态误差 & $12.7$~mrad & $246$~mrad\\
 任意点锁定：H1 匹配~rms & 同上 & --- & $1241$~mrad\\
-噪声地板~$\kappa(A)$\textsuperscript{b} & $m{=}1.2$／$0.092$ & $2.59$ & $45.24$\\
+观测各向异性~$\kappa(A)$\textsuperscript{b} & $m{=}1.2$／$0.092$ & $2.59$ & $45.24$\\
 捕获整定时间 & 至~$20$~mrad & $20$--$22$ 周期 & 待测\\
 漂移检测延迟 & 圆残差触发 & $31$ 周期 & 检测~$6$ 周期\\
-漂移恢复~rms\textsuperscript{c} & 重定标后 & $13.7$~mrad & 恢复~$396$~mrad\\
+漂移恢复~rms\textsuperscript{c} & 满周期重扫后 & $13.7$~mrad & 恢复~$396$~mrad\\
 稳定性：重定标事件\textsuperscript{d} & 连续~$3$~h & --- & 0 次\\
 稳定性：DMM rms & 连续~$3$~h & --- & DMM rms~$487$~mrad\\
 RF 加载：开~rms\textsuperscript{e} & $50$~MHz & --- & 仿射~$192.5$~mrad\\
@@ -525,59 +571,62 @@ RF 加载：关~rms & 参考 & --- & $166.1$~mrad\\
 \end{tabular}
 \par\vspace{2pt}
 {\scriptsize\raggedright
-\textsuperscript{a}~实验列取~$A_p{=}0.15$~V（$m{=}0.092$）。\quad
-\textsuperscript{b}~$\kappa$ 差异因实验~$m{\approx}0.09$–$0.12$ 受交流通道余量限制。\quad
-\textsuperscript{c}~恢复地板受突变压低导频深度（$\kappa$ 增大）限制。\quad
-\textsuperscript{d}~$3$~h 连续锁定误差无增长，$0$ 次重定标触发。\quad
-\textsuperscript{e}~实验各行~$\kappa(\hat A){\approx}45$；RF 加载下~$\kappa$ 保持不变。\par
-注：仿真列取~$m{=}1.2$，实验列受交流通道余量限制~$m\approx0.09$–$0.12$，两列绝对量级不可直接比较，对比应看趋势与相对优势。\par}
+\textsuperscript{a}~实验值来自用于监督回归的同一扫描；纯椭圆诊断为中位~49.2、P95~115.3~mrad。\quad
+\textsuperscript{b}~$\kappa$ 只描述各向异性，绝对噪声还取决于~$\sigma_{\min}$ 与观测噪声。\quad
+\textsuperscript{c}~单次幅度阶跃、121 点满周期重扫。\quad
+\textsuperscript{d}~一次单器件、室温运行，不构成失效率估计。\quad
+\textsuperscript{e}~每个 RF 功率态分别重新标定。\par
+注：仿真与实验的导频深度、环路速率和标定方法不同，绝对数值不可直接作性能比较。\par}
 \end{table}
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{figs/fig_expcal_mzm.pdf}
-\caption{阶段（0）--（1）实测直流标定与仿射标定。(a) DM858E 双向慢扫的直流传递曲线~$P(V_b)$ 及其余弦拟合，上/下行各测得~$V_\pi=5.36/5.20$~V、劈裂~$0.16$~V，双向平均~$V_\pi=5.28$~V，峰值~$\approx1.5$~V（板~CH1 在此区饱和于~$1.2$~V）；(b) 同一数据按相位~$\varphi=\pi(V_b{-}V_0)/V_\pi$ 重绘，呈洁净余弦；(c) 导频幅度~$A_p=0.15$~V（$m=0.092$）下的实测观测椭圆，$\kappa(\hat A)=45.24$；(d) 回拉样本落于单位圆，自检中位误差~$27.3$~mrad。}
+\caption{直流与监督式仿射标定。(a) DM858E 双向慢扫及余弦拟合，上/下行~$V_\pi=5.36/5.20$~V，平均~$5.28$~V；(b) 由同一扫描生成相位标签；(c) $A_p=0.15$~V（$m=0.092$）时的观测椭圆，$\kappa(\hat A)=45.24$；(d) 由相位标签直接回归的~$(A,\bv)$ 将拟合样本回拉至单位圆，拟合内中位误差~$27.3$~mrad。纯椭圆离线诊断为中位~49.2、P95~115.3~mrad，未用于后续闭环。}
 \label{fig:expcal}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{figs/fig_expperf_mzm.pdf}
-\caption{任意点锁定实测性能。(a) 噪声地板~$\kappa(\hat A)$ 随导频深度~$m$ 的趋势（阶段（3））：实测（绿）在可分辨区与理想~Bessel 比~$J_1(m)/J_2(m)$（蓝）几乎重合，可用~$m$ 受~ADC 余量约束于~$\lesssim0.12$，故~$\kappa$ 难降至仿真~$m{=}1.2$（$\kappa{=}2.59$）的量级，与图~\ref{fig:affine}(c) 对照；(b) 任意点锁定精度随目标相位的分布：$\varphi^\ast$ 取~$[0,2\pi)$ 上~$16$ 点，仿射控制器全部目标点有界锁定（rms~$\approx246$~mrad，$\kappa\approx45$ 受限），H1 幅值匹配基线在死区/分支点失锁（误差达~$\pm\pi$，rms~$\approx1241$~mrad），与图~\ref{fig:mzmloop}、\ref{fig:sweep} 对照；(c) $50$~MHz RF 加载下板上 H1 幅度随调制深度~$m_{\rm RF}$ 衰落，与理论~$J_0(m_{\rm RF})$ 重合，拟合等效~$V_\pi^{\rm RF}\approx2.8$~V；(d) 任意点锁定~rms 随施加 RF 功率（$0$--$13$~dBm）全程有界，与 RF 关参考（$166$~mrad，红虚线）同量级，$\kappa(\hat A)$ 保持~$\approx45$ 不变。}
+\caption{描述性实测结果。(a) 椭圆条件数~$\kappa(\hat A)$ 随导频深度~$m$ 的趋势；$\kappa$ 不是绝对噪声地板。(b) 16 个目标点各一次稳态误差：监督式仿射控制的跨目标~rms 为~246~mrad，H1 幅值匹配在死区/分支点失锁，描述性~rms 为~1241~mrad。(c) 50~MHz 单音下~H1 衰落及同一数据的~$J_0$ 拟合，等效~$V_\pi^{\rm RF}\approx2.8$~V；(d) 每个 RF 功率态分别重标定后的~8 点跨目标~rms 与~$\kappa(\hat A)$。误差条缺失是因为各条件未做独立重复。}
 \label{fig:expperf}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=3.45in]{figs/fig_expstab_mzm.pdf}
-\caption{长期稳定性与残差触发检测（实测）。(a) $3$~h 连续锁定于~$\varphi^\ast{=}1.9$~rad：偏置~$V_b$ 自动跟踪约~$0.98$–$0.99$~V 慢漂，DM858E 就地线性化测得的锁定误差不随时间增长（逐小时~rms~$\approx487$~mrad），残差监视量~$\bar\rho$ 全程低于阈值、零次重定标触发；绝对误差受~$\kappa{\approx}46$ 标定偏置限制（非漂移发散）。(b) 注入导频幅度阶跃至~$0.6{\times}$的“突变”：锁定误差上升、残差~$\bar\rho$ 越阈触发重定标（检测延迟~$6$ 周期，图内“$+6\!\to\!$重标”），重标定后误差回落至~rms~$\approx396$~mrad——完整的突变$\to$检测$\to$重标恢复闭环；恢复地板因突变压低导频深度（$\kappa$ 增大）而高于原值。与仿真图~\ref{fig:recal} 对照。}
+\caption{单次长运行与单次残差触发试验。(a) 单器件室温下连续~3~h，偏置跟踪约~0.99~V 慢漂；DM858E 局部线性化误差没有随小时数增长，整段~rms 为~487~mrad，零次触发。该记录不提供跨运行失效率。(b) 导频幅度阶跃至~$0.6\times$ 后，圆残差在~6 个控制周期后触发~121 点满周期重扫，尾段~rms 为~396~mrad。试验未测一般误报率、漏报率或规范旋转盲区。}
 \label{fig:exp3}
 \end{figure}
 
 \emph{实测结果。}平台标定给出~$V_\pi\approx5.28$~V（DM858E 双向慢扫传递曲线，图~\ref{fig:expcal}(a)(b)）。需注意开环慢扫期间偏置持续漂移：单向扫描会使测得~$V_\pi$ 偏移约一个半周期内的漂移量（本实测上/下行分别为~$5.36$/$5.20$~V、劈裂~$0.16$~V），故取双向平均抵消该系统偏差。标定阶段在工作区附近的局部拟合另给出~$V_\pi\approx4.98$–$5.14$~V，与宽扫值相差约~$6\%$，源于局部窗口与慢漂；全文统一采用双向宽扫平均值。实测确认了~CH1 的削顶预期：DM858E 测得~PD 直流峰值约~$1.5$~V，而板~CH1 高透过区压在约~$1.2$~V，故规范固定改由~DM858E 的未削顶直流完成。
 
-标定椭圆与导频深度约束方面，受交流通道余量限制，可用导频深度远小于仿真——取~$A_p=0.15$~V（$m\approx0.09$，对仿真的~$m=1.2$）时~H1 已接近~ADC 余量上限，无法再靠加深导频抬高~H2 信噪比。相应地实测观测椭圆明显偏扁，$\kappa(\hat A)=45.2$、回拉单位圆的自检中位误差为~$27.3$~mrad（图~\ref{fig:expcal}(c)(d)）：按式~\eqref{eq:var}，$\kappa$ 随小~$m$ 增大是预期结果，直接反映交流通道余量对可用导频深度的约束；在此条件下，仿射解调仍把含失配的观测准确回拉至单位圆——模型的仿射结构在真实链路上成立。扫描导频深度进一步证实~$\kappa(\hat A)$ 随~$m$ 减小而沿~$J_1(m)/J_2(m)$ 上升（图~\ref{fig:expperf}(a)，高~$m$ 端实测与理论几乎重合），而~ADC 余量把可用~$m$ 上限约束在~$\approx0.12$，这正是绝对精度受限的根源。
+受交流通道余量限制，实验导频深度为~$m\approx0.09$--$0.12$，远小于仿真的~$m=1.2$；相应椭圆条件数为~$\kappa(\hat A)=45.2$。相位标签监督回归的拟合内中位误差为~27.3~mrad，纯椭圆路径在同批数据上的诊断值为中位~49.2、P95~115.3~mrad。对该扫描作五折交错留出，监督路径的中位/P95/rms 为~27.7/105.6/53.7~mrad，纯椭圆路径为~48.7/114.1/61.7~mrad；各折仍共享一次物理扫描，故这只是样本外敏感性分析，不是独立重复。导频扫描显示~$\kappa(\hat A)$ 随~$m$ 减小而接近~$J_1/J_2$ 的趋势，但绝对精度还取决于~$\sigma_{\min}(A)$、观测噪声和闭环带宽，不能由~$\kappa$ 单独解释。
 
-任意点锁定与基线对照方面，任意点锁定在~$\ge16$ 个目标相位上逐点进行，仿射控制器与上位机重建的~H1 幅值匹配基线共用同一~\texttt{gen}/\texttt{acq} 通路、仅控制律不同，并以~DM858E 在锁定点的直流就地线性化作漂移免疫的相位评定。仿射控制器在全部目标点均保持有界锁定，rms~$\approx246$~mrad；该残差显著大于静态标定自检（$27$~mrad），主要来自~Hz 量级慢环在分钟级扫描中的开环漂移（由漂移时标与扫描时长的量级对比推断，未做环路速率扫描的独立验证）——正是第~\ref{sec:discussion} 节残差触发重定标所针对的机制。作为对照，H1 幅值匹配基线在死区/分支点处完全失锁（误差达~$\pm\pi$），rms~$\approx1241$~mrad（图~\ref{fig:expperf}(b)）：仿射在任意点上的有界性与基线的灾难性失锁形成鲜明对比，与表~\ref{tab:results} 的仿真结论一致，绝对量级差异由条件数~$\kappa\approx45$ 解释，而非模型失效。
+16 个目标相位各进行一次锁定，跨目标静态误差~rms 为~246~mrad；宽扫偏压--相位映射对同一结果给出~342~mrad。两种口径的均值分别为~12.5 和~$-203$~mrad，最大绝对误差为~535 和~738~mrad，量化了现有真值链的系统差异。246~mrad 明显高于拟合内~27.3~mrad，可能同时来自监督标定偏差、弱轴噪声、Hz 量级环路、批次慢漂和局部线性化误差；现有数据不能把增量唯一归因于某一项。H1 基线在死区和分支点发生严重失锁，局部线性化口径给出~1241~mrad，而宽扫映射约为~2491~mrad。该对照支持“二维全周期读出避免单坐标灾难性失锁”的定性结论，不构成对已发表强任意点控制器的精度优越性证明。
 
-重定标闭环与长期稳定方面，完整的“触发$\to$重标定$\to$恢复”闭环已在实测中跑通（图~\ref{fig:exp3}(b)）：注入导频幅度突变后锁定误差由突变前的~rms~$\approx110$~mrad 升至失配期的~rms~$\approx634$~mrad（瞬时峰值近~$0.9$~rad），残差越阈触发重定标（检测延迟~$6$ 个周期），重标定后尾段~rms 回落至~$\approx396$~mrad——恢复地板因突变压低了导频深度（$\kappa$ 增大）而高于原值，属预期。$3$~h 连续运行（图~\ref{fig:exp3}(a)）中偏置自动跟踪约~$0.99$~V 的慢漂、锁定误差不随时间增长（逐小时~rms 约~$487$~mrad，由~$\kappa{\approx}46$ 标定偏置主导而非漂移发散；闭环自估相位的逐样本~rms 达~$827$~mrad 但均值近零，是~$\kappa$ 放大的无偏读数噪声，故采用~DM858E 就地线性化作为独立评定口径），残差监视全程未越阈、零次重定标触发。
+单次导频幅度阶跃使误差从~110~mrad 升至~634~mrad，圆残差在~6 个控制周期后触发~121 点满周期重扫，尾段误差回落至~396~mrad。该试验证明当前阈值能命中这一径向/尺度变化，但没有给出一般误报率、漏报率或恢复时间；恢复值高于突变前水平。单次~3~h 运行包含~60 个~DMM 评定点，整段~rms 为~487~mrad，误差对时间的描述性线性斜率为~$-7.0$~mrad/h，零次触发。它只说明该次运行未发散；同一轨迹上的时间样本不能估计跨运行或跨器件稳定性。
 
-\emph{RF 加载下的鲁棒性。}最后在射频口加载~$50$~MHz 正弦、从 RF 关扫至~$+13$~dBm，每个功率态重新辨识椭圆后于~$8$ 个目标相位锁定（图~\ref{fig:expperf}(c)(d)）。板上 H1 幅度随 RF 功率单调下降并精确贴合~$J_0(m_{\rm RF})$，拟合得~$50$~MHz 处等效~$V_\pi^{\rm RF}\approx2.8$~V（低于直流~$V_\pi$，说明射频电极耦合良好）；与预期完全一致，条件数~$\kappa(\hat A)$ 在全功率范围保持~$\approx45$ 不变——$J_0$ 同时缩放两路谐波、在轴比中相消，仅观测信噪比随~$J_0$ 下降，证实带外~RF 以一个良性乘性因子进入仿射模型，模型结构保持不变。任意点锁定从 RF 关到~$+13$~dBm 全程保持有界（rms~$62$--$193$~mrad），RF 开（$0$~dBm）的~$192.5$~mrad 与 RF 关的~$166.1$~mrad 同量级，从而把第~\ref{sec:numerics} 节“RF 关断”假设下的验证延伸到了有载荷在线工作的情形。锁定~rms 随功率并非单调（$192.5\to143.2\to61.7\to74.1\to72.8$~mrad），该起伏主要反映分钟级慢漂在各功率批次间的差异，尚未用更密的功率栅格单独表征。需说明：跨阻前测点（DE1）所见的~$50$~MHz 谱线主要为电学拾取（与偏置无关），故 RF 对光相位的真实调制以 H1 与直流条纹的~$J_0$ 衰落为准，而非该谱线幅度。
+\emph{静态 RF 状态下的重新辨识。}50~MHz 单音从 RF 关扫至~$+13$~dBm，每个功率态重新标定后再锁定~8 个目标点。H1 衰落与同一数据拟合的~$J_0(m_{\rm RF})$ 趋势相符，得到等效~$V_\pi^{\rm RF}\approx2.8$~V；$\kappa(\hat A)$ 约为~45，跨目标~rms 为~62--193~mrad。由于标定随功率更新、功率顺序未随机化且没有重复批次，该结果只支持静态 RF 条件下的可重新辨识性，不能证明固定标定对在线载荷变化的鲁棒性，也不能分离慢漂对非单调误差的影响。
 
 \section{讨论}
 \label{sec:discussion}
-\emph{持续激励。}本文方法依赖对~$(A,\bv)$ 的辨识。闭环稳态下，偏置相位停在目标点附近，新的观测样本不再充分激励参数空间，这是辨识型控制方案的共同限制~\cite{ljung1999}。实际系统可用残差~$\|\zv-\hat A\uv(\hat\varphi_b)-\hat\bv\|$ 监测失配，并在残差持续越限时触发重定标；也可加入周期性微幅弧或受限递推最小二乘。
+\emph{持续激励与检测盲区。}本文方法依赖对~$(A,\bv)$ 的辨识。闭环稳态下，偏置相位停在目标附近，新的观测样本不再充分激励参数空间~\cite{ljung1999}。圆残差可检测中心、尺度和形状变化，却对~$A\mapsto AR$ 的规范旋转不敏感；因此它不是通用变化检测器。部署时需联合监测直流相位锚点，或周期性访问参考点；局部递推更新还必须施加继承旧模型的正则约束。
 
-\emph{漂移时间尺度。}重定标机制是否够用，取决于漂移速率与控制带宽之比。LiNbO$_3$/InP 调制器的偏压漂移按机理分层：热致漂移的时间常数在秒至分钟量级，电荷重分布与光折变效应则在分钟至小时量级~\cite{salvestrini2011,chen2011}；温控稳定的链路中，等效偏置漂移一般为亚毫弧度每秒到毫弧度每分钟。本文取控制周期~$1$--$10$~ms，导频与解调带宽远高于这一漂移谱。捕获时间常数~$1/G\approx5.6$ 周期与残差判决延迟~$M+1/\lambda\approx40$~周期合计仍在百毫秒量级，足以跟踪慢漂移、并在参数突变后及时重定标（图~\ref{fig:recal}）。真正的难点是带宽接近控制环的快扰动，如机械振动与声学耦合；它们超出准静态漂移假设，需要更高导频频率或前馈补偿，属本框架边界。
+\emph{漂移时间尺度。}重定标是否及时取决于漂移速率与实际闭环带宽之比。LiNbO$_3$/InP 器件的热致漂移常在秒至分钟量级，电荷重分布与光折变效应可延伸至分钟至小时~\cite{salvestrini2011,chen2011}。本文仿真以控制周期计数，未把周期换算为实时时间；台架受通信和~Goertzel 平均限制，单周期约为秒量级。1--10~ms 仅是把控制律移植至板载固件后的设计目标，本文未实测其端到端时延或稳定裕度。因此，图~\ref{fig:recal} 的~31 周期和实测的~6 周期只按周期数报告，不据此声称百毫秒恢复。
 
-\emph{硬件实现。}对已有 H1/H2 双谐波 STM32 级锁相固件，本方案主要增加一次开机标定扫描、每周期一次~$2{\times}2$ 乘加和一次~$\atan$ 查表，六个标定标量~$(\hat A,\hat\bv)$ 可存入配置页。
+\emph{硬件实现。}对已有 H1/H2 双谐波锁相固件，运行时主要增加一次~$2{\times}2$ 乘加和一次~$\atan$。这一操作数估计说明计算规模较小，但板载时延、定点误差和满周期重扫的业务中断时间尚未测量。
 
-\emph{适用边界。}仿射结构依赖第~\ref{sec:affine} 节的线性接收和线性解调假设。光电探测/跨阻非线性、偏压相关吸收以及直流基准的~$O(\varepsilon)$ 规范偏移都会限制绝对精度。此外，本文实测取自单只器件、室温单点与单次连续运行；$\kappa$、$V_\pi$ 等数值的跨器件、跨温度普适性需要重复实验确认。
+\emph{适用边界与证据等级。}仿射结构依赖线性接收、线性解调和扫描期间参数近似不变。光电探测/跨阻非线性、偏压相关吸收及直流规范偏移都会限制绝对精度。实验采用相位标签监督回归，不能替代纯椭圆控制器的端到端验证；H1 对照也不是文献中的强任意点基线。全部硬件结果来自单只器件、室温单点和单次顺序运行，故不报告置信区间、跨器件普适性或故障概率。独立重复、随机化 RF 功率顺序、等信息二维基线和纯椭圆闭环是后续实验的优先项。
 
-\emph{展望。}本文把偏压控制归结为在状态流形上辨识仿射观测、再反演相位，沿这一视角有几个方向值得继续。器件维度上的推广最为直接：特征映射的构造并不依赖单~MZM 的具体结构，凡传递函数能按偏置相位与导频波形分离者——嵌套调制器（如双平行~MZM）、IQ 调制器、级联调制器、薄膜铌酸锂多电极器件——都可写出相应的特征映射与仿射模型，其构造与可观测性分析将另文展开。更进一步，可将本文划为边界的接收链非线性与偏压相关吸收作为已知结构纳入模型，做“仿射加非线性”的半参数辨识，使适用边界本身成为可处理的部分。在线运行方面，闭环稳态下的激励不足可由受限递推最小二乘与受激励调度缓解，把重定标从被动触发推进为持续自适应；导频深度与频率规划则不必再取经验值，可把第~\ref{sec:noise} 节的噪声协方差（式~\eqref{eq:var} 与~Fisher/Cram\'er--Rao 界）作为目标在线优化，$\kappa(A)$ 即其直接指标。
+\emph{展望。}后续工作首先应完成纯椭圆加直流规范的硬件闭环、等信息二维基线和跨运行重复；在此基础上，才适合推广到嵌套或多电极调制器。在线设计可用式~\eqref{eq:var} 的最坏相位方差联合优化导频深度与频率，并以相位锚点创新量补足圆残差的规范盲区。
 
 \section{结论}
-本文从偏置相位与导频时间波形的因子分解出发，证明 MZM 的谐波解调观测是单位圆的精确仿射像。基于这一模型，特殊点锁定及其静差可解释为仿射观测的低维读出；任意点控制则可通过标定、规范固定和相位反演实现，闭环增益不再依赖目标点位置。数值验证表明，在本文仿真条件下，仿射控制器可达到毫弧度量级残差，并相对于传统多环基线降低任意点静差。自研偏压控制平台上的实测进一步证实了仿射结构在真实链路上成立，任意点锁定相对~H1 幅值匹配基线具有显著优势（rms 约为其五分之一，基线在死区完全失锁），以及残差触发的“检测--重定标--恢复”闭环、小时级长期稳定与~50~MHz 射频加载下的鲁棒性；受交流通道余量限制，实测的绝对精度由观测条件数~$\kappa(A)$ 设定（第~\ref{sec:exp} 节）。接收链非线性、偏压相关吸收与闭环稳态的持续激励构成该框架的边界，第~\ref{sec:discussion} 节的残差监测与重定标机制已给出可操作的处理路径。把同一仿射辨识视角推广到嵌套调制器与偏振复用器件、并将已知非线性纳入半参数模型，是值得继续的方向。
+本文证明了线性接收--解调链下二维谐波观测的精确仿射结构，并把全周期反演条件明确为~$A$ 满秩且绝对相位规范可固定。椭圆辨识与直流规范算法在仿真中得到验证。硬件实验采用直流相位标签监督回归，显示二维仿射控制在~16 个目标点上保持有界，而单~H1 幅值读出出现严重失锁；该结果验证的是相位参考辅助实现，不是纯椭圆控制器。单次长运行、单次满周期重标定和逐 RF 状态重标定提供了可行性证据，但不支持跨运行稳定性、微幅弧恢复或固定标定下 RF 在线鲁棒性。实验绝对误差由弱轴尺度、噪声、环路带宽、漂移与真值口径共同决定，$\kappa(A)$ 只描述各向异性。完成无监督闭环、等信息强基线和独立重复，是该框架进入工程性能比较前的必要步骤。
+
+\section*{数据与代码可用性}
+本文图表所用处理后实验数据、数值合同、绘图脚本和采集编排脚本随补充材料提供，可重建全部图表和表中数值，数据字典与文件校验值见随附清单。自研板固件、模拟前端原理图及实验室仪器驱动尚未纳入匿名复现包；因此当前材料可独立复现离线分析与论文图表，但不能独立重做硬件采集。
 
 \appendices
 \section{导频失真下的首阶元素}
@@ -601,7 +650,9 @@ $\overline{2\sin(n\omega t{+}\alpha)\cos(n\omega t{+}\beta)}=\sin(\alpha-\beta)$
 \end{align}
 代入式~\eqref{eq:entries} 即得式~\eqref{eq:Aeps}：一阶导频二次谐波失真不改变对角元，主要生成非对角耦合项。对直流分量作相同展开，可得到第~\ref{sec:calib} 节引用的基准相移~$\delta\varphi_c\approx\varepsilon mJ_2(m)\sin\psi/J_0(m)$。
 
-\begin{thebibliography}{20}
+% Balance the two columns on the final reference page.
+\IEEEtriggeratref{16}
+\begin{thebibliography}{30}
 
 \bibitem{salvestrini2011}
 J.~P. Salvestrini, L.~Guilbert, M.~Fontana, M.~Abarkan, and S.~Gille,
@@ -673,9 +724,37 @@ X.~Sun, S.~Zhao, H.~Larochelle, D.~Englund, and M.~Solja\v{c}i\'c,
 \emph{Nat. Photon.}, vol.~11, no.~7, pp. 441--446, Jul. 2017.
 
 \bibitem{wang2010}
-L.~L. Wang and T.~Kowalcyzk, ``A versatile bias control technique for
+L.~L. Wang and T.~Kowalczyk, ``A versatile bias control technique for
 any-point locking in lithium niobate {Mach--Zehnder} modulators,''
 \emph{J. Lightw. Technol.}, vol.~28, no.~11, pp. 1703--1706, Jun. 2010.
+
+\bibitem{tao2014}
+J.-J. Tao, Y.-A. Zhang, J.-N. Zhang, X.-G. Yuan, Y.-Q. Huang, and Y.-P. Li,
+``A novel auto-bias control scheme for stabilizing lithium niobate
+{Mach--Zehnder} modulator at any operating point,''
+\emph{Optoelectron. Lett.}, vol.~10, no.~1, pp. 21--23, Jan. 2014.
+
+\bibitem{li2018}
+X.~Li, L.~Deng, X.~Chen, H.~Song, Y.~Liu, M.~Cheng, S.~Fu, M.~Tang,
+M.~Zhang, and D.~Liu, ``Arbitrary bias point control technique for optical
+{IQ} modulator based on dither-correlation detection,''
+\emph{J. Lightw. Technol.}, vol.~36, no.~18, pp. 3824--3836, Sep. 2018.
+
+\bibitem{svarny2022}
+J.~Svarny and S.~Chladek, ``Model-based bias controller for a
+{Mach--Zehnder} intensity modulator,'' \emph{J. Lightw. Technol.},
+vol.~40, no.~3, pp. 720--727, Feb. 2022.
+
+\bibitem{teng2023}
+J.~Teng \emph{et al.}, ``Arbitrary bias control of {LiNbO$_3$}-based
+{Mach--Zehnder} intensity modulators for {QKD} system,''
+\emph{EPJ Quantum Technol.}, vol.~10, Art.~no.~33, Sep. 2023.
+
+\bibitem{weller2025}
+S.~Weller, S.~Haxha, J.~Galdeano, and I.~McKenzie, ``Bias control for
+{Mach--Zehnder} modulators: A gradient-based optimization approach,''
+\emph{IEEE Trans. Microw. Theory Techn.}, vol.~73, no.~12,
+pp. 10678--10690, Dec. 2025.
 
 \bibitem{yuan2019}
 X.~Yuan, Y.~Zhang, J.~Zhang, and M.~Zhang, ``Any point bias control

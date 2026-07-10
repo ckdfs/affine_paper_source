@@ -63,7 +63,7 @@ _lfsn_call = _mticker.LogFormatterSciNotation.__call__
 def _lfsn_fix(self, x, pos=None):
     return _lfsn_call(self, x, pos).replace(r'\mathdefault', r'\mathrm')
 _mticker.LogFormatterSciNotation.__call__ = _lfsn_fix
-GRN, RED, BLU, GLD, INK = '#1F6E52', '#BC4B2A', '#2E5FA3', '#A8801F', '#1E2A24'
+GRN, RED, BLU, GLD, INK, VIO = '#1F6E52', '#BC4B2A', '#2E5FA3', '#A8801F', '#1E2A24', '#6B5B95'
 CW = 3.45
 
 # ---------------- MZM machinery (ported from make_figs.py) ----------------
@@ -124,6 +124,13 @@ ph = np.linspace(0.02, 2*np.pi-0.02, 600)
 # amplitude matching (eq. staticAM), nominal slope k1
 dAM = -(A21*np.cos(ph) + (A22+k1)*np.sin(ph) + bY) / (A22*np.cos(ph) - A21*np.sin(ph))
 dAM = np.minimum(np.abs(dAM), np.pi)*1e3
+# Equal-information, favorable 2-D baseline: subtract the true offsets and
+# calibrate the two diagonal gains, but ignore non-orthogonal mixing.  This is
+# deterministic and consumes no RNG, so it does not perturb downstream metrics.
+Xd, Yd = measure_mzm(ph, P1, noisy=False)
+u_diag = np.stack([(Xd-bX)/A11, (Yd-bY)/A22], axis=0)
+phi_diag = np.arctan2(u_diag[1], u_diag[0])
+dDG = np.abs(np.angle(np.exp(1j*(phi_diag-ph))))*1e3
 # harmonic ratio: root of  c(phi) = X(phi)*k1*sin(ph*) + Y(phi)*k2*cos(ph*) = 0
 # nearest to the target (charitable branch choice), no noise
 def ratio_static(pstar):
@@ -192,6 +199,7 @@ fig, axs = plt.subplots(1, 2, figsize=(2*CW, 2.0))
 ax = axs[0]
 ax.semilogy(ph, np.maximum(dAM, 1e-1), color=RED, label='amplitude matching')
 ax.semilogy(ph_r, np.maximum(dRT, 1e-1), color=GLD, ls='-.', label='harmonic ratio')
+ax.semilogy(ph, np.maximum(dDG, 1e-1), color=VIO, ls='--', label='diagonal 2-D atan2')
 ax.semilogy(tgts16, rms16, 'o', color=GRN, ms=3.5, label='affine loop rms')
 ax.axhline(np.median(rms16), color=GRN, lw=0.7, ls=':')
 ax.set_xlabel('target phase $\\varphi^*$ (rad)')
@@ -200,7 +208,7 @@ ax.set_xticks([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
 ax.set_xticklabels(['0', '$\\pi/2$', '$\\pi$', '$3\\pi/2$', '$2\\pi$'])
 ax.set_ylim(0.5, 4000)
 ax.text(0.02, 0.93, '(a)', transform=ax.transAxes, fontsize=8, weight='bold')
-ax.legend(loc='lower center', bbox_to_anchor=(0.5, 0.99), ncol=3, frameon=False,
+ax.legend(loc='lower center', bbox_to_anchor=(0.5, 0.99), ncol=2, frameon=False,
           borderpad=0.1, handlelength=1.2, columnspacing=0.8, fontsize=6)
 ax = axs[1]
 ax.plot(ph, sig_th, color=INK, lw=0.9,
@@ -219,7 +227,7 @@ ax.legend(loc='lower center', bbox_to_anchor=(0.5, 0.99), ncol=3, frameon=False,
 plt.tight_layout(); plt.savefig('figs/fig_sweep.pdf'); plt.close()
 
 # ------- single-column narrow variant of fig_sweep (stacked, for 2-col IEEE) -------
-# Re-plots the SAME already-computed arrays (ph, dAM, ph_r, dRT, tgts16, rms16,
+# Re-plots the SAME already-computed arrays (ph, dAM, ph_r, dRT, dDG, tgts16, rms16,
 # ph24, sig_mc, sig_th) stacked vertically instead of side-by-side, sized to a
 # single 3.45in column. No RNG draws here — pure capture-replot.
 fig, axs = plt.subplots(2, 1, figsize=(CW, 3.7))
@@ -228,6 +236,7 @@ with plt.rc_context({'font.size': 6.5, 'axes.labelsize': 6.5, 'legend.fontsize':
     ax = axs[0]
     ax.semilogy(ph, np.maximum(dAM, 1e-1), color=RED, label='幅值匹配')
     ax.semilogy(ph_r, np.maximum(dRT, 1e-1), color=GLD, ls='-.', label='谐波比值')
+    ax.semilogy(ph, np.maximum(dDG, 1e-1), color=VIO, ls='--', label='对角校准 atan2')
     ax.semilogy(tgts16, rms16, 'o', color=GRN, ms=3.0, label='仿射环路 rms')
     ax.axhline(np.median(rms16), color=GRN, lw=0.7, ls=':')
     ax.set_xlabel('目标相位 $\\varphi^*$ (rad)', labelpad=1)

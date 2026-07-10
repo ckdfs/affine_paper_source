@@ -700,14 +700,14 @@ def fig_expcal_mzm(data, out):
         allb = np.concatenate([bu, bd]) if has_dir else bu
         vv = np.linspace(allb.min(), allb.max(), 400)
         ax.plot(vv, a + b * np.cos(np.pi * (vv - v0) / vpi), color=BLU, lw=1.0, label="拟合")
-        ax.set_xlabel("偏压 $V_b$ (V)", fontsize=6.5, labelpad=1)
-        ax.set_ylabel("PD 直流 (V)", fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
-        ax.set_title(f"(a) 双向直流传递  $V_\\pi{{=}}{vpi:.3f}$ V", fontsize=6.6, pad=2)
+        ax.set_xlabel("偏压 $V_b$ (V)", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("PD 直流 (V)", fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
+        ax.set_title(f"(a) 双向直流传递  $V_\\pi{{=}}{vpi:.3f}$ V", fontsize=7.2, pad=2)
         # headroom so the horizontal legend never overlaps the curve
         ax.margins(y=0.05)
         y0, y1 = ax.get_ylim(); ax.set_ylim(y0, y1 + 0.42 * (y1 - y0))
-        ax.legend(fontsize=5.5, loc="upper center", ncol=3, frameon=False,
+        ax.legend(fontsize=6.4, loc="upper center", ncol=3, frameon=False,
                   handlelength=1.1, handletextpad=0.3, columnspacing=0.8,
                   borderpad=0.1)
         c += 1
@@ -718,10 +718,10 @@ def fig_expcal_mzm(data, out):
             ax.plot(ph(bd), dd, "^", ms=1.6, mew=0, color=RED)
         pp = np.linspace(-np.pi, np.pi, 300)
         ax.plot(pp, a + b * np.cos(pp), color=BLU, lw=1.0)
-        ax.set_xlabel("偏置相位 $\\varphi$ (rad)", fontsize=6.5, labelpad=1)
-        ax.set_ylabel("PD 直流 (V)", fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
-        ax.set_title("(b) 按拟合相位归一重排", fontsize=6.6, pad=2)
+        ax.set_xlabel("偏置相位 $\\varphi$ (rad)", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("PD 直流 (V)", fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
+        ax.set_title("(b) 按拟合相位归一重排", fontsize=7.2, pad=2)
         c += 1
     if have_cal:
         d = np.load(cnpz, allow_pickle=True)
@@ -738,21 +738,21 @@ def fig_expcal_mzm(data, out):
         ax.plot(*c0, "+", color=INK, ms=6, mew=1.2)
         ax.annotate("$\\hat{\\mathbf{b}}$", c0, textcoords="offset points",
                     xytext=(4, -9), fontsize=6.5, color=INK)
-        ax.set_xlabel("$X$ (H2) ($\\times10^{-2}$)", fontsize=6.5, labelpad=1)
-        ax.set_ylabel("$Y$ (H1)", fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
-        ax.set_title("(c) 实测观测椭圆", fontsize=6.6, pad=2)
+        ax.set_xlabel("$X$ (H2) ($\\times10^{-2}$)", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("$Y$ (H1)", fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
+        ax.set_title("(c) 实测观测椭圆", fontsize=7.2, pad=2)
         ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, pos: f"{v * 1e2:.0f}"))
         ax.margins(x=0.22, y=0.12)
         c += 1
         ax = axs[c]
         ax.plot(us[:, 0], us[:, 1], ".", ms=1.2, color=GRN)
         ax.add_patch(Circle((0, 0), 1, fill=False, ec=INK, lw=0.8, ls="--"))
-        ax.set_xlabel("$\\hat u_x$", fontsize=6.5, labelpad=1)
-        ax.set_ylabel("$\\hat u_y$", fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
+        ax.set_xlabel("$\\hat u_x$", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("$\\hat u_y$", fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
         ax.set_title(f"(d) 回拉单位圆  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
-                     fontsize=6.6, pad=2)
+                     fontsize=7.2, pad=2)
         ax.set_aspect("equal"); ax.margins(0.22)
     fig.tight_layout(pad=0.4, h_pad=0.8, w_pad=0.6)
     fig.savefig(os.path.join(out, "fig_expcal_mzm.pdf"))
@@ -791,11 +791,11 @@ def fig_expperf_mzm(data, out):
                 label="$J_1/J_2$")
         ax.plot(m, kap, "o-", color=GRN, ms=3, lw=0.7, label="实测")
         ax.set_yscale("log")
-        ax.set_xlabel("导频深度 $m$", fontsize=6.5, labelpad=1)
-        ax.set_ylabel("$\\kappa(\\hat A)$", fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
-        ax.set_title("(a) $\\kappa$ vs 导频深度", fontsize=6.6, pad=2)
-        ax.legend(fontsize=5.5, loc="best", frameon=False, handlelength=1.3,
+        ax.set_xlabel("导频深度 $m$", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("$\\kappa(\\hat A)$", fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
+        ax.set_title("(a) $\\kappa$ vs 导频深度", fontsize=7.2, pad=2)
+        ax.legend(fontsize=6.3, loc="best", frameon=False, handlelength=1.3,
                   handletextpad=0.3, borderpad=0.1)
         ax.grid(True, which="both", alpha=0.25)
         c += 1
@@ -806,14 +806,14 @@ def fig_expperf_mzm(data, out):
         ax = axs[c]
         ax.semilogy(ps, base, "s-", color=RED, ms=2.5, lw=0.7, label="H1 基线")
         ax.semilogy(ps, np.maximum(aff, 1e-1), "o-", color=GRN, ms=2.5, lw=0.7, label="仿射")
-        ax.set_xlabel("目标相位 $\\varphi^\\ast$ (rad)", fontsize=6.5, labelpad=1)
+        ax.set_xlabel("目标相位 $\\varphi^\\ast$ (rad)", fontsize=7.2, labelpad=1)
         ax.set_ylabel("$|\\varphi_{\\rm lock}-\\varphi^\\ast|$ (mrad)",
-                      fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
-        ax.set_title("(b) 16 目标点锁定误差", fontsize=6.6, pad=2)
+                      fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
+        ax.set_title("(b) 16 目标点锁定误差", fontsize=7.2, pad=2)
         # add top headroom and float a compact horizontal legend clear of data
         ax.set_ylim(top=ax.get_ylim()[1] * 22)
-        ax.legend(fontsize=5.5, loc="upper center", ncol=2, frameon=False,
+        ax.legend(fontsize=6.3, loc="upper center", ncol=2, frameon=False,
                   handlelength=1.3, handletextpad=0.3, columnspacing=0.9,
                   borderpad=0.1)
         ax.grid(True, which="major", alpha=0.25)
@@ -838,12 +838,12 @@ def fig_expperf_mzm(data, out):
         mm = np.linspace(0, float(m_eff.max()) * 1.12 + 1e-3, 200)
         ax.plot(mm, bessel_j0(mm), color=BLU, lw=1.0, label="$J_0$ 预测")
         ax.plot(m_eff, fade_on, "o", color=GRN, ms=3.5, label="实测衰落")
-        ax.set_xlabel("$m_{\\rm RF}$", fontsize=6.5, labelpad=1)
-        ax.set_ylabel("H1 相对幅度", fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
+        ax.set_xlabel("$m_{\\rm RF}$", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("H1 相对幅度", fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
         ax.set_title(f"(c) RF 加载 H1 衰落  $V_\\pi^{{\\rm RF}}{{\\approx}}{vpi_rf:.1f}$ V",
-                     fontsize=6.6, pad=2)
-        ax.legend(fontsize=5.5, loc="lower left", frameon=False,
+                     fontsize=7.2, pad=2)
+        ax.legend(fontsize=6.3, loc="lower left", frameon=False,
                   handlelength=1.3, handletextpad=0.3, borderpad=0.1)
         ax.grid(True, alpha=0.25)
         ax.set_ylim(top=1.04, bottom=0)
@@ -857,16 +857,16 @@ def fig_expperf_mzm(data, out):
             rms_off = float(np.mean(rms[off]))
             ax.axhline(rms_off, color=RED, ls="--", lw=0.9,
                        label=f"RF 关 ({rms_off:.0f} mrad)")
-        ax.set_xlabel("RF 功率 (dBm)", fontsize=6.5, labelpad=1)
-        ax.set_ylabel("锁定 rms (mrad)", fontsize=6.5, labelpad=1)
-        ax.tick_params(labelsize=6.0)
-        ax.set_title("(d) 锁定 rms vs RF 功率", fontsize=6.6, pad=2)
+        ax.set_xlabel("RF 功率 (dBm)", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("锁定 rms (mrad)", fontsize=7.2, labelpad=1)
+        ax.tick_params(labelsize=6.8)
+        ax.set_title("(d) 锁定 rms vs RF 功率", fontsize=7.2, pad=2)
         # top headroom + vertical legend tucked in the empty upper-right corner
         # (labels are long, so ncol=2 overran the axis width -> stack them ncol=1
         # inside the frame; rms descends left-to-right so upper-right is clear)
         top_d = float(rms[on].max()) if rms_off is None else max(float(rms[on].max()), rms_off)
         ax.set_ylim(bottom=0, top=top_d * 1.9)
-        ax.legend(fontsize=5.2, loc="upper right", ncol=1, frameon=False,
+        ax.legend(fontsize=6.2, loc="upper right", ncol=1, frameon=False,
                   handlelength=1.2, handletextpad=0.3, labelspacing=0.25,
                   borderpad=0.2)
         ax.grid(True, alpha=0.25)

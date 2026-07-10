@@ -253,7 +253,7 @@ def check_experiment_results(tex: str, tex_name: str, paper_key: str | None) -> 
     specs = [
         ("selfcheck_median_mrad", "标定自检残差", 0.05, "mrad", "mzm"),
         ("lock_affine_rms_mrad", "任意点锁定：仿射", 0.1, "mrad", "mzm"),
-        ("kappa_A", "噪声地板", 0.01, "", "mzm"),
+        ("kappa_A", "观测各向异性", 0.01, "", "mzm"),
         ("settle_cycles", "捕获整定时间", 0.5, "cycles", "mzm"),
         ("recal_latency_cyc", "漂移检测延迟", 0.5, "cycles", "mzm"),
         ("recal_post_rms_mrad", "漂移恢复", 0.1, "mrad", "mzm"),
