@@ -1,22 +1,67 @@
 #!/usr/bin/env python3
 """Generate all figures for the IEEE paper. Math ported 1:1 from the
 validated HTML simulations (MZM Part I, DPMZM Part II)."""
+import glob
 import numpy as np
 from scipy.special import jv
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, FancyArrow
+from matplotlib import font_manager
+from matplotlib.patches import Rectangle, FancyArrow, FancyBboxPatch, Polygon
+from matplotlib.lines import Line2D
 import os
 rng = np.random.default_rng(20260611)
 os.makedirs('figs', exist_ok=True)
 
-plt.rcParams.update({
-    'font.size': 8, 'axes.labelsize': 8, 'axes.titlesize': 8,
-    'legend.fontsize': 7, 'xtick.labelsize': 7, 'ytick.labelsize': 7,
-    'lines.linewidth': 1.0, 'figure.dpi': 150,
-    'font.family': 'serif', 'mathtext.fontset': 'cm'})
+
+def _configure_fonts():
+    """Locate a CJK-capable font by filename (same search order/paths as
+    scripts/make_exp_figs.py's _configure_fonts) so Chinese labels render
+    correctly instead of as tofu boxes, consistently across both scripts."""
+    cands = []
+    env = os.environ.get("PAPER_CJK_FONT")
+    if env:
+        cands.append(env)
+    cands += glob.glob(
+        "/usr/local/texlive/*/texmf-dist/fonts/opentype/public/fandol/"
+        "FandolSong-Regular.otf")
+    cands += [
+        "/System/Library/Fonts/Supplemental/Songti.ttc",
+        "/System/Library/Fonts/PingFang.ttc",
+        "/System/Library/Fonts/STHeiti Medium.ttc",
+        os.path.expanduser("~/Library/Fonts/msyh.ttc"),
+    ]
+    cjk_name = None
+    for p in cands:
+        if p and os.path.exists(p):
+            font_manager.fontManager.addfont(p)
+            cjk_name = font_manager.FontProperties(fname=p).get_name()
+            break
+    serif = []
+    if cjk_name:
+        serif.append(cjk_name)
+    serif += ["TeX Gyre Termes", "Times New Roman", "DejaVu Serif"]
+    plt.rcParams.update({
+        'font.size': 8, 'axes.labelsize': 8, 'axes.titlesize': 8,
+        'legend.fontsize': 7, 'xtick.labelsize': 7, 'ytick.labelsize': 7,
+        'lines.linewidth': 1.0, 'figure.dpi': 150,
+        'font.family': 'serif', 'font.serif': serif,
+        'mathtext.fontset': 'cm', 'axes.unicode_minus': False})
+
+
+_configure_fonts()
+# log-tick labels are wrapped in \mathdefault, whose minus sign is looked up in
+# the first serif font (FandolSong has no U+2212 -> tofu); route them through
+# \mathrm so the CM math fonts supply the glyph. Formatting only, no data effect.
+import matplotlib.ticker as _mticker
+_lfsn_call = _mticker.LogFormatterSciNotation.__call__
+def _lfsn_fix(self, x, pos=None):
+    return _lfsn_call(self, x, pos).replace(r'\mathdefault', r'\mathrm')
+_mticker.LogFormatterSciNotation.__call__ = _lfsn_fix
 GRN, RED, BLU, GLD, INK = '#1F6E52', '#BC4B2A', '#2E5FA3', '#A8801F', '#1E2A24'
+OPT = '#1699A8'   # optical-path cyan (matches fig_exp_mzm.pdf convention)
+CIRC = INK        # electrical-path ink/black (matches fig_exp_mzm.pdf convention)
 CW = 3.45   # IEEE column width in inches
 
 # ================= Part I: single MZM =================
@@ -96,22 +141,80 @@ arr(ax,2.6,0.45,2.6,0.8); ax.text(6.0,0.18,'$V_{1,2,3}$ + dithers $m_i\\sin\\ome
 plt.tight_layout(); plt.savefig('figs/fig_arch.pdf'); plt.close()
 
 # ---- Fig 1b: MZM-only architecture panel for paper_mzm_zh (single column) ----
-# Pure re-draw: same box()/arr() calls as panel (a) above, just alone in a
-# fresh figure at larger font sizes (it now fills the full column width
-# instead of half of a stacked 2-row figure). No RNG, no new computation --
-# this whole schematic is patches/annotate/text only.
-fig,ax=plt.subplots(figsize=(CW,1.65))
-ax.set_xlim(0,10); ax.set_ylim(0,3.2); ax.axis('off')
-box(ax,0.2,1.6,1.2,0.8,'laser',7.5); box(ax,2.0,1.4,2.0,1.2,'MZM\n$\\varphi_b$',7.5)
-arr(ax,1.4,2.0,2.0,2.0); arr(ax,4.0,2.0,4.9,2.0)
-box(ax,4.9,1.6,1.2,0.8,'tap/PD',7.0)
-box(ax,6.6,2.0,1.5,0.7,'LIA $\\omega$: $Y$',7.0); box(ax,6.6,1.1,1.5,0.7,'LIA $2\\omega$: $X$',7.0)
-arr(ax,6.1,2.0,6.6,2.35); arr(ax,6.1,2.0,6.6,1.45)
-box(ax,8.4,1.3,1.5,1.4,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, PI',7.0)
-arr(ax,8.1,2.35,8.4,2.2); arr(ax,8.1,1.45,8.4,1.6)
-arr(ax,9.15,1.3,9.15,0.55); arr(ax,9.15,0.55,3.0,0.55); arr(ax,3.0,0.55,3.0,1.4)
-ax.text(6.0,0.7,'bias DAC $V_b$ + dither $m\\sin\\omega t$',fontsize=7,ha='center')
-plt.tight_layout(); plt.savefig('figs/fig_arch_mzm.pdf'); plt.close()
+# Icon-style redraw (visual language ported from scripts/make_exp_figs.py's
+# fig_setup_mzm skeuomorphic schematic, read-only reference -- that script is
+# NOT imported/edited here, these are independent copies of the same pure
+# plotting primitives): rounded-corner chip boxes, laser-diode/photodiode
+# glyphs, OPT-cyan arrows for the optical path, CIRC-ink arrows for the
+# electrical/control path, dashed BLU arrows for the bias+dither feedback,
+# and a line-style legend at the bottom. Pure patches/annotate/text -- no RNG,
+# no new computation, same public entry point/filename as before.
+def _chip_mzm(ax,cx,cy,w,h,fc='#F5F8F4',ec=INK,lw=0.8,r=0.09):
+    ax.add_patch(FancyBboxPatch((cx-w/2,cy-h/2),w,h,
+        boxstyle=f'round,pad=0,rounding_size={r}',fc=fc,ec=ec,lw=lw,
+        mutation_aspect=1.0,zorder=2))
+def _lab_mzm(ax,cx,cy,t,fs=5.6,color=INK,va='center'):
+    ax.text(cx,cy,t,ha='center',va=va,fontsize=fs,color=color,zorder=5)
+def _ic_laser_mzm(ax,cx,cy,s=0.28,color=CIRC):
+    ax.add_patch(Polygon([(cx-s,cy-s*0.7),(cx-s,cy+s*0.7),(cx+s*0.1,cy)],
+        closed=True,fc='none',ec=color,lw=0.9,zorder=4))
+    ax.plot([cx+s*0.1,cx+s*0.1],[cy-s*0.7,cy+s*0.7],color=color,lw=0.9,zorder=4)
+    for dy in (0.35,-0.05):
+        ax.annotate('',xy=(cx+s*0.95,cy+s*(dy+0.35)),xytext=(cx+s*0.35,cy+s*(dy-0.05)),
+            arrowprops=dict(arrowstyle='->',lw=0.7,color=color),zorder=4)
+def _ic_pd_mzm(ax,cx,cy,s=0.28,color=CIRC):
+    ax.add_patch(Polygon([(cx+s,cy-s*0.7),(cx+s,cy+s*0.7),(cx-s*0.1,cy)],
+        closed=True,fc='none',ec=color,lw=0.9,zorder=4))
+    ax.plot([cx-s*0.1,cx-s*0.1],[cy-s*0.7,cy+s*0.7],color=color,lw=0.9,zorder=4)
+    for dy in (0.4,-0.1):
+        ax.annotate('',xy=(cx-s*0.15,cy+s*(dy-0.1)),xytext=(cx-s*0.95,cy+s*(dy+0.4)),
+            arrowprops=dict(arrowstyle='->',lw=0.7,color=OPT),zorder=4)
+def _ic_mzm_mzm(ax,cx,cy,s=0.30,color=OPT):
+    x=np.array([-1.0,-0.55,0.0,0.55,1.0])*s
+    yt=np.array([0.0,0.55,0.55,0.55,0.0])*s; yb=-yt
+    ax.plot(cx+x,cy+yt,color=color,lw=0.9,zorder=4)
+    ax.plot(cx+x,cy+yb,color=color,lw=0.9,zorder=4)
+    ax.plot([cx-s,cx-1.35*s],[cy,cy],color=color,lw=0.9,zorder=4)
+    ax.plot([cx+s,cx+1.35*s],[cy,cy],color=color,lw=0.9,zorder=4)
+    ax.plot([cx-0.55*s,cx+0.55*s],[cy-0.78*s,cy-0.78*s],color=CIRC,lw=1.2,zorder=4)
+def _arr_mzm(ax,x0,y0,x1,y1,color=INK,ls='-'):
+    ax.annotate('',xy=(x1,y1),xytext=(x0,y0),
+        arrowprops=dict(arrowstyle='-|>',lw=1.0,color=color,ls=ls),zorder=3)
+
+fig,ax=plt.subplots(figsize=(CW,1.95))
+ax.set_xlim(0,10); ax.set_ylim(0,5.3); ax.axis('off'); ax.set_aspect('equal')
+yT=4.35  # optical row
+# ---- optical (top) row: 激光器 -> MZM -> 分光/PD --------------------------
+_chip_mzm(ax,1.0,yT,1.7,1.5); _ic_laser_mzm(ax,1.0,yT+0.22); _lab_mzm(ax,1.0,yT-0.48,'激光器',6.0)
+_chip_mzm(ax,3.3,yT,1.9,1.5); _ic_mzm_mzm(ax,3.3,yT+0.22); _lab_mzm(ax,3.3,yT-0.48,'MZM  $\\varphi_b$',6.0)
+_chip_mzm(ax,5.6,yT,1.7,1.5); _ic_pd_mzm(ax,5.6,yT+0.22); _lab_mzm(ax,5.6,yT-0.48,'分光/PD',6.0)
+_arr_mzm(ax,1.85,yT,2.35,yT,OPT); _arr_mzm(ax,4.25,yT,4.75,yT,OPT)
+ax.text(3.3,yT+1.0,'光路',fontsize=5.6,color=OPT,ha='center')
+# PD -> two lock-in paths (电学信号路径, ink)
+_chip_mzm(ax,7.7,yT+0.55,1.9,0.75,fc='#E7EFF7'); _lab_mzm(ax,7.7,yT+0.55,'锁相 $\\omega$: $Y$',6.0)
+_chip_mzm(ax,7.7,yT-0.55,1.9,0.75,fc='#E7EFF7'); _lab_mzm(ax,7.7,yT-0.55,'锁相 $2\\omega$: $X$',6.0)
+_arr_mzm(ax,6.45,yT,7.0,yT+0.55,CIRC); _arr_mzm(ax,6.45,yT,7.0,yT-0.55,CIRC)
+# affine demod block (below, centred) fed by both lock-in outputs
+yD=1.95
+_chip_mzm(ax,7.7,yD,2.1,1.55,fc='#E7EFF7')
+_lab_mzm(ax,7.7,yD,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, PI',6.2)
+_arr_mzm(ax,7.7,yT+0.55-0.38,7.7,yD+0.78,CIRC); _arr_mzm(ax,7.7,yT-0.55+0.38,7.7,yD+0.78,CIRC)
+# feedback: affine demod -> bias DAC + dither -> back to MZM electrode (dashed),
+# tucked directly under the optical row (no dead quadrant to its left)
+_chip_mzm(ax,3.3,0.75,3.6,0.85,fc='#F5F8F4')
+_lab_mzm(ax,3.3,0.75,'偏压 DAC + 导频 $m\\sin\\omega t$',5.8)
+_arr_mzm(ax,6.6,yD-0.78,5.1,0.75,BLU,ls='--')
+_arr_mzm(ax,3.3,1.18,3.3,yT-0.75,BLU,ls='--')
+ax.text(1.05,1.35,'偏压\n反馈',fontsize=5.4,color=BLU,ha='center')
+# line-style legend at the bottom, matching fig_exp_mzm.pdf's convention
+handles=[Line2D([0],[0],color=OPT,lw=1.1,label='光路'),
+         Line2D([0],[0],color=CIRC,lw=1.0,label='电路'),
+         Line2D([0],[0],color=BLU,lw=1.0,ls='--',label='偏压反馈')]
+ax.legend(handles=handles,loc='lower center',ncol=3,frameon=False,fontsize=5.6,
+          bbox_to_anchor=(0.5,-0.05),handlelength=1.4,columnspacing=1.0,
+          handletextpad=0.4)
+fig.subplots_adjust(left=0.02,right=0.98,top=0.97,bottom=0.05)
+plt.savefig('figs/fig_arch_mzm.pdf'); plt.close()
 
 # ---- Fig 2: phase plane: raw ellipse + corrected circle ----
 # (no legend: it covered the data; elements are annotated directly instead)
@@ -205,7 +308,7 @@ for xy,txt,col,ha in ellipse_a_annots:
     ax.annotate(txt,xy,textcoords='offset points',xytext=off,fontsize=6.5,
                 color=col,ha=ha)
 ax.set_xlabel('$X$',fontsize=7,labelpad=1); ax.set_ylabel('$Y$',fontsize=7,labelpad=1)
-ax.set_title('(a) raw observable plane',fontsize=7)
+ax.set_title('(a) 原始观测平面',fontsize=7)
 # square panel: expand X range to match Y so the axes span equally (user request)
 ax.set_aspect('equal'); ax.set_xlim(ellipse_a_ylim); ax.set_ylim(ellipse_a_ylim)
 ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=3, prune='both'))
@@ -218,7 +321,7 @@ for xd,yd,col,ls,mk,ms,mfc,mec,mew,lw in ellipse_b_lines:
             markeredgewidth=mew,linewidth=lw)
 ax.add_patch(plt.Circle((0,0),1,fill=False,ec=INK,lw=0.8,ls='--'))
 ax.set_xlabel('$\\hat u_x$',fontsize=7,labelpad=1); ax.set_ylabel('$\\hat u_y$',fontsize=7,labelpad=1)
-ax.set_title('(b) after affine inversion',fontsize=7)
+ax.set_title('(b) 仿射回拉单位圆',fontsize=7)
 ax.set_aspect('equal'); ax.set_xlim(ellipse_b_xlim); ax.set_ylim(ellipse_b_ylim)
 ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=3))
 ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=3))
@@ -233,9 +336,9 @@ ax.plot(bessel_k12[0],bessel_k12[1],'o',color=GLD,ms=4)
 ax.annotate('$J_1/J_2{=}%.2f$'%bessel_k12[1],bessel_k12,textcoords='offset points',
             xytext=(6,3),fontsize=6.5,color=GLD)
 ax.set_ylim(1,200)
-ax.set_xlabel('dither depth $m$ (rad)',fontsize=7,labelpad=1)
+ax.set_xlabel('导频深度 $m$ (rad)',fontsize=7,labelpad=1)
 ax.set_ylabel('$\\kappa(A)$',fontsize=7,labelpad=1)
-ax.set_title('(c) $\\kappa(A)$ theory curve',fontsize=7)
+ax.set_title('(c) $\\kappa(A)$ 理论曲线',fontsize=7)
 ax.tick_params(labelsize=6.5,pad=1)
 plt.savefig('figs/fig_affine_mzm.pdf'); plt.close()
 
@@ -263,9 +366,11 @@ eA,eN = mzm_loop(P1, 1.9)
 # error as a fake rail-to-rail square wave
 fig,ax=plt.subplots(figsize=(CW,1.95))
 t=np.arange(len(eA))
-ax.semilogy(t,np.maximum(np.abs(eN),1.0),color=RED,lw=0.7,label='H1 amplitude matching')
-ax.semilogy(t,np.maximum(np.abs(eA),1.0),color=GRN,lw=0.7,label='affine demod (proposed)')
-ax.set_xlabel('control step'); ax.set_ylabel('$|\\varphi_b-\\varphi^*|$ (mrad)')
+# BW-print-safe double encoding: baseline (red) dash-dot, proposed (green)
+# solid, both at lw=1.0 (was 0.7) so linestyle is legible even without color
+ax.semilogy(t,np.maximum(np.abs(eN),1.0),color=RED,lw=1.0,ls='-.',label='H1 幅值匹配')
+ax.semilogy(t,np.maximum(np.abs(eA),1.0),color=GRN,lw=1.0,ls='-',label='仿射解调（本文）')
+ax.set_xlabel('控制周期'); ax.set_ylabel('$|\\varphi_b-\\varphi^*|$ (mrad)')
 ax.set_ylim(1,4000)
 # legend above the axes: the traces span the full panel, any inside placement
 # would cover them
@@ -273,6 +378,21 @@ ax.legend(loc='lower center',bbox_to_anchor=(0.5,0.99),ncol=2,frameon=False,
           borderpad=0.2,handlelength=1.4,columnspacing=1.0,fontsize=6.5)
 rmsA=np.sqrt(np.mean(eA[300:]**2)); rmsN=np.sqrt(np.mean(np.clip(eN[300:],-3142,3142)**2))
 print(f'[Fig4] MZM loop  affine RMS={rmsA:.1f} mrad   H1 RMS={rmsN:.1f} mrad')
+# gap callout: both traces oscillate densely across the entire control-step
+# range (no clean inline gap survives at any x), so instead of overlaying the
+# curves we carve out a dedicated empty margin to their right by extending
+# xlim, then draw the vertical double-arrow + label entirely inside that
+# margin -- guaranteed not to touch either trace. Pure annotation, no RNG.
+xmax = t[-1]
+xpad = 0.22*xmax
+ax.set_xlim(0, xmax + xpad)
+xg = xmax + 0.55*xpad
+ax.annotate('', xy=(xg, max(rmsN,1.0)), xytext=(xg, max(rmsA,1.0)),
+            arrowprops=dict(arrowstyle='<->', lw=0.8, color=INK),
+            annotation_clip=False)
+ax.text(xg, np.sqrt(max(rmsA,1.0)*max(rmsN,1.0)), '$\\approx$两个\n数量级',
+        fontsize=6.0, color=INK, ha='center', va='center')
+ax.set_xticks([0,500,1000,1500,2000,2500])
 plt.tight_layout(); plt.savefig('figs/fig_mzmloop.pdf'); plt.close()
 
 # ================= Part II: DPMZM =================

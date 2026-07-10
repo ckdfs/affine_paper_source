@@ -68,6 +68,14 @@ def _configure_fonts():
 
 
 _configure_fonts()
+# log-tick labels are wrapped in \mathdefault, whose minus sign is looked up in
+# the first serif font (FandolSong has no U+2212 -> tofu); route them through
+# \mathrm so the CM math fonts supply the glyph. Formatting only, no data effect.
+import matplotlib.ticker as _mticker
+_lfsn_call = _mticker.LogFormatterSciNotation.__call__
+def _lfsn_fix(self, x, pos=None):
+    return _lfsn_call(self, x, pos).replace(r'\mathdefault', r'\mathrm')
+_mticker.LogFormatterSciNotation.__call__ = _lfsn_fix
 GRN, RED, BLU, GLD, INK = "#1F6E52", "#BC4B2A", "#2E5FA3", "#A8801F", "#1E2A24"
 CW = 3.45            # IEEE column width (in)
 TW = 7.16            # IEEE text width (in)
@@ -688,7 +696,7 @@ def fig_expcal_mzm(data, out):
         ax = axs[c]
         ax.plot(bu, du, ".", ms=1.6, color=GRN, label="上行")
         if has_dir:
-            ax.plot(bd, dd, ".", ms=1.6, color=RED, label="下行")
+            ax.plot(bd, dd, "^", ms=1.6, mew=0, color=RED, label="下行")
         allb = np.concatenate([bu, bd]) if has_dir else bu
         vv = np.linspace(allb.min(), allb.max(), 400)
         ax.plot(vv, a + b * np.cos(np.pi * (vv - v0) / vpi), color=BLU, lw=1.0, label="拟合")
@@ -707,7 +715,7 @@ def fig_expcal_mzm(data, out):
         ph = lambda bb: ((np.pi * (bb - v0) / vpi + np.pi) % (2 * np.pi)) - np.pi
         ax.plot(ph(bu), du, ".", ms=1.6, color=GRN)
         if has_dir:
-            ax.plot(ph(bd), dd, ".", ms=1.6, color=RED)
+            ax.plot(ph(bd), dd, "^", ms=1.6, mew=0, color=RED)
         pp = np.linspace(-np.pi, np.pi, 300)
         ax.plot(pp, a + b * np.cos(pp), color=BLU, lw=1.0)
         ax.set_xlabel("偏置相位 $\\varphi$ (rad)", fontsize=6.5, labelpad=1)
@@ -723,19 +731,18 @@ def fig_expcal_mzm(data, out):
         us = (B @ np.stack([X - c0[0], Y - c0[1]])).T
         A_hat = np.linalg.inv(B)
         ax = axs[c]
-        ax.plot(X, Y, ".", ms=1.2, color="0.45")
+        ax.plot(X, Y, ".", ms=1.2, color=BLU, alpha=0.55)
         t = np.linspace(0, 2 * np.pi, 300)
         ell = (A_hat @ np.stack([np.cos(t), np.sin(t)])) + c0[:, None]
-        ax.plot(ell[0], ell[1], color=BLU, lw=1.0)
-        ax.plot(*c0, "+", color=BLU, ms=6, mew=1.2)
+        ax.plot(ell[0], ell[1], color=INK, lw=1.0, ls="--")
+        ax.plot(*c0, "+", color=INK, ms=6, mew=1.2)
         ax.annotate("$\\hat{\\mathbf{b}}$", c0, textcoords="offset points",
-                    xytext=(4, -9), fontsize=6.5, color=BLU)
-        ax.set_xlabel("$X$ (H2)", fontsize=6.5, labelpad=1)
+                    xytext=(4, -9), fontsize=6.5, color=INK)
+        ax.set_xlabel("$X$ (H2) ($\\times10^{-2}$)", fontsize=6.5, labelpad=1)
         ax.set_ylabel("$Y$ (H1)", fontsize=6.5, labelpad=1)
         ax.tick_params(labelsize=6.0)
         ax.set_title("(c) 实测观测椭圆", fontsize=6.6, pad=2)
-        ax.ticklabel_format(axis="x", style="sci", scilimits=(-2, 2))
-        ax.xaxis.get_offset_text().set_fontsize(5.5)
+        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, pos: f"{v * 1e2:.0f}"))
         ax.margins(x=0.22, y=0.12)
         c += 1
         ax = axs[c]
@@ -809,7 +816,8 @@ def fig_expperf_mzm(data, out):
         ax.legend(fontsize=5.5, loc="upper center", ncol=2, frameon=False,
                   handlelength=1.3, handletextpad=0.3, columnspacing=0.9,
                   borderpad=0.1)
-        ax.grid(True, which="both", alpha=0.25)
+        ax.grid(True, which="major", alpha=0.25)
+        ax.grid(False, which="minor")
         c += 1
     if have_rf:
         from scipy.special import j0 as bessel_j0
@@ -910,6 +918,21 @@ def fig_expstab_mzm(data, out):
         ax1.set_ylim(vlo - 0.08 * (vhi - vlo), vhi + 0.12 * (vhi - vlo))
         ax1.set_title(f"(a) 长期稳定性 ({hrs:.1f} h, 漂移 {vdrift:.2f} V, "
                       f"重定标{rec}次)", fontsize=6.5, pad=2)
+        # in-panel annotation: vertical double-headed arrow spanning the
+        # trend line from its start to its end value, placed in the empty
+        # upper-right area (clear of the scatter/trend) — Hu-style in-figure
+        # numeric callout.
+        v_start = float(Vtrend[edge:-edge][0]); v_end = float(Vtrend[edge:-edge][-1])
+        t_ann = float(th[edge:-edge][-1]) * 0.88
+        ax1.annotate("", xy=(t_ann, v_end), xytext=(t_ann, v_start),
+                     arrowprops=dict(arrowstyle="<->", color=INK, lw=0.7),
+                     zorder=5)
+        # label sits to the LEFT of the arrow at mid-height (placing it above
+        # v_start collided with the panel title)
+        ax1.text(t_ann - 0.06 * float(th[edge:-edge][-1]),
+                 0.5 * (v_start + v_end),
+                 f"漂移 {vdrift:.2f} V", fontsize=6.0, color=INK,
+                 ha="right", va="center", zorder=5)
         ax2 = ax1.twinx()
         ax2.plot(dt, de, "o", mfc="none", mec=GRN, mew=0.9, ms=3.2,
                  alpha=0.9, zorder=4, label="锁定误差")

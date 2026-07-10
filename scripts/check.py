@@ -245,18 +245,23 @@ def check_experiment_results(tex: str, tex_name: str, paper_key: str | None) -> 
     # paper_dpmzm_zh.tex; results.json currently carries no dp_* top-level
     # keys, so these are all skipped by the `key not in results` guard below
     # -- the DPMZM tab:exp rows may legitimately still read "计划"/"待测".
+    # Row keywords below must match a UNIQUE tab:exp row header in the assigned
+    # manuscript; the metric's numeric value must live in that row's LAST column
+    # (_exp_cell takes parts[-1]). tab:exp is 4-col now (指标 | 条件 | 仿真值 |
+    # 实验值) and composite cells were split into one row per number, so each
+    # keyword resolves to exactly one experiment-value cell.
     specs = [
         ("selfcheck_median_mrad", "标定自检残差", 0.05, "mrad", "mzm"),
-        ("lock_affine_rms_mrad", "任意点锁定~rms", 0.1, "mrad", "mzm"),
+        ("lock_affine_rms_mrad", "任意点锁定：仿射", 0.1, "mrad", "mzm"),
         ("kappa_A", "噪声地板", 0.01, "", "mzm"),
         ("settle_cycles", "捕获整定时间", 0.5, "cycles", "mzm"),
-        ("recal_latency_cyc", "漂移突变检测延迟", 0.5, "cycles", "mzm"),
-        ("recal_post_rms_mrad", "漂移突变检测延迟", 0.1, "mrad", "mzm"),
-        ("stability_recal_events_3h", "$3$~h 长期稳定性", 0.5, "events", "mzm"),
-        ("rf_lock_rms_on_mrad", "RF 加载", 0.1, "mrad", "mzm"),
-        ("lock_h1match_rms_mrad", "任意点锁定~rms", 1.0, "mrad", "mzm"),
-        ("rf_lock_rms_off_mrad", "RF 加载", 0.1, "mrad", "mzm"),
-        ("stability_dmm_rms_mrad", "$3$~h 长期稳定性", 1.0, "mrad", "mzm"),
+        ("recal_latency_cyc", "漂移检测延迟", 0.5, "cycles", "mzm"),
+        ("recal_post_rms_mrad", "漂移恢复", 0.1, "mrad", "mzm"),
+        ("stability_recal_events_3h", "稳定性：重定标事件", 0.5, "events", "mzm"),
+        ("rf_lock_rms_on_mrad", "RF 加载：开", 0.1, "mrad", "mzm"),
+        ("lock_h1match_rms_mrad", "任意点锁定：H1", 1.0, "mrad", "mzm"),
+        ("rf_lock_rms_off_mrad", "RF 加载：关", 0.1, "mrad", "mzm"),
+        ("stability_dmm_rms_mrad", "稳定性：DMM rms", 1.0, "mrad", "mzm"),
         ("vpi_V", None, 0.01, "V", "mzm"),
         # --- DPMZM stages (device swapped in; see plan parsed-brewing-wadler) ---
         ("dp_relF_pct", "准周期扫描辨识", 0.1, "%", "dpmzm"),

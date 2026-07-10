@@ -2,19 +2,61 @@
 """Algorithm-level figures: supervisory flowchart, acquisition transients,
 setpoint stepping, residual-triggered recalibration. Math identical to
 make_figs.py (validated)."""
+import glob
 import numpy as np
 from scipy.special import jv
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from matplotlib.patches import FancyBboxPatch
 import os
 rng = np.random.default_rng(20260612)
 os.makedirs('figs', exist_ok=True)
-plt.rcParams.update({
-    'font.size': 8, 'axes.labelsize': 8, 'legend.fontsize': 7,
-    'xtick.labelsize': 7, 'ytick.labelsize': 7, 'lines.linewidth': 1.0,
-    'figure.dpi': 150, 'font.family': 'serif', 'mathtext.fontset': 'cm'})
+
+
+def _configure_fonts():
+    """CJK-capable serif stack (ported from make_exp_figs.py) so any Chinese
+    text in these figures renders correctly instead of as tofu boxes."""
+    cands = []
+    env = os.environ.get('PAPER_CJK_FONT')
+    if env:
+        cands.append(env)
+    cands += glob.glob(
+        '/usr/local/texlive/*/texmf-dist/fonts/opentype/public/fandol/'
+        'FandolSong-Regular.otf')
+    cands += [
+        '/System/Library/Fonts/Supplemental/Songti.ttc',
+        '/System/Library/Fonts/PingFang.ttc',
+        '/System/Library/Fonts/STHeiti Medium.ttc',
+        os.path.expanduser('~/Library/Fonts/msyh.ttc'),
+    ]
+    cjk_name = None
+    for p in cands:
+        if p and os.path.exists(p):
+            font_manager.fontManager.addfont(p)
+            cjk_name = font_manager.FontProperties(fname=p).get_name()
+            break
+    serif = []
+    if cjk_name:
+        serif.append(cjk_name)
+    serif += ['TeX Gyre Termes', 'Times New Roman', 'DejaVu Serif']
+    plt.rcParams.update({
+        'font.size': 8, 'axes.labelsize': 8, 'legend.fontsize': 7,
+        'xtick.labelsize': 7, 'ytick.labelsize': 7, 'lines.linewidth': 1.0,
+        'figure.dpi': 150, 'font.family': 'serif', 'font.serif': serif,
+        'mathtext.fontset': 'cm', 'axes.unicode_minus': False})
+
+
+_configure_fonts()
+# log-tick labels are wrapped in \mathdefault, whose minus sign is looked up in
+# the first serif font (FandolSong has no U+2212 -> tofu); route them through
+# \mathrm so the CM math fonts supply the glyph. Formatting only, no data effect.
+import matplotlib.ticker as _mticker
+_lfsn_call = _mticker.LogFormatterSciNotation.__call__
+def _lfsn_fix(self, x, pos=None):
+    return _lfsn_call(self, x, pos).replace(r'\mathdefault', r'\mathrm')
+_mticker.LogFormatterSciNotation.__call__ = _lfsn_fix
 GRN, RED, BLU, GLD, INK = '#1F6E52', '#BC4B2A', '#2E5FA3', '#A8801F', '#1E2A24'
 CW = 3.45
 
@@ -191,40 +233,45 @@ ax.add_patch(FancyBboxPatch((0.30,14.15),9.4,11.5,
 ax.add_patch(FancyBboxPatch((0.30,0.35),9.4,13.35,
              boxstyle='round,pad=0,rounding_size=0.3',
              fc='#F2F4F7',ec='#CBD2DC',lw=0.8,mutation_scale=1,zorder=1))
-ax.text(0.60,24.90,'Calibration phase',fontsize=7.5,weight='bold',color=INK,zorder=4)
-ax.text(0.60,12.95,'Run phase (per control cycle)',fontsize=7.5,weight='bold',color=INK,zorder=4)
+ax.text(0.60,24.90,'标定阶段',fontsize=7.5,weight='bold',color=INK,zorder=4)
+# right-aligned and lifted near the lane's own top edge (13.70) so the "pass"
+# arrow descending through the column centreline (x=CXc=3.4) never crosses
+# under the title glyphs -- this was the fix for the previous overlap where
+# the arrowhead pierced the "per" in the (now-translated) title text
+ax.text(9.60,13.32,'运行阶段（每控制周期）',fontsize=7.2,weight='bold',color=INK,
+        zorder=4,ha='right')
 # geometry: main column centred at x=3.4, boxes 4.4 wide; right rail at x~8.6
 BW=4.4; CX=3.4; BX=CX-BW/2       # box x-origin
 CXc=BX+BW/2                       # column centreline
 # --- calibration chain (top lane, descending) ---
-fbox(ax,BX,23.15,BW,1.30,'power-up /\nrecal request',6.8)
-fbox(ax,BX,21.05,BW,1.30,'pre-sweep:\n$V_\\pi$ period estimate',6.8)
-fbox(ax,BX,18.95,BW,1.30,'full-period sweep\n($2V_\\pi$)',6.6)
-fbox(ax,BX,16.85,BW,1.30,'fit + gauge fixing\n(ellipse / LS regression)',6.4)
-fbox(ax,BX,14.85,BW,1.30,'self-check\n$\\|\\hat A\\Phi+\\hat{b}-z\\|$ ok?',6.2,fc=AMB)
+fbox(ax,BX,23.15,BW,1.30,'上电 / 重定标请求',6.8)
+fbox(ax,BX,21.05,BW,1.30,'预扫描：$V_\\pi$ 周期估计',6.8)
+fbox(ax,BX,18.95,BW,1.30,'全周期扫描 ($2V_\\pi$)',6.6)
+fbox(ax,BX,16.85,BW,1.30,'拟合与规范固定\n（椭圆/最小二乘）',6.4)
+fbox(ax,BX,14.85,BW,1.30,'自检\n$\\|\\hat A\\Phi+\\hat{b}-z\\|$ 达标?',6.2,fc=AMB)
 fa(ax,CXc,23.15,CXc,22.35); fa(ax,CXc,21.05,CXc,20.25)
 fa(ax,CXc,18.95,CXc,18.15); fa(ax,CXc,16.85,CXc,16.15)
 # fail: re-sweep back-edge (self-check -> full-period sweep) on the right rail
 elbow(ax,[(BX+BW,15.50),(8.95,15.50),(8.95,19.60),(BX+BW,19.60)],
-      'fail:\nre-sweep',(8.35,17.55),fs=5.8)
+      '未通过：\n重扫',(8.35,17.55),fs=5.8)
 # pass -> hands over to the run phase below
-fa(ax,CXc,14.85,CXc,12.55,'pass',6,(CXc+0.72,14.15))
+fa(ax,CXc,14.85,CXc,12.55,'通过',6,(CXc+0.72,14.15))
 # --- run phase loop (bottom lane, descending then back-edge) ---
-fbox(ax,BX,11.25,BW,1.30,'lock-in readout\n$\\mathbf{z}_k$ (2 ch.)',6.4)
-fbox(ax,BX,9.15,BW,1.30,'demodulate\natan2',6.6)
-fbox(ax,BX,7.05,BW,1.30,'PI update\n$V \\leftarrow V - G\\,e$',6.4)
-fbox(ax,BX,4.95,BW,1.30,'residual monitor\n$\\rho_k$, EWMA',6.4,fc=AMB)
-fbox(ax,BX,2.85,BW,1.30,'$\\bar\\rho>\\rho_{\\rm th}$ for\n$M$ cycles?',6.4,fc=AMB)
+fbox(ax,BX,11.25,BW,1.30,'锁相读出\n$\\mathbf{z}_k$（2 通道）',6.4)
+fbox(ax,BX,9.15,BW,1.30,'解调 atan2',6.6)
+fbox(ax,BX,7.05,BW,1.30,'PI 更新\n$V \\leftarrow V - G\\,e$',6.4)
+fbox(ax,BX,4.95,BW,1.30,'残差监测\n$\\rho_k$（EWMA）',6.4,fc=AMB)
+fbox(ax,BX,2.85,BW,1.30,'$\\bar\\rho>\\rho_{\\rm th}$ 持续\n$M$ 周期?',6.4,fc=AMB)
 fa(ax,CXc,11.25,CXc,10.45); fa(ax,CXc,9.15,CXc,8.35)
 fa(ax,CXc,7.05,CXc,6.25); fa(ax,CXc,4.95,CXc,4.15)
 # no -> next cycle: back up to lock-in readout on the left rail
 elbow(ax,[(BX,3.50),(0.75,3.50),(0.75,11.90),(BX,11.90)],
-      'no: next cycle ($<10^3$ MAC)',(0.55,7.70),fs=5.6,rot=90)
+      '否：下一周期（$<10^3$ 乘加）',(0.55,7.70),fs=5.6,rot=90)
 # yes -> trigger recal (right rail), then feed back up into calibration phase
-fbox(ax,6.15,2.85,3.25,1.30,'trigger recal\n(micro-arc sweep)',6.2,fc=RDT)
-fa(ax,BX+BW,3.50,6.15,3.50,'yes',6,(6.02,3.72))
+fbox(ax,6.15,2.85,3.25,1.30,'触发重定标\n（微幅弧扫描）',6.2,fc=RDT)
+fa(ax,BX+BW,3.50,6.15,3.50,'是',6,(6.02,3.72))
 elbow(ax,[(7.775,4.15),(7.775,23.80),(BX+BW,23.80)],
-      'recalibrate',(6.55,14.0),rot=90)
+      '重定标',(6.55,14.0),rot=90)
 plt.tight_layout(); plt.savefig('figs/fig_flow_mzm.pdf'); plt.close()
 
 # ============ Fig F2: acquisition transients ============
@@ -358,17 +405,17 @@ ax=axs[0]
 # legend without covering data.
 for xd,yd,col,ls,lw,lab in acq_a_lines:
     if 'theory' in lab:
-        ax.semilogy(xd,yd,color='k',linestyle=ls,linewidth=lw,label='$(1-G)^n$ theory',zorder=5)
+        ax.semilogy(xd,yd,color='k',linestyle=ls,linewidth=lw,label='$(1-G)^n$ 理论',zorder=5)
     else:
         ax.semilogy(xd,yd,color=col,linestyle='-',linewidth=0.8,zorder=3,label=lab)
-ax.set_xlabel('control step',fontsize=7,labelpad=1)
+ax.set_xlabel('控制周期',fontsize=7,labelpad=1)
 ax.set_ylabel('$|e|$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
 # two legends stacked in the empty upper-right corner: the four target phases
 # as a 2x2 block, the theory line on its own row below it (user request)
 _h,_l=ax.get_legend_handles_labels()
-_th=[(h,l) for h,l in zip(_h,_l) if 'theory' in l]
-_tg=[(h,l) for h,l in zip(_h,_l) if 'theory' not in l]
+_th=[(h,l) for h,l in zip(_h,_l) if '理论' in l]
+_tg=[(h,l) for h,l in zip(_h,_l) if '理论' not in l]
 _leg1=ax.legend([h for h,_ in _tg],[l for _,l in _tg],loc='upper right',ncol=2,
                 bbox_to_anchor=(1.0,1.0),borderpad=0.2,handlelength=1.0,
                 labelspacing=0.25,columnspacing=0.8,handletextpad=0.4,
@@ -378,18 +425,18 @@ ax.legend([h for h,_ in _th],[l for _,l in _th],loc='upper right',ncol=1,
           bbox_to_anchor=(1.0,0.70),borderpad=0.2,handlelength=1.0,
           handletextpad=0.4,fontsize=5.6,frameon=False)
 ax.set_ylim(acq_a_ylim)
-ax.set_title('(a) acquisition (4 targets)',fontsize=7,pad=2)
+ax.set_title('(a) 捕获（4 目标点）',fontsize=7,pad=2)
 ax=axs[1]
 for xd,yd,col,ls,lw,lab in step_a_lines:
-    nice = 'target $\\varphi^*$' if 'target' in lab else '$\\varphi_b$'
+    nice = '目标 $\\varphi^*$' if 'target' in lab else '$\\varphi_b$'
     ax.plot(xd,yd,color=col,linestyle=ls,linewidth=lw,label=nice)
-ax.set_xlabel('control step',fontsize=7,labelpad=1)
+ax.set_xlabel('控制周期',fontsize=7,labelpad=1)
 ax.set_ylabel('$\\varphi_b$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
 ax.legend(loc='lower left',borderpad=0.25,handlelength=1.2,
           handletextpad=0.4,fontsize=6.5,frameon=False)
 ax.set_ylim(step_a_ylim)
-ax.set_title('(b) setpoint steps',fontsize=7,pad=2)
+ax.set_title('(b) 设定点阶跃',fontsize=7,pad=2)
 fig.subplots_adjust(left=0.115,right=0.985,top=0.87,bottom=0.20,wspace=0.38)
 plt.savefig('figs/fig_acqstep_mzm.pdf'); plt.close()
 
@@ -435,16 +482,42 @@ axs[0].axvline(ev,color=BLU,lw=0.8)
 axs[0].set_ylabel('$|e|$ (mrad)',fontsize=7,labelpad=1)
 axs[0].set_ylim(0,1.05*max(err_buf))
 axs[0].tick_params(labelsize=6.5,pad=1)
-axs[0].set_title('(a) locking error (drift jump red, recal blue)',fontsize=6.8,pad=2)
+axs[0].set_title('(a) 锁定误差（第1200周期注入突变）',fontsize=6.8,pad=2)
+# local-zoom inset: at full 3200-step span the drift-jump line (k=1200, red)
+# and the recal line (k=1231, blue) sit only 31 steps apart and visually
+# merge into one line; the caption's "31 周期" delay is otherwise invisible.
+# Placed in the flat, data-free upper-right corner of panel (a) (the error
+# trace hugs the bottom except for the narrow spike) so it covers no data.
+_ax0=axs[0]
+_axins=_ax0.inset_axes([0.58,0.42,0.40,0.54])
+_win_lo,_win_hi=1150,1350
+_axins.plot(np.arange(_win_lo,_win_hi),err_buf[_win_lo:_win_hi],color=GRN,lw=0.7)
+_axins.axvline(1200,color=RED,lw=0.9,ls='--')
+_axins.axvline(ev,color=BLU,lw=0.9)
+_axins.set_xlim(_win_lo,_win_hi)
+_ymax_ins=max(err_buf[_win_lo:_win_hi])
+_axins.set_ylim(0,1.08*_ymax_ins)
+_axins.set_xticks([1200,ev])
+_axins.tick_params(labelsize=5.0,pad=1,length=2)
+_axins.set_yticks([])
+for _sp in _axins.spines.values(): _sp.set_linewidth(0.6)
+# annotate the 31-cycle gap with a double-headed arrow + label (Hu-style
+# in-figure callout) between the two verticals, near the inset's top
+_ins_y=0.90*_ymax_ins
+_axins.annotate('',xy=(ev,_ins_y),xytext=(1200,_ins_y),
+    arrowprops=dict(arrowstyle='<->',lw=0.7,color=INK,mutation_scale=6))
+_axins.text(0.5*(1200+ev),_ins_y,'31 周期',fontsize=5.0,color=INK,
+            ha='center',va='bottom')
+_ax0.indicate_inset_zoom(_axins,edgecolor=INK,lw=0.5,alpha=0.6)
 axs[1].semilogy(rho_buf,color=INK,lw=0.6)
 axs[1].axhline(RHO_TH,color=GLD,lw=0.8,ls='--')
 axs[1].axvline(1200,color=RED,lw=0.8,ls='--')
 axs[1].axvline(ev,color=BLU,lw=0.8)
 axs[1].set_ylabel('$\\bar\\rho$ (EWMA)',fontsize=7,labelpad=1)
-axs[1].set_xlabel('control step',fontsize=7,labelpad=1)
+axs[1].set_xlabel('控制周期',fontsize=7,labelpad=1)
 axs[1].tick_params(labelsize=6.5,pad=1)
 axs[1].xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
-axs[1].set_title('(b) residual monitor $\\bar\\rho$ vs threshold $\\rho_{\\rm th}$',fontsize=6.8,pad=2)
+axs[1].set_title('(b) 圆残差监测与阈值 $\\rho_{\\rm th}{=}0.06$',fontsize=6.8,pad=2)
 fig.subplots_adjust(left=0.155,right=0.98,top=0.90,bottom=0.13,hspace=0.55)
 plt.savefig('figs/fig_recal_mzm.pdf'); plt.close()
 

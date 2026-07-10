@@ -8,19 +8,61 @@
   fig_gauge  - gauge fixing: DC-regression vs argmin fiducial, bias
                distribution at N=360 and median bias vs N (1/sqrt(N) law).
 Machinery ported 1:1 from make_figs.py (validated)."""
+import glob
 import numpy as np
 from scipy.special import jv
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 import os
 rng = np.random.default_rng(20260613)
 os.makedirs('figs', exist_ok=True)
-plt.rcParams.update({
-    'font.size': 8, 'axes.labelsize': 8, 'axes.titlesize': 8,
-    'legend.fontsize': 7, 'xtick.labelsize': 7, 'ytick.labelsize': 7,
-    'lines.linewidth': 1.0, 'figure.dpi': 150,
-    'font.family': 'serif', 'mathtext.fontset': 'cm'})
+
+
+def _configure_fonts():
+    """CJK-capable serif stack (ported from make_exp_figs.py) so any Chinese
+    text in these figures renders correctly instead of as tofu boxes."""
+    cands = []
+    env = os.environ.get('PAPER_CJK_FONT')
+    if env:
+        cands.append(env)
+    cands += glob.glob(
+        '/usr/local/texlive/*/texmf-dist/fonts/opentype/public/fandol/'
+        'FandolSong-Regular.otf')
+    cands += [
+        '/System/Library/Fonts/Supplemental/Songti.ttc',
+        '/System/Library/Fonts/PingFang.ttc',
+        '/System/Library/Fonts/STHeiti Medium.ttc',
+        os.path.expanduser('~/Library/Fonts/msyh.ttc'),
+    ]
+    cjk_name = None
+    for p in cands:
+        if p and os.path.exists(p):
+            font_manager.fontManager.addfont(p)
+            cjk_name = font_manager.FontProperties(fname=p).get_name()
+            break
+    serif = []
+    if cjk_name:
+        serif.append(cjk_name)
+    serif += ['TeX Gyre Termes', 'Times New Roman', 'DejaVu Serif']
+    plt.rcParams.update({
+        'font.size': 8, 'axes.labelsize': 8, 'axes.titlesize': 8,
+        'legend.fontsize': 7, 'xtick.labelsize': 7, 'ytick.labelsize': 7,
+        'lines.linewidth': 1.0, 'figure.dpi': 150,
+        'font.family': 'serif', 'font.serif': serif,
+        'mathtext.fontset': 'cm', 'axes.unicode_minus': False})
+
+
+_configure_fonts()
+# log-tick labels are wrapped in \mathdefault, whose minus sign is looked up in
+# the first serif font (FandolSong has no U+2212 -> tofu); route them through
+# \mathrm so the CM math fonts supply the glyph. Formatting only, no data effect.
+import matplotlib.ticker as _mticker
+_lfsn_call = _mticker.LogFormatterSciNotation.__call__
+def _lfsn_fix(self, x, pos=None):
+    return _lfsn_call(self, x, pos).replace(r'\mathdefault', r'\mathrm')
+_mticker.LogFormatterSciNotation.__call__ = _lfsn_fix
 GRN, RED, BLU, GLD, INK = '#1F6E52', '#BC4B2A', '#2E5FA3', '#A8801F', '#1E2A24'
 CW = 3.45
 
@@ -184,12 +226,12 @@ fig, axs = plt.subplots(2, 1, figsize=(CW, 3.7))
 with plt.rc_context({'font.size': 6.5, 'axes.labelsize': 6.5, 'legend.fontsize': 6,
                       'xtick.labelsize': 6.5, 'ytick.labelsize': 6.5}):
     ax = axs[0]
-    ax.semilogy(ph, np.maximum(dAM, 1e-1), color=RED, label='amplitude matching')
-    ax.semilogy(ph_r, np.maximum(dRT, 1e-1), color=GLD, ls='-.', label='harmonic ratio')
-    ax.semilogy(tgts16, rms16, 'o', color=GRN, ms=3.0, label='affine loop rms')
+    ax.semilogy(ph, np.maximum(dAM, 1e-1), color=RED, label='幅值匹配')
+    ax.semilogy(ph_r, np.maximum(dRT, 1e-1), color=GLD, ls='-.', label='谐波比值')
+    ax.semilogy(tgts16, rms16, 'o', color=GRN, ms=3.0, label='仿射环路 rms')
     ax.axhline(np.median(rms16), color=GRN, lw=0.7, ls=':')
-    ax.set_xlabel('target phase $\\varphi^*$ (rad)', labelpad=1)
-    ax.set_ylabel('$|$static error$|$ (mrad)')
+    ax.set_xlabel('目标相位 $\\varphi^*$ (rad)', labelpad=1)
+    ax.set_ylabel('$|$静差$|$ (mrad)')
     ax.set_xticks([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
     ax.set_xticklabels(['0', '$\\pi/2$', '$\\pi$', '$3\\pi/2$', '$2\\pi$'])
     ax.set_ylim(0.5, 4000)
@@ -199,10 +241,10 @@ with plt.rc_context({'font.size': 6.5, 'axes.labelsize': 6.5, 'legend.fontsize':
     ax = axs[1]
     ax.plot(ph, sig_th, color=INK, lw=0.9,
             label='$\\sigma\\sqrt{\\mathbf{t}^{\\mathsf{T}}(A^{\\mathsf{T}}A)^{-1}\\mathbf{t}}$')
-    ax.plot(ph24, sig_mc, 'o', color=GRN, ms=3.0, label='Monte Carlo')
+    ax.plot(ph24, sig_mc, 'o', color=GRN, ms=3.0, label='蒙特卡洛')
     ax.axhline(P1['sigma']/smin*1e3, color=BLU, lw=0.8, ls='--',
                label='$\\sigma/\\sigma_{\\min}(A)$')
-    ax.set_xlabel('bias phase $\\varphi_b$ (rad)', labelpad=1)
+    ax.set_xlabel('偏置相位 $\\varphi_b$ (rad)', labelpad=1)
     ax.set_ylabel('$\\sigma_{\\hat\\varphi}$ (mrad)')
     ax.set_xticks([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
     ax.set_xticklabels(['0', '$\\pi/2$', '$\\pi$', '$3\\pi/2$', '$2\\pi$'])
@@ -369,16 +411,16 @@ with plt.rc_context({'font.size': 6.5, 'axes.labelsize': 6.5, 'legend.fontsize':
         xj = i + np.linspace(-0.13, 0.13, len(d))
         ax.semilogy(xj, np.maximum(d, 0.05), 'o', color=col, ms=2.6, alpha=0.7)
         ax.hlines(np.median(d), i-0.25, i+0.25, color=INK, lw=1.2)
-    ax.set_xticks([0,1]); ax.set_xticklabels(['DC regression\n(proposed)','argmin\nfiducial'])
-    ax.set_ylabel('$|$demod bias$|$ (mrad)'); ax.set_xlim(-0.6,1.6)
-    ax.set_title('(a) calibration bias, $N{=}360$', fontsize=6.8)
+    ax.set_xticks([0,1]); ax.set_xticklabels(['直流回归\n（本文）','argmin 基准'])
+    ax.set_ylabel('$|$解调偏差$|$ (mrad)'); ax.set_xlim(-0.6,1.6)
+    ax.set_title('(a) 标定引入偏差（$N{=}360$）', fontsize=6.8)
     ax = axs[1]
-    ax.loglog(Ns, med_reg, 'o-', color=GRN, ms=3.2, label='DC regression')
-    ax.loglog(Ns, med_arg, 's-', color=RED, ms=3.2, label='argmin fiducial')
+    ax.loglog(Ns, med_reg, 'o-', color=GRN, ms=3.2, label='直流回归')
+    ax.loglog(Ns, med_arg, 's-', color=RED, ms=3.2, label='argmin 基准')
     ax.loglog(Ns, med_reg[2]*np.sqrt(360/Ns), 'k:', lw=0.8, label='$N^{-1/2}$')
-    ax.set_xlabel('sweep samples $N$', labelpad=1); ax.set_ylabel('median bias (mrad)')
+    ax.set_xlabel('扫描样本数 $N$', labelpad=1); ax.set_ylabel('中位偏差 (mrad)')
     ax.set_xticks(Ns); ax.set_xticklabels([str(n) for n in Ns], rotation=0)
-    ax.set_title('(b) gauge variance vs $N$', fontsize=6.8)
+    ax.set_title('(b) 规范偏差随样本数 $N$', fontsize=6.8)
     ax.legend(borderpad=0.25, handlelength=1.4, labelspacing=0.3, fontsize=6)
 plt.tight_layout()
 plt.savefig('figs/fig_gauge_mzm.pdf', bbox_inches='tight')
