@@ -1336,7 +1336,7 @@ def stage_acceptance(board, dmm, datadir, repeats=10, n_grid=16, iters=40,
         gate = dict(acquisition_minimum=False, complete_acquisition=False,
                     controller_evidence_passed=False,
                     independent_optical_truth=False,
-                    paper_acceptance_ready=False)
+                    enhanced_evidence_ready=False)
         result = dict(protocol=protocol, aggregate=aggregate,
                       paired_cluster_bootstrap=comparisons, gate=gate,
                       repetition_summaries=rep_summaries,
@@ -1382,7 +1382,7 @@ def stage_acceptance(board, dmm, datadir, repeats=10, n_grid=16, iters=40,
             independent_optical_truth=False)
         gate["controller_evidence_passed"] = bool(all(
             v for k, v in gate.items() if k != "independent_optical_truth"))
-        gate["paper_acceptance_ready"] = bool(gate["controller_evidence_passed"] and
+        gate["enhanced_evidence_ready"] = bool(gate["controller_evidence_passed"] and
                                                gate["independent_optical_truth"])
         result = dict(protocol=protocol, aggregate=aggregate,
                       paired_cluster_bootstrap=comparisons, gate=gate,

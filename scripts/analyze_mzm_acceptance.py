@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit and aggregate independent single-MZM acceptance experiment sessions.
+"""Audit and aggregate optional single-MZM enhanced-evidence sessions.
 
 The acquisition driver writes one immutable directory per bench session under
 ``data/exp/acceptance/<run-id>``.  This script verifies file hashes, treats a
@@ -166,7 +166,7 @@ def analyze(run_roots, include_sim=False, seed=20260710, draws=8000):
             full_beats_h1=False,
             independent_optical_truth=False,
             controller_evidence_passed=False,
-            paper_acceptance_ready=False)
+            enhanced_evidence_ready=False)
         return dict(
             design=dict(repetitions=0, attempted_repetitions=attempted_blocks,
                         failed_repetitions=len(failed_blocks), sessions=0,
@@ -227,7 +227,7 @@ def analyze(run_roots, include_sim=False, seed=20260710, draws=8000):
         independent_optical_truth=False)
     gate["controller_evidence_passed"] = bool(all(
         value for key, value in gate.items() if key != "independent_optical_truth"))
-    gate["paper_acceptance_ready"] = bool(all(gate.values()))
+    gate["enhanced_evidence_ready"] = bool(all(gate.values()))
     return dict(
         design=dict(repetitions=n_rep, attempted_repetitions=attempted_blocks,
                     failed_repetitions=len(failed_blocks),

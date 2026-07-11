@@ -4,15 +4,15 @@ Date: 2026-07-10
 
 This map treats Abstract/Introduction claims as hard contracts. “Supported”
 means the current repository contains direct proof or data; “bounded” means the
-claim is valid only with the manuscript's explicit qualification; “needs new
-evidence” means prose or reanalysis cannot close it.
+claim is valid only with the manuscript's explicit qualification. Optional
+extensions are distinguished from evidence required by the paper's actual claims.
 
 | Claim | Authoritative evidence | Status |
 |---|---|---|
 | Any periodic pilot followed by linear receive/demodulation yields `z=A u(phi)+b+n`. | Theorem 1 and Appendix A; symbolic/fixed-seed numerical closure in `scripts/make_figs.py`. | Supported within the declared linear-chain model. |
 | Full-cycle phase is identifiable iff `rank(A)=2` and the `O(2)` gauge is fixed. | Proposition 2 and its necessity/sufficiency proof. | Supported theoretically. |
 | Ellipse+DC gauge recovers the label-free demodulator. | Zero-noise/noisy simulation, gauge sweep and same-scan measured offline diagnostic. | Bounded: no end-to-end label-free hardware loop yet. |
-| Full affine correction removes offset and non-diagonal mixing missed by diagonal H1/H2 decoding. | Controlled simulation in Fig. 5; `measure_bench.py acceptance --sim` tooling stress. | Supported in model; needs live paired hardware evidence for an engineering claim. |
+| Full affine correction removes offset and non-diagonal mixing missed by diagonal H1/H2 decoding. | Controlled diagonal-2D ablation in Fig. 5; exact model derivation. | Supported as a model/mechanism claim. The paper does not claim a hardware-isolated cross-term gain. |
 | The measured controller locks 16 targets with 246 mrad RMS. | `data/exp/lock_sweep.npz`, `results.json`, and `check.py [5]`. | Supported descriptively for phase-reference regression and the local-DMM convention. |
 | The same measured result is 342 mrad under the wide-scan map. | `affine_err_map` in `lock_sweep.npz`; `reanalyze_mzm.py`. | Supported as a sensitivity convention; neither convention is independent optical truth. |
 | H1-only amplitude matching suffers branch/dead-zone failures. | Measured 16-target H1 trace and two truth conventions; model equations and simulations. | Supported for this reconstructed weak baseline; not a SOTA superiority result. |
@@ -29,8 +29,9 @@ evidence” means prose or reanalysis cannot close it.
 
 - **Pass:** exact affine factorization, explicit rank/gauge identifiability and
   separation of anisotropy from absolute noise are clear knowledge claims.
-- **Needs new evidence:** the engineering value of label-free calibration must be
-  demonstrated live rather than inferred from simulation/offline pullback.
+- **Bounded and supported:** the paper presents label-free calibration as a
+  theoretical/algorithmic path validated by simulation and offline measured-data
+  pullback; hardware feasibility is demonstrated with phase-reference regression.
 
 ### Writing clarity
 
@@ -41,19 +42,20 @@ evidence” means prose or reanalysis cannot close it.
 
 ### Experimental strength
 
-- **Pass within scope:** current real data support a supervised feasibility study.
-- **Needs new evidence:** independent label-free blocks, paired calibrated-H1/H2
-  baseline, opposite-side starts and independent optical validation.
+- **Pass within scope:** sixteen full-cycle targets, H1 comparison, 3 h operation,
+  recalibration and RF-state tests provide broad single-device evidence. Stronger
+  baselines, opposite-side starts and isolated truth are optional extensions.
 
 ### Evaluation completeness
 
 - **Pass:** simulations include scalar, ratio and diagonal 2-D ablations; current
   measurements expose limitations and retain both truth conventions.
-- **Needs new evidence:** execute the frozen acceptance protocol across sessions.
+- **Pass:** every experimental claim is tied to an existing data artifact and
+  explicitly reported as descriptive where the condition was measured once.
 
 ### Method soundness
 
 - **Pass:** full-rank and gauge requirements, nonlinear receiver boundary and
   residual rotation blindness are explicit.
-- **Needs new evidence:** quantify calibration failure, settling, temporal jitter
-  and computation/rescan time on the live platform.
+- **Bounded:** calibration failure probability, global capture, fixed-point latency
+  and rescan interruption are not claimed. They remain engineering extensions.

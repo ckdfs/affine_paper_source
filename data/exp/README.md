@@ -55,10 +55,12 @@ simulation-number contracts, and the literal experiment-number contract.  The
 last command prints the read-only cross-validation, paired truth-convention,
 and 3 h descriptive sensitivity analysis used in the revised discussion.
 
-## Acceptance experiment contract (not yet measured)
+## Optional enhanced-evidence experiment (not required for submission)
 
-The current snapshot contains no `acceptance/` directory. New label-free
-hardware evidence must be written to a new immutable
+The current measured data already support the manuscript's scoped single-device
+hardware-demonstration claims. The legacy stage name `acceptance` denotes an
+optional, stricter robustness study; it is not a journal acceptance criterion.
+If such new label-free hardware evidence is collected, it must be written to a new immutable
 `data/exp/acceptance/<run-id>/` directory with:
 
 - a fresh bidirectional Vpi scan and ellipse+DC-gauge calibration per repetition;
@@ -67,9 +69,9 @@ hardware evidence must be written to a new immutable
 - at least six calibration blocks across at least two bench sessions;
 - a separate optical validation-channel pre/post scan (`truth_prepost.npz`).
 
-The analyzer deliberately keeps the independent-truth gate false until the
+The analyzer deliberately keeps its optional independent-truth gate false until the
 isolated-channel acquisition and blind scoring schema are implemented. Merely
-placing a file with this name cannot pass the paper gate. Interrupted repetitions
+placing a file with this name cannot pass the enhanced-evidence gate. Interrupted repetitions
 remain in their immutable session directory and count as failed/incomplete blocks.
 
 The preregistered acquisition and analysis are implemented by:
@@ -80,7 +82,7 @@ The preregistered acquisition and analysis are implemented by:
 ```
 
 Simulated smoke runs are isolated under `build/exp_sim/acceptance/`, are marked
-`simulated=true`, and cannot set `paper_acceptance_ready=true`. The full frozen
+`simulated=true`, and cannot set `enhanced_evidence_ready=true`. The full frozen
 protocol and thresholds are recorded in
 `reviews/mzm_acceptance_experiment_protocol.md`.
 

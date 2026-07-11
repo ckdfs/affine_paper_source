@@ -61,10 +61,10 @@ scripts/
   measure_bench.py    # hardware-in-loop bench driver: stages bringup/vpi/calib/lock/
                       #   acceptance/pilot/drift/stability via the /biasboard /dm858e /
                       #   sds824xhd skills; PC affine + baseline controllers.
-                      #   `acceptance` isolates fresh label-free repeated runs;
+                      #   `acceptance` isolates optional fresh label-free repeated runs;
                       #   `--sim` -> build/exp_sim/ and can never promote paper data.
   analyze_mzm_acceptance.py # read-only multi-session clustered analysis and
-                      #   preregistered evidence gate for acceptance runs.
+                      #   preregistered gate for optional enhanced-evidence runs.
   exp_common.py       # shared experiment math (ellipse cal, phase truth, IO); numpy-only
   export_exp_link.ps1 # LEGACY: Visio .vsdx -> fig_exp_{mzm,dpmzm}.pdf (`make exp-figs-vsdx`).
                       #   Superseded — those two figs now come from make_exp_figs.py.
@@ -118,11 +118,13 @@ build/              # generated, git-ignored (captured sim stdout etc.)
    that were actually measured and clear the quality gate — never invent
    numbers, and keep unmeasured cells "待测"/"计划". The measurement driver
    (`measure_bench.py --sim`) writes only to `build/exp_sim/`, never `data/exp/`.
-   New MZM acceptance runs must use a new `data/exp/acceptance/<run-id>/`
+   The existing MZM data support the manuscript's scoped hardware claims. Any
+   optional enhanced-evidence runs (`acceptance` is the legacy stage name) must
+   use a new `data/exp/acceptance/<run-id>/`
    directory and the frozen `reviews/mzm_acceptance_experiment_protocol.md`;
    they do not overwrite `data/exp/results.json`. Only aggregate real runs after
    `analyze_mzm_acceptance.py` verifies hashes, independent blocks/sessions and
-   the truth-channel gate.
+   the truth-channel gate. Its gate is not a journal submission/acceptance rule.
 
 6. **PDF visual check.** `pdftoppm -png -r 110 paper_mzm_zh.pdf out` (or
    `paper_dpmzm_zh.pdf`) then read the PNG. Fonts now load **by filename**

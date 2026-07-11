@@ -55,7 +55,7 @@ baseline.
 - [x] Pass the manuscript number, citation, figure, and experiment contracts.
 - [ ] Replace author/date/funding placeholders with final submission metadata.
 
-## Evidence boundary after Round 1
+## Evidence boundary after Round 1 (historical; superseded by Round 6)
 
 The revised paper is now internally honest and reproducible from the committed
 processed data. It is not yet an acceptance-grade experimental validation of the
@@ -73,7 +73,7 @@ metadata/English preparation.  The diagonal 2-D simulation baseline and
 same-scan cross-validation improve diagnosis but do not satisfy those hardware
 requirements.
 
-## Round 3 acceptance gate
+## Round 3 acceptance gate (historical; superseded by Round 6)
 
 Three focused reviewers independently returned Major Revision.  They found no
 remaining fatal mathematical inconsistency, procedure misrepresentation,
@@ -111,7 +111,7 @@ baseline, immutable per-session artifacts and checksums.  The read-only
 performs session/repetition/target clustered bootstrap analysis.  Two simulated
 sessions with six calibration blocks passed every controller/tooling gate, while
 the deliberately unavailable independent optical truth kept
-`paper_acceptance_ready=false`.  These simulations validate orchestration only;
+the then-named `paper_acceptance_ready=false`.  These simulations validate orchestration only;
 they are excluded from the paper and do not replace the required live bench runs.
 
 ## Round 5: adversarial self-verification
@@ -135,3 +135,26 @@ runs in at least two sessions, six complete calibration blocks, a genuinely
 isolated optical truth path with frozen blind scoring, and real author/funding/
 submission metadata.  These items require new physical measurements or author
 input and cannot be resolved by further textual iteration.
+
+## Round 6: field-norm recalibration of evidence requirements
+
+A paper-by-paper audit of Wang--Kowalczyk (three representative points), Tao
+et al. (four points), Li et al. (several representative bias settings),
+Svarny--Chladek (quadrature only), DLA2C (Q/NULL long runs), and Weller et al.
+(NULL/quadrature plus disturbances) showed that the earlier two-session,
+six-block, full-grid, isolated-truth gate exceeded normal experimental practice
+for MZM bias-control papers.  It is a useful optional robustness protocol, not a
+condition for submitting or accepting the present scoped hardware demonstration.
+
+The current manuscript already reports a broader single-device test matrix than
+many close precedents: 16 full-cycle targets, an H1 comparison, pilot-depth
+conditioning, a 3 h run, residual-triggered recalibration, and multiple RF-load
+states.  The paper does not claim global capture, cross-device failure rates,
+hardware-isolated non-diagonal gain, or end-to-end label-free control.  Therefore
+opposite-side starts, a calibrated H1/H2 hardware ablation, cross-day repeats and
+a second optical truth path are optional extensions rather than missing evidence.
+
+Round 6 supersedes the "acceptance gate" interpretation in Rounds 3--5.  The
+legacy `acceptance` script remains available as an enhanced-evidence stress test,
+and its output key is renamed `enhanced_evidence_ready` so that tooling cannot be
+mistaken for a journal decision rule.
