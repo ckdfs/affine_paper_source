@@ -262,6 +262,15 @@ def check_experiment_results(tex: str, tex_name: str, paper_key: str | None) -> 
         ("lock_h1match_rms_mrad", "任意点锁定：H1", 1.0, "mrad", "mzm"),
         ("rf_lock_rms_off_mrad", "RF 加载：关", 0.1, "mrad", "mzm"),
         ("stability_dmm_rms_mrad", "稳定性：DMM rms", 1.0, "mrad", "mzm"),
+        ("cv_full_rms_mrad", None, 0.05, "mrad", "mzm"),
+        ("cv_diag2d_rms_mrad", None, 0.05, "mrad", "mzm"),
+        ("offdiag_frobenius_fraction_pct", None, 0.01, "%", "mzm"),
+        ("lock_track_slope_local", None, 0.0005, "", "mzm"),
+        ("lock_track_r2_local", None, 0.0005, "", "mzm"),
+        ("lock_track_slope_map", None, 0.0005, "", "mzm"),
+        ("lock_track_r2_map", None, 0.0005, "", "mzm"),
+        ("lock_track_positive_steps", None, 0.5, "", "mzm"),
+        ("lock_track_within_pi4", None, 0.5, "", "mzm"),
         ("vpi_V", None, 0.01, "V", "mzm"),
         # --- DPMZM stages (device swapped in; see plan parsed-brewing-wadler) ---
         ("dp_relF_pct", "准周期扫描辨识", 0.1, "%", "dpmzm"),
@@ -274,6 +283,10 @@ def check_experiment_results(tex: str, tex_name: str, paper_key: str | None) -> 
     ]
     if paper_key is not None:
         specs = [s for s in specs if s[4] == paper_key]
+    prose_literals = {
+        "lock_track_positive_steps": "15 个相邻步进中~14 个方向一致",
+        "lock_track_within_pi4": "16 个点的绝对误差均小于~$\\pi/4$",
+    }
     checked = 0
     for key, row, tol, unit, _spec_paper in specs:
         if key not in results:
@@ -287,6 +300,14 @@ def check_experiment_results(tex: str, tex_name: str, paper_key: str | None) -> 
         if row is None:
             # prose-only metric (no tab:exp row): scan the whole manuscript
             # body for a matching literal instead of a table cell.
+            if key in prose_literals:
+                literal = prose_literals[key]
+                if literal in tex:
+                    _emit("ok", f"{key}: {tex_name} contains required literal")
+                else:
+                    _emit("FAIL", f"{key}: required literal {literal!r} missing "
+                                  f"from {tex_name}")
+                continue
             nums = _numbers_in_latex_cell(tex)
             if any(abs(v - exp) <= tol for v in nums):
                 suffix = f" {unit}" if unit else ""

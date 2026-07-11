@@ -122,7 +122,7 @@ arr(ax,1.4,2.0,2.0,2.0); arr(ax,4.0,2.0,4.9,2.0)
 box(ax,4.9,1.6,1.2,0.8,'tap/PD',6.0)
 box(ax,6.6,2.0,1.5,0.7,'LIA $\\omega$: $Y$',6.0); box(ax,6.6,1.1,1.5,0.7,'LIA $2\\omega$: $X$',6.0)
 arr(ax,6.1,2.0,6.6,2.35); arr(ax,6.1,2.0,6.6,1.45)
-box(ax,8.4,1.3,1.5,1.4,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, PI',6.0)
+box(ax,8.4,1.3,1.5,1.4,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, integral',6.0)
 arr(ax,8.1,2.35,8.4,2.2); arr(ax,8.1,1.45,8.4,1.6)
 arr(ax,9.15,1.3,9.15,0.55); arr(ax,9.15,0.55,3.0,0.55); arr(ax,3.0,0.55,3.0,1.4)
 ax.text(6.0,0.7,'bias DAC $V_b$ + dither $m\\sin\\omega t$',fontsize=6,ha='center')
@@ -197,7 +197,7 @@ _arr_mzm(ax,6.45,yT,7.0,yT+0.55,CIRC); _arr_mzm(ax,6.45,yT,7.0,yT-0.55,CIRC)
 # affine demod block (below, centred) fed by both lock-in outputs
 yD=1.95
 _chip_mzm(ax,7.7,yD,2.1,1.55,fc='#E7EFF7')
-_lab_mzm(ax,7.7,yD,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, PI',6.2)
+_lab_mzm(ax,7.7,yD,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, 积分更新',6.2)
 _arr_mzm(ax,7.7,yT+0.55-0.38,7.7,yD+0.78,CIRC); _arr_mzm(ax,7.7,yT-0.55+0.38,7.7,yD+0.78,CIRC)
 # feedback: affine demod -> bias DAC + dither -> back to MZM electrode (dashed),
 # tucked directly under the optical row (no dead quadrant to its left)

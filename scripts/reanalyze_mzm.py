@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Read-only sensitivity analysis for the measured single-MZM data.
 
-Reports five-fold interleaved calibration-scan cross-validation, the two saved
+Reports five-fold interleaved calibration-scan cross-validation, a full-versus-
+diagonal equal-information ablation, ordered target tracking under the two saved
 lock-error conventions, and descriptive statistics for the 60 DMM samples in
 the 3 h run.  It never writes data/exp or changes the headline number contract.
 """
@@ -59,6 +60,42 @@ def calibration_cross_validation(data, folds=5):
     return out
 
 
+def phase_ref_diagonal_ablation(data, folds=5):
+    """Equal-information held-out ablation of non-diagonal correction."""
+    bias = np.asarray(data["bias"])
+    X = np.asarray(data["X"])
+    Y = np.asarray(data["Y"])
+    dc = np.asarray(data["dc_dmm"])
+    index = np.arange(len(X))
+    full_errors = []
+    diagonal_errors = []
+    offdiag_fractions = []
+    for fold in range(folds):
+        test = index % folds == fold
+        train = ~test
+        _, _, vpi, v0_fit = ec.fit_dc_transfer(bias[train], dc[train])
+        v0 = ec.canonical_period_center(v0_fit, vpi)
+        phi_train = ec.bias_to_phase(bias[train], vpi, v0)
+        phi_test = ec.bias_to_phase(bias[test], vpi, v0)
+        cal = ec.calibrate_phase_ref(X[train], Y[train], phi_train)
+        A = np.linalg.inv(cal["B"])
+        B_diagonal = np.diag(1.0 / np.diag(A))
+        offdiag = A - np.diag(np.diag(A))
+        offdiag_fractions.append(float(np.linalg.norm(offdiag) / np.linalg.norm(A)))
+        Z = np.stack([X[test] - cal["c0"][0], Y[test] - cal["c0"][1]])
+        for B, errors in ((cal["B"], full_errors),
+                          (B_diagonal, diagonal_errors)):
+            U = B @ Z
+            phi_hat = np.arctan2(U[1], U[0])
+            errors.extend(ec.wrap(phi_hat - phi_test) * 1e3)
+    return {
+        "full_affine": _summarize_mrad(full_errors),
+        "diagonal_h1h2": _summarize_mrad(diagonal_errors),
+        "offdiag_frobenius_fraction_mean": float(np.mean(offdiag_fractions)),
+        "folds": int(folds),
+    }
+
+
 def stability_summary(data):
     t_h = np.asarray(data["dmm_t"], float) / 3600.0
     e = np.asarray(data["dmm_err_mrad"], float)
@@ -74,6 +111,29 @@ def stability_summary(data):
     }
 
 
+def target_tracking_summary(data):
+    """Ordered full-cycle target-response regression under both truth maps."""
+    target = np.asarray(data["phi_star"], float)
+    out = {}
+    for key in ("affine_err", "affine_err_map"):
+        measured = np.unwrap(np.angle(np.exp(1j * (target + data[key]))))
+        slope, intercept = np.polyfit(target, measured, 1)
+        fitted = slope * target + intercept
+        residual = measured - fitted
+        total = measured - np.mean(measured)
+        r2 = 1.0 - float(residual @ residual) / float(total @ total)
+        out[key] = {
+            "slope": float(slope),
+            "intercept_rad": float(intercept),
+            "r2": r2,
+            "positive_adjacent_steps": int(np.sum(np.diff(measured) > 0)),
+            "adjacent_steps": int(len(measured) - 1),
+            "within_pi_over_4": int(np.sum(np.abs(data[key]) <= np.pi / 4)),
+            "targets": int(len(target)),
+        }
+    return out
+
+
 def main():
     exp = os.path.join(REPO, "data", "exp")
     calib = np.load(os.path.join(exp, "calib.npz"))
@@ -81,6 +141,7 @@ def main():
     stability = np.load(os.path.join(exp, "stability.npz"))
     report = {
         "calibration_5fold_interleaved": calibration_cross_validation(calib),
+        "phase_ref_diagonal_ablation": phase_ref_diagonal_ablation(calib),
         "lock_error_conventions": {
             key: _summarize_mrad(np.asarray(lock[key]) * 1e3)
             for key in (
@@ -90,6 +151,7 @@ def main():
                 "baseline_err_map",
             )
         },
+        "target_tracking": target_tracking_summary(lock),
         "stability_dmm": stability_summary(stability),
         "limitations": [
             "Cross-validation folds share one physical calibration scan.",

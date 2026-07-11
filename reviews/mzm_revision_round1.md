@@ -158,3 +158,60 @@ Round 6 supersedes the "acceptance gate" interpretation in Rounds 3--5.  The
 legacy `acceptance` script remains available as an enhanced-evidence stress test,
 and its output key is renamed `enhanced_evidence_ready` so that tooling cannot be
 mistaken for a journal decision rule.
+
+## Round 7: post-recalibration independent re-review
+
+Three independent reviewers examined commit `061e811`.  The methodology and
+domain reviewers returned Minor Revision / near Accept and agreed that no new
+sessions, initial-condition sweeps, second optical path or additional controller
+were required.  The Devil's Advocate identified a narrower causal-attribution
+risk: the hardware text had not quantified whether non-diagonal correction, as
+opposed to merely using two channels, mattered in the measured chain.
+
+The existing calibration scan closes that question without new acquisition.  A
+five-fold interleaved, equal-information ablation now fits the same supervised
+training points and center, then compares the full inverse with an inverse formed
+after zeroing `A12/A21`.  Held-out RMS is 53.7 mrad for the full decoder and
+60.3 mrad for the diagonal decoder; the mean off-diagonal Frobenius-norm
+fraction is only 0.85%.
+The paper therefore states the correct result: this bench chain is nearly
+diagonal and does not demonstrate a large cross-correction gain, while the
+strong-mixing simulation isolates the mechanism when those terms are larger.
+
+Round 7 also fixes the calibration pseudocode's previously undefined/tautological
+model self-check, replacing it with pullback-radial and DC-gauge residual checks;
+states scan coverage/stationarity conditions; records the measured loop gain,
+iterations, averaging and steady-state definition; labels target points as
+coverage samples rather than independent repetitions; and reports the measured
+errors in degrees alongside mrad.  The final editorial synthesis is Accept/Minor
+for scientific content, with author metadata and venue-specific English
+preparation remaining as submission-package work rather than experimental gaps.
+
+## Round 8: final adversarial closure
+
+The final EIC and Devil's Advocate reviews isolated three residual risks: the
+scope of the arbitrary-linear-chain theorem, the uniqueness of the contribution
+relative to generic ellipse correction, and whether the 16-point hardware data
+show target response rather than merely bounded error.  The theorem now absorbs
+the deterministic response of an arbitrary linear functional to constant optical
+power into `b`, treats a stable chain with memory as a settled composite
+functional, and limits the scalar-readout minimality claim to memoryless
+instantaneous static observations.  The introduction now states the specific
+novelty as the necessary-and-sufficient full-cycle identifiability condition:
+apart from the center, the ellipse determines only `AA^T`, so the `O(2)` gauge
+must be fixed separately.
+
+No new acquisition was needed to close the target-response question.  Reanalysis
+of the saved 16-point sweep unwraps measured phase in target order.  Local-DMM
+and wide-scan truth maps give slopes 1.052/1.039, R2 values 0.986/0.980, 14 of 15
+adjacent steps in the expected direction, and 16 of 16 absolute errors below
+pi/4.  The paper labels the latter as a descriptive magnitude, not a success
+threshold.  It also maps every strong-mixing simulation parameter to a physical
+nonideality and states that the stress case is stronger than the measured,
+nearly diagonal chain.
+
+After these changes, the methodology reviewer returned Accept, the EIC returned
+Accept for scientific content, and the second Devil's Advocate review reduced
+all former Major concerns to Minor/editorial judgment.  All reviewers agreed
+that no second controller, initial-condition sweep, cross-day repetition or
+additional target points are required for the paper's scoped claims.

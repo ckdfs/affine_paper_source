@@ -221,7 +221,7 @@ plt.tight_layout(); plt.savefig('figs/fig_flow.pdf'); plt.close()
 #      legible at columnwidth (3.45in). Top segment = calibration phase (a
 #      vertical chain power-up -> pre-sweep -> full 2Vpi sweep -> fit+gauge ->
 #      self-check with a fail:re-sweep back-edge); bottom segment = run phase,
-#      one per-cycle loop lock-in -> demod atan2 -> PI update -> residual
+#      one per-cycle loop lock-in -> demod atan2 -> integral update -> residual
 #      monitor -> threshold test, with a yes-> trigger recal branch feeding
 #      back up into the calibration phase and a next-cycle back-edge. Pure
 #      patches/annotate, no RNG, no new computation. ----
@@ -248,7 +248,7 @@ fbox(ax,BX,23.15,BW,1.30,'上电 / 重定标请求',6.8)
 fbox(ax,BX,21.05,BW,1.30,'预扫描：$V_\\pi$ 周期估计',6.8)
 fbox(ax,BX,18.95,BW,1.30,'全周期扫描 ($2V_\\pi$)',6.6)
 fbox(ax,BX,16.85,BW,1.30,'拟合与规范固定\n（椭圆/最小二乘）',6.4)
-fbox(ax,BX,14.85,BW,1.30,'自检\n$\\|\\hat A\\Phi+\\hat{b}-z\\|$ 达标?',6.2,fc=AMB)
+fbox(ax,BX,14.85,BW,1.30,'自检\n径向/直流残差达标?',6.2,fc=AMB)
 fa(ax,CXc,23.15,CXc,22.35); fa(ax,CXc,21.05,CXc,20.25)
 fa(ax,CXc,18.95,CXc,18.15); fa(ax,CXc,16.85,CXc,16.15)
 # fail: re-sweep back-edge (self-check -> full-period sweep) on the right rail
@@ -259,7 +259,7 @@ fa(ax,CXc,14.85,CXc,12.55,'通过',6,(CXc+0.72,14.15))
 # --- run phase loop (bottom lane, descending then back-edge) ---
 fbox(ax,BX,11.25,BW,1.30,'锁相读出\n$\\mathbf{z}_k$（2 通道）',6.4)
 fbox(ax,BX,9.15,BW,1.30,'解调 atan2',6.6)
-fbox(ax,BX,7.05,BW,1.30,'PI 更新\n$V \\leftarrow V - G\\,e$',6.4)
+fbox(ax,BX,7.05,BW,1.30,'积分更新\n$V \\leftarrow V - G\\,e$',6.4)
 fbox(ax,BX,4.95,BW,1.30,'残差监测\n$\\rho_k$（EWMA）',6.4,fc=AMB)
 fbox(ax,BX,2.85,BW,1.30,'$\\bar\\rho>\\rho_{\\rm th}$ 持续\n$M$ 周期?',6.4,fc=AMB)
 fa(ax,CXc,11.25,CXc,10.45); fa(ax,CXc,9.15,CXc,8.35)
@@ -268,7 +268,7 @@ fa(ax,CXc,7.05,CXc,6.25); fa(ax,CXc,4.95,CXc,4.15)
 elbow(ax,[(BX,3.50),(0.75,3.50),(0.75,11.90),(BX,11.90)],
       '否：下一周期（$<10^3$ 乘加）',(0.55,7.70),fs=5.6,rot=90)
 # yes -> trigger recal (right rail), then feed back up into calibration phase
-fbox(ax,6.15,2.85,3.25,1.30,'触发重定标\n（微幅弧扫描）',6.2,fc=RDT)
+fbox(ax,6.15,2.85,3.25,1.30,'触发重定标\n（满周期重扫）',6.2,fc=RDT)
 fa(ax,BX+BW,3.50,6.15,3.50,'是',6,(6.02,3.72))
 elbow(ax,[(7.775,4.15),(7.775,23.80),(BX+BW,23.80)],
       '重定标',(6.55,14.0),rot=90)

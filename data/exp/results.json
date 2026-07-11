@@ -26,7 +26,16 @@
     "thr": 0.1028583750274793
   },
   "kappa_A": 45.242,
+  "cv_full_rms_mrad": 53.7,
+  "cv_diag2d_rms_mrad": 60.3,
+  "offdiag_frobenius_fraction_pct": 0.85,
   "lock_affine_rms_mrad": 246,
+  "lock_track_slope_local": 1.052,
+  "lock_track_r2_local": 0.986,
+  "lock_track_slope_map": 1.039,
+  "lock_track_r2_map": 0.980,
+  "lock_track_positive_steps": 14,
+  "lock_track_within_pi4": 16,
   "lock_diagnostic": {
     "accepted": false,
     "gain": 0.25,
