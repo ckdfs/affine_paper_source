@@ -378,20 +378,7 @@ ax.legend(loc='lower center',bbox_to_anchor=(0.5,0.99),ncol=2,frameon=False,
           borderpad=0.2,handlelength=1.4,columnspacing=1.0,fontsize=6.5)
 rmsA=np.sqrt(np.mean(eA[300:]**2)); rmsN=np.sqrt(np.mean(np.clip(eN[300:],-3142,3142)**2))
 print(f'[Fig4] MZM loop  affine RMS={rmsA:.1f} mrad   H1 RMS={rmsN:.1f} mrad')
-# gap callout: both traces oscillate densely across the entire control-step
-# range (no clean inline gap survives at any x), so instead of overlaying the
-# curves we carve out a dedicated empty margin to their right by extending
-# xlim, then draw the vertical double-arrow + label entirely inside that
-# margin -- guaranteed not to touch either trace. Pure annotation, no RNG.
-xmax = t[-1]
-xpad = 0.22*xmax
-ax.set_xlim(0, xmax + xpad)
-xg = xmax + 0.55*xpad
-ax.annotate('', xy=(xg, max(rmsN,1.0)), xytext=(xg, max(rmsA,1.0)),
-            arrowprops=dict(arrowstyle='<->', lw=0.8, color=INK),
-            annotation_clip=False)
-ax.text(xg, np.sqrt(max(rmsA,1.0)*max(rmsN,1.0)), '$\\approx$两个\n数量级',
-        fontsize=6.0, color=INK, ha='center', va='center')
+ax.set_xlim(0, t[-1])
 ax.set_xticks([0,500,1000,1500,2000,2500])
 plt.tight_layout(); plt.savefig('figs/fig_mzmloop.pdf'); plt.close()
 

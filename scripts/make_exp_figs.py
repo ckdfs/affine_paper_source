@@ -921,21 +921,6 @@ def fig_expstab_mzm(data, out):
         ax1.set_ylim(vlo - 0.08 * (vhi - vlo), vhi + 0.12 * (vhi - vlo))
         ax1.set_title(f"(a) 长期稳定性 ({hrs:.1f} h, 漂移 {vdrift:.2f} V, "
                       f"重定标{rec}次)", fontsize=6.5, pad=2)
-        # in-panel annotation: vertical double-headed arrow spanning the
-        # trend line from its start to its end value, placed in the empty
-        # upper-right area (clear of the scatter/trend) — Hu-style in-figure
-        # numeric callout.
-        v_start = float(Vtrend[edge:-edge][0]); v_end = float(Vtrend[edge:-edge][-1])
-        t_ann = float(th[edge:-edge][-1]) * 0.88
-        ax1.annotate("", xy=(t_ann, v_end), xytext=(t_ann, v_start),
-                     arrowprops=dict(arrowstyle="<->", color=INK, lw=0.7),
-                     zorder=5)
-        # label sits to the LEFT of the arrow at mid-height (placing it above
-        # v_start collided with the panel title)
-        ax1.text(t_ann - 0.06 * float(th[edge:-edge][-1]),
-                 0.5 * (v_start + v_end),
-                 f"漂移 {vdrift:.2f} V", fontsize=6.0, color=INK,
-                 ha="right", va="center", zorder=5)
         ax2 = ax1.twinx()
         ax2.plot(dt, de, "o", mfc="none", mec=GRN, mew=0.9, ms=3.2,
                  alpha=0.9, zorder=4, label="锁定误差")

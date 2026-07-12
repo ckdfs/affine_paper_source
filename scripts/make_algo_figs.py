@@ -234,12 +234,12 @@ ax.add_patch(FancyBboxPatch((0.30,0.35),9.4,13.35,
              boxstyle='round,pad=0,rounding_size=0.3',
              fc='#F2F4F7',ec='#CBD2DC',lw=0.8,mutation_scale=1,zorder=1))
 ax.text(0.60,24.90,'标定阶段',fontsize=7.5,weight='bold',color=INK,zorder=4)
-# right-aligned and lifted near the lane's own top edge (13.70) so the "pass"
-# arrow descending through the column centreline (x=CXc=3.4) never crosses
-# under the title glyphs -- this was the fix for the previous overlap where
-# the arrowhead pierced the "per" in the (now-translated) title text
-ax.text(9.60,13.32,'运行阶段（每控制周期）',fontsize=7.2,weight='bold',color=INK,
-        zorder=4,ha='right')
+# two-line top-left title mirroring the calibration lane's; kept narrow
+# (ends x~2.7) so the "pass" arrow on the column centreline (x=CXc=3.4)
+# never crosses under the title glyphs; the run chain below is shifted down
+# 0.6 units (spare space existed at the lane bottom) to clear the title
+ax.text(0.60,13.45,'运行阶段\n（每控制周期）',fontsize=7.0,weight='bold',
+        color=INK,zorder=4,va='top',linespacing=1.3)
 # geometry: main column centred at x=3.4, boxes 4.4 wide; right rail at x~8.6
 BW=4.4; CX=3.4; BX=CX-BW/2       # box x-origin
 CXc=BX+BW/2                       # column centreline
@@ -253,25 +253,25 @@ fa(ax,CXc,23.15,CXc,22.35); fa(ax,CXc,21.05,CXc,20.25)
 fa(ax,CXc,18.95,CXc,18.15); fa(ax,CXc,16.85,CXc,16.15)
 # fail: re-sweep back-edge (self-check -> full-period sweep) on the right rail
 elbow(ax,[(BX+BW,15.50),(8.95,15.50),(8.95,19.60),(BX+BW,19.60)],
-      '未通过：\n重扫',(8.35,17.55),fs=5.8)
+      '未通过：重扫',(8.55,17.55),fs=5.8,rot=90)
 # pass -> hands over to the run phase below
-fa(ax,CXc,14.85,CXc,12.55,'通过',6,(CXc+0.72,14.15))
+fa(ax,CXc,14.85,CXc,11.95,'通过',6,(CXc+0.72,14.15))
 # --- run phase loop (bottom lane, descending then back-edge) ---
-fbox(ax,BX,11.25,BW,1.30,'锁相读出\n$\\mathbf{z}_k$（2 通道）',6.4)
-fbox(ax,BX,9.15,BW,1.30,'解调 atan2',6.6)
-fbox(ax,BX,7.05,BW,1.30,'积分更新\n$V \\leftarrow V - G\\,e$',6.4)
-fbox(ax,BX,4.95,BW,1.30,'残差监测\n$\\rho_k$（EWMA）',6.4,fc=AMB)
-fbox(ax,BX,2.85,BW,1.30,'$\\bar\\rho>\\rho_{\\rm th}$ 持续\n$M$ 周期?',6.4,fc=AMB)
-fa(ax,CXc,11.25,CXc,10.45); fa(ax,CXc,9.15,CXc,8.35)
-fa(ax,CXc,7.05,CXc,6.25); fa(ax,CXc,4.95,CXc,4.15)
+fbox(ax,BX,10.65,BW,1.30,'锁相读出\n$\\mathbf{z}_k$（2 通道）',6.4)
+fbox(ax,BX,8.55,BW,1.30,'解调 atan2',6.6)
+fbox(ax,BX,6.45,BW,1.30,'积分更新\n$V \\leftarrow V - G\\,e$',6.4)
+fbox(ax,BX,4.35,BW,1.30,'残差监测\n$\\rho_k$（EWMA）',6.4,fc=AMB)
+fbox(ax,BX,2.25,BW,1.30,'$\\bar\\rho>\\rho_{\\rm th}$ 持续\n$M$ 周期?',6.4,fc=AMB)
+fa(ax,CXc,10.65,CXc,9.85); fa(ax,CXc,8.55,CXc,7.75)
+fa(ax,CXc,6.45,CXc,5.65); fa(ax,CXc,4.35,CXc,3.55)
 # no -> next cycle: back up to lock-in readout on the left rail
-elbow(ax,[(BX,3.50),(0.75,3.50),(0.75,11.90),(BX,11.90)],
-      '否：下一周期（$<10^3$ 乘加）',(0.55,7.70),fs=5.6,rot=90)
+elbow(ax,[(BX,2.90),(0.75,2.90),(0.75,11.30),(BX,11.30)],
+      '否：下一周期（$<10^3$ 乘加）',(0.55,7.10),fs=5.6,rot=90)
 # yes -> trigger recal (right rail), then feed back up into calibration phase
-fbox(ax,6.15,2.85,3.25,1.30,'触发重定标\n（满周期重扫）',6.2,fc=RDT)
-fa(ax,BX+BW,3.50,6.15,3.50,'是',6,(6.02,3.72))
-elbow(ax,[(7.775,4.15),(7.775,23.80),(BX+BW,23.80)],
-      '重定标',(6.55,14.0),rot=90)
+fbox(ax,6.15,2.25,3.25,1.30,'触发重定标\n（满周期重扫）',6.2,fc=RDT)
+fa(ax,BX+BW,2.90,6.15,2.90,'是',6,(6.02,3.12))
+elbow(ax,[(7.775,3.55),(7.775,23.80),(BX+BW,23.80)],
+      '重定标',(7.40,14.0),rot=90)
 plt.tight_layout(); plt.savefig('figs/fig_flow_mzm.pdf'); plt.close()
 
 # ============ Fig F2: acquisition transients ============
@@ -490,20 +490,24 @@ axs[0].set_title('(a) 锁定误差（第1200周期注入突变）',fontsize=6.8,
 # trace hugs the bottom except for the narrow spike) so it covers no data.
 _ax0=axs[0]
 _axins=_ax0.inset_axes([0.58,0.42,0.40,0.54])
-_win_lo,_win_hi=1150,1350
+# tight window: only ~20 cycles of flat lead-in/lead-out around the
+# 1200->1231 transient, so the spike fills the inset instead of drowning
+_win_lo,_win_hi=1180,1260
 _axins.plot(np.arange(_win_lo,_win_hi),err_buf[_win_lo:_win_hi],color=GRN,lw=0.7)
 _axins.axvline(1200,color=RED,lw=0.9,ls='--')
 _axins.axvline(ev,color=BLU,lw=0.9)
 _axins.set_xlim(_win_lo,_win_hi)
 _ymax_ins=max(err_buf[_win_lo:_win_hi])
-_axins.set_ylim(0,1.08*_ymax_ins)
+# extra headroom: with the tight window the spike fills the inset, so the
+# 31-cycle callout must live in a reserved band ABOVE the trace
+_axins.set_ylim(0,1.42*_ymax_ins)
 _axins.set_xticks([1200,ev])
 _axins.tick_params(labelsize=5.0,pad=1,length=2)
 _axins.set_yticks([])
 for _sp in _axins.spines.values(): _sp.set_linewidth(0.6)
 # annotate the 31-cycle gap with a double-headed arrow + label (Hu-style
 # in-figure callout) between the two verticals, near the inset's top
-_ins_y=0.90*_ymax_ins
+_ins_y=1.12*_ymax_ins
 _axins.annotate('',xy=(ev,_ins_y),xytext=(1200,_ins_y),
     arrowprops=dict(arrowstyle='<->',lw=0.7,color=INK,mutation_scale=6))
 _axins.text(0.5*(1200+ev),_ins_y,'31 周期',fontsize=5.0,color=INK,
