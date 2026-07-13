@@ -97,8 +97,10 @@ def _arr(ax, x0, y0, x1, y1, color=INK, ls="-"):
 #  Skeuomorphic icon primitives (matplotlib patches only, deterministic).      #
 #  Each draws inside an axis-data cell centred at (cx, cy) with half-size s;    #
 #  a rounded "chip" frame is drawn by _chip, the icon glyph on top.            #
-OPT = "#1699A8"          # optical path (cyan/teal) — arrows + fibre glyphs
-CIRC = INK               # electrical path (ink/black)
+OPT = "#2C7FB8"          # optical path: journal-style blue
+ELEC = "#D95F02"         # analog receive chain: orange
+CTRL = "#6A51A3"         # digital control and bias feedback: purple
+CIRC = INK
 
 
 def _chip(ax, cx, cy, w, h, fc="#F5F8F4", ec=INK, lw=0.8, r=0.10):
@@ -175,6 +177,31 @@ def _ic_cap(ax, cx, cy, s=0.30, color=CIRC):
     ax.plot([cx + g, cx + s], [cy, cy], color=color, lw=0.8, zorder=4)
 
 
+def _ic_adc(ax, cx, cy, s=0.30, color=CTRL):
+    """ADC: sampled staircase, readable at IEEE single-column scale."""
+    xx = np.array([-1.0, -0.55, -0.55, 0.0, 0.0, 0.55, 0.55, 1.0]) * s
+    yy = np.array([-0.60, -0.60, -0.15, -0.15, 0.25, 0.25, 0.60, 0.60]) * s
+    ax.plot(cx + xx, cy + yy, color=color, lw=0.9, zorder=4)
+
+
+def _ic_mcu(ax, cx, cy, s=0.30, color=CTRL):
+    """Processor: compact IC body and pins."""
+    ax.add_patch(Rectangle((cx - 0.65*s, cy - 0.55*s), 1.3*s, 1.1*s,
+                           fill=False, ec=color, lw=0.9, zorder=4))
+    for u in (-0.38, 0.0, 0.38):
+        ax.plot([cx + u*s, cx + u*s], [cy + 0.55*s, cy + 0.82*s],
+                color=color, lw=0.7, zorder=4)
+        ax.plot([cx + u*s, cx + u*s], [cy - 0.55*s, cy - 0.82*s],
+                color=color, lw=0.7, zorder=4)
+
+
+def _ic_dac(ax, cx, cy, s=0.30, color=CTRL):
+    """DAC: smooth reconstruction curve following digital samples."""
+    x = np.linspace(-1, 1, 60)
+    ax.plot(cx + s*x, cy + 0.55*s*np.sin(0.9*np.pi*x),
+            color=color, lw=0.9, zorder=4)
+
+
 def _ic_coupler(ax, cx, cy, s=0.30, color=OPT):
     """Fibre tap/coupler: small ellipse with a branch-off stub."""
     ax.add_patch(Ellipse((cx, cy), 1.7 * s, 1.1 * s, fc="none", ec=color,
@@ -198,17 +225,16 @@ def _ic_mzm(ax, cx, cy, s=0.34, color=OPT):
 
 
 def fig_setup_mzm(out):
-    """Single-column (3.45 in) skeuomorphic single-MZM bench schematic.
-    Optical path (cyan) along the TOP row L->R: LD -> MZM -> 1:9 tap -> PD.
-    Electrical processing (ink) along the BOTTOM row R->L closing the loop:
-    DC-block -> TIA -> HPF -> voltage amp -> LPF -> STM32 -> ext-DAC -> back to
-    the MZM bias electrode.  Icons are matplotlib patches (laser/PD diode
-    symbols, op-amp triangles, LPF/HPF response glyphs, cap plates, fibre
-    tap/MZM waveguides); STM32 and the DAC stay plain labelled chips."""
-    fig, ax = plt.subplots(figsize=(CW, 2.55))
-    ax.set_xlim(0, 10); ax.set_ylim(0, 7.2); ax.axis("off")
+    """Single-column measured main loop.
+
+    Exact ordering: laser -> MZM -> 1:9 coupler monitor port -> PD -> DC block
+    -> TIA -> ADC -> STM32 -> DAC -> MZM.  The unused 90% optical port is shown
+    explicitly; the separate DC diagnostic/DMM branch is intentionally omitted.
+    """
+    fig, ax = plt.subplots(figsize=(CW, 2.70))
+    ax.set_xlim(0, 10); ax.set_ylim(0, 7.65); ax.axis("off")
     ax.set_aspect("equal")
-    yT, yB = 6.0, 1.5                # top (optical) / bottom (electrical) rows
+    yT, yM, yB = 6.55, 3.85, 1.25
 
     def cell(cx, cy, w, h, glyph, lab, fc="#F5F8F4", labdy=None, fs=5.2):
         _chip(ax, cx, cy, w, h, fc=fc)
@@ -218,62 +244,59 @@ def fig_setup_mzm(out):
         else:
             _label(ax, cx, cy, lab, fs=fs)
 
-    # ---- optical (top) row: LD -> MZM -> tap -> PD --------------------------
-    cell(1.15, yT, 1.7, 1.55, _ic_laser, "DFB 激光\n~9 dBm")
-    cell(3.55, yT, 1.9, 1.55, _ic_mzm, "MZM  $V_\\pi{\\approx}5.5$V\nRF 接地")
-    cell(5.95, yT, 1.7, 1.55, _ic_coupler, "1:9 耦合器")
-    cell(8.35, yT, 1.7, 1.55, _ic_pd, "PD 光电探测")
-    for x0, x1 in [(2.0, 2.6), (4.5, 5.1), (6.8, 7.5)]:
+    # ---- optical plant: laser -> MZM -> 1:9 coupler -------------------------
+    cell(0.90, yT, 1.35, 1.35, _ic_laser, "DFB 激光\n9 dBm", fc="#EAF4FA")
+    cell(2.80, yT, 1.55, 1.35, _ic_mzm, "MZM\n$V_\\pi{=}5.28$ V", fc="#EAF4FA")
+    cell(4.75, yT, 1.35, 1.35, _ic_coupler, "1:9 光耦", fc="#EAF4FA")
+    for x0, x1 in [(1.58, 2.02), (3.58, 4.07)]:
         ax.annotate("", xy=(x1, yT), xytext=(x0, yT),
-                    arrowprops=dict(arrowstyle="-|>", lw=1.1, color=OPT),
-                    zorder=3)
-    ax.text(5.95, yT + 1.15, "光路", fontsize=5.0, color=OPT, ha="center")
+                    arrowprops=dict(arrowstyle="-|>", lw=1.15, color=OPT), zorder=3)
+    # 90% service output continues; 10% monitor port descends to PD.
+    ax.annotate("", xy=(8.45, yT), xytext=(5.43, yT),
+                arrowprops=dict(arrowstyle="-|>", lw=1.15, color=OPT), zorder=3)
+    ax.text(6.95, yT + 0.27, "9端（90% ）业务光输出", fontsize=5.0,
+            color=OPT, ha="center")
+    ax.plot([4.75, 4.75], [yT - 0.48, yM + 0.68], color=OPT, lw=1.1, zorder=3)
+    ax.annotate("", xy=(5.58, yM), xytext=(4.75, yM + 0.68),
+                arrowprops=dict(arrowstyle="-|>", lw=1.1, color=OPT), zorder=3)
+    ax.text(4.92, 5.13, "1端（10% ）监测", fontsize=4.9, color=OPT,
+            ha="left", rotation=90, va="center")
 
-    # PD -> down into electrical chain
-    ax.annotate("", xy=(8.35, yB + 0.85), xytext=(8.35, yT - 0.8),
-                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC), zorder=3)
+    # ---- monitor receiver: PD -> DC block -> TIA ---------------------------
+    cell(6.15, yM, 1.25, 1.35, _ic_pd, "PD", fc="#FFF1E8")
+    cell(7.75, yM, 1.15, 1.35, _ic_cap, "隔直", fs=5.0, fc="#FFF1E8")
+    cell(9.20, yM, 1.15, 1.35, _ic_opamp, "TIA", fs=5.0, fc="#FFF1E8")
+    for x0, x1 in [(6.78, 7.17), (8.33, 8.62)]:
+        ax.annotate("", xy=(x1, yM), xytext=(x0, yM),
+                    arrowprops=dict(arrowstyle="-|>", lw=1.05, color=ELEC), zorder=3)
 
-    # ---- electrical (bottom) row R->L: cap -> TIA -> HPF -> amp -> LPF ------
-    ex = [8.35, 6.95, 5.75, 4.55, 3.35]
-    cell(ex[0], yB, 1.15, 1.5, _ic_cap, "隔直\n电容", fs=5.0)
-    cell(ex[1], yB, 1.15, 1.5, _ic_opamp, "TIA\n跨阻", fs=5.0)
-    cell(ex[2], yB, 1.05, 1.5, _ic_hpf, "高通\n滤波", fs=5.0)
-    cell(ex[3], yB, 1.05, 1.5, _ic_opamp, "电压\n放大", fs=5.0)
-    cell(ex[4], yB, 1.05, 1.5, _ic_lpf, "低通\n滤波", fs=5.0)
-    for i in range(len(ex) - 1):
-        ax.annotate("", xy=(ex[i + 1] + 0.55, yB), xytext=(ex[i] - 0.6, yB),
-                    arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC),
-                    zorder=3)
-    ax.text(6.0, yB - 1.0, "模拟信号调理", fontsize=5.0, color=CIRC, ha="center")
+    # ---- digitization and control: ADC -> STM32 -> DAC ---------------------
+    cell(9.20, yB, 1.15, 1.35, _ic_adc, "ADC", fs=5.0, fc="#EEF0FA")
+    cell(6.80, yB, 2.15, 1.45, _ic_mcu,
+         "STM32H523\nGoertzel + 控制接口", fs=4.8, fc="#EEF0FA")
+    cell(3.90, yB, 1.75, 1.35, _ic_dac, "DAC8568\n×4 偏压驱动",
+         fs=4.8, fc="#EEF0FA")
+    ax.annotate("", xy=(9.20, yB + 0.68), xytext=(9.20, yM - 0.68),
+                arrowprops=dict(arrowstyle="-|>", lw=1.05, color=ELEC), zorder=3)
+    ax.annotate("", xy=(7.88, yB), xytext=(8.62, yB),
+                arrowprops=dict(arrowstyle="-|>", lw=1.05, color=CTRL), zorder=3)
+    ax.annotate("", xy=(4.78, yB), xytext=(5.72, yB),
+                arrowprops=dict(arrowstyle="-|>", lw=1.05, color=CTRL), zorder=3)
+    # DAC bias + pilot closes the loop at the MZM electrode.
+    ax.annotate("", xy=(2.80, yT - 0.70), xytext=(3.90, yB + 0.70),
+                arrowprops=dict(arrowstyle="-|>", lw=1.1, color=CTRL,
+                                ls="--", connectionstyle="arc3,rad=-0.10"), zorder=3)
+    ax.text(2.25, 3.30, "$V_b+m\\sin\\omega t$", fontsize=5.0, color=CTRL,
+            ha="center", rotation=74)
 
-    # ---- digital chips: STM32 (ADC/Goertzel) + ext-DAC --------------------
-    cell(1.75, yB, 1.9, 1.7, None,
-         "STM32H523\nADS131M02 采集\nGoertzel:H1/H2/DC", fs=5.0, fc="#E7EFF7")
-    # LPF -> STM32
-    ax.annotate("", xy=(2.7, yB), xytext=(ex[4] - 0.55, yB),
-                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC), zorder=3)
-    # ext-DAC chip (bias write-back), between STM32 and MZM electrode
-    cell(1.75, 3.75, 1.9, 1.05, None, "外接 DAC8568\n×4 减法→偏压",
-         fs=5.0, fc="#E7EFF7")
-    ax.annotate("", xy=(1.75, 3.75 - 0.55), xytext=(1.75, yB + 0.86),
-                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=CIRC), zorder=3)
-    # bias + pilot write-back (dashed) DAC -> MZM electrode
-    ax.annotate("", xy=(3.35, yT - 0.82),
-                xytext=(2.0, 3.75 + 0.53),
-                arrowprops=dict(arrowstyle="-|>", lw=1.0, color=BLU,
-                                ls="--", connectionstyle="arc3,rad=-0.30"),
-                zorder=3)
-    ax.text(3.55, 4.55, "偏置 $V_b$+导频 $m\\sin\\omega t$", fontsize=4.9,
-            color=BLU, ha="center", va="center")
-
-    # legend for the arrow colours
-    handles = [Line2D([0], [0], color=OPT, lw=1.1, label="光路"),
-               Line2D([0], [0], color=CIRC, lw=1.0, label="电路"),
-               Line2D([0], [0], color=BLU, lw=1.0, ls="--", label="导频/偏压反馈")]
-    ax.legend(handles=handles, loc="lower center", ncol=3, frameon=False,
-              fontsize=4.8, bbox_to_anchor=(0.5, -0.02), handlelength=1.4,
-              columnspacing=1.0, handletextpad=0.4)
-    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.02)
+    handles = [Line2D([0], [0], color=OPT, lw=1.2, label="光路"),
+               Line2D([0], [0], color=ELEC, lw=1.1, label="接收链路"),
+               Line2D([0], [0], color=CTRL, lw=1.1, label="数字控制"),
+               Line2D([0], [0], color=CTRL, lw=1.1, ls="--", label="偏压/导频")]
+    ax.legend(handles=handles, loc="lower left", ncol=1, frameon=False,
+              fontsize=4.7, bbox_to_anchor=(0.00, 0.00), handlelength=1.35,
+              labelspacing=0.25, handletextpad=0.4)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
     fig.savefig(os.path.join(out, "fig_exp_mzm.pdf"))
     plt.close(fig); print("[fig] fig_exp_mzm.pdf")
 

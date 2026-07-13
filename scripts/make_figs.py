@@ -60,8 +60,10 @@ def _lfsn_fix(self, x, pos=None):
     return _lfsn_call(self, x, pos).replace(r'\mathdefault', r'\mathrm')
 _mticker.LogFormatterSciNotation.__call__ = _lfsn_fix
 GRN, RED, BLU, GLD, INK = '#1F6E52', '#BC4B2A', '#2E5FA3', '#A8801F', '#1E2A24'
-OPT = '#1699A8'   # optical-path cyan (matches fig_exp_mzm.pdf convention)
-CIRC = INK        # electrical-path ink/black (matches fig_exp_mzm.pdf convention)
+OPT = '#2C7FB8'   # optical path: journal-style blue
+ELEC = '#D95F02'  # received/electrical signal path: orange
+CTRL = '#6A51A3'  # digital control and bias feedback: purple
+CIRC = INK
 CW = 3.45   # IEEE column width in inches
 
 # ================= Part I: single MZM =================
@@ -140,15 +142,10 @@ arr(ax,9.05,1.5,9.05,0.45); arr(ax,9.05,0.45,2.6,0.45)
 arr(ax,2.6,0.45,2.6,0.8); ax.text(6.0,0.18,'$V_{1,2,3}$ + dithers $m_i\\sin\\omega_i t$',fontsize=6,ha='center')
 plt.tight_layout(); plt.savefig('figs/fig_arch.pdf'); plt.close()
 
-# ---- Fig 1b: MZM-only architecture panel for paper_mzm_zh (single column) ----
-# Icon-style redraw (visual language ported from scripts/make_exp_figs.py's
-# fig_setup_mzm skeuomorphic schematic, read-only reference -- that script is
-# NOT imported/edited here, these are independent copies of the same pure
-# plotting primitives): rounded-corner chip boxes, laser-diode/photodiode
-# glyphs, OPT-cyan arrows for the optical path, CIRC-ink arrows for the
-# electrical/control path, dashed BLU arrows for the bias+dither feedback,
-# and a line-style legend at the bottom. Pure patches/annotate/text -- no RNG,
-# no new computation, same public entry point/filename as before.
+# ---- Fig 1b: MZM-only closed-loop architecture for paper_mzm_zh ------------
+# Compact journal-style schematic: physical plant on top, sensing/control below.
+# The ordering follows the bench main loop instead of using fictitious standalone
+# lock-in instruments.  Pure patches/lines only: no RNG consumption.
 def _chip_mzm(ax,cx,cy,w,h,fc='#F5F8F4',ec=INK,lw=0.8,r=0.09):
     ax.add_patch(FancyBboxPatch((cx-w/2,cy-h/2),w,h,
         boxstyle=f'round,pad=0,rounding_size={r}',fc=fc,ec=ec,lw=lw,
@@ -177,43 +174,60 @@ def _ic_mzm_mzm(ax,cx,cy,s=0.30,color=OPT):
     ax.plot([cx-s,cx-1.35*s],[cy,cy],color=color,lw=0.9,zorder=4)
     ax.plot([cx+s,cx+1.35*s],[cy,cy],color=color,lw=0.9,zorder=4)
     ax.plot([cx-0.55*s,cx+0.55*s],[cy-0.78*s,cy-0.78*s],color=CIRC,lw=1.2,zorder=4)
+def _ic_coupler_mzm(ax,cx,cy,s=0.28,color=OPT):
+    ax.add_patch(plt.Circle((cx,cy),s*0.70,fill=False,ec=color,lw=0.9,zorder=4))
+    ax.plot([cx-s,cx+s],[cy,cy],color=color,lw=0.9,zorder=4)
+    ax.plot([cx+s*0.25,cx+s*0.95],[cy-s*0.25,cy-s*0.95],color=color,lw=0.9,zorder=4)
+def _ic_adc_mzm(ax,cx,cy,s=0.28,color=CTRL):
+    ax.plot([cx-s,cx-s*0.55,cx-s*0.55,cx,cx,cx+s*0.55,cx+s*0.55,cx+s],
+            [cy-s*0.55,cy-s*0.55,cy-s*0.10,cy-s*0.10,cy+s*0.25,
+             cy+s*0.25,cy+s*0.60,cy+s*0.60],color=color,lw=0.9,zorder=4)
 def _arr_mzm(ax,x0,y0,x1,y1,color=INK,ls='-'):
     ax.annotate('',xy=(x1,y1),xytext=(x0,y0),
         arrowprops=dict(arrowstyle='-|>',lw=1.0,color=color,ls=ls),zorder=3)
 
-fig,ax=plt.subplots(figsize=(CW,1.95))
-ax.set_xlim(0,10); ax.set_ylim(0,5.3); ax.axis('off'); ax.set_aspect('equal')
-yT=4.35  # optical row
-# ---- optical (top) row: 激光器 -> MZM -> 分光/PD --------------------------
-_chip_mzm(ax,1.0,yT,1.7,1.5); _ic_laser_mzm(ax,1.0,yT+0.22); _lab_mzm(ax,1.0,yT-0.48,'激光器',6.0)
-_chip_mzm(ax,3.3,yT,1.9,1.5); _ic_mzm_mzm(ax,3.3,yT+0.22); _lab_mzm(ax,3.3,yT-0.48,'MZM  $\\varphi_b$',6.0)
-_chip_mzm(ax,5.6,yT,1.7,1.5); _ic_pd_mzm(ax,5.6,yT+0.22); _lab_mzm(ax,5.6,yT-0.48,'分光/PD',6.0)
-_arr_mzm(ax,1.85,yT,2.35,yT,OPT); _arr_mzm(ax,4.25,yT,4.75,yT,OPT)
-ax.text(3.3,yT+1.0,'光路',fontsize=5.6,color=OPT,ha='center')
-# PD -> two lock-in paths (电学信号路径, ink)
-_chip_mzm(ax,7.7,yT+0.55,1.9,0.75,fc='#E7EFF7'); _lab_mzm(ax,7.7,yT+0.55,'锁相 $\\omega$: $Y$',6.0)
-_chip_mzm(ax,7.7,yT-0.55,1.9,0.75,fc='#E7EFF7'); _lab_mzm(ax,7.7,yT-0.55,'锁相 $2\\omega$: $X$',6.0)
-_arr_mzm(ax,6.45,yT,7.0,yT+0.55,CIRC); _arr_mzm(ax,6.45,yT,7.0,yT-0.55,CIRC)
-# affine demod block (below, centred) fed by both lock-in outputs
-yD=1.95
-_chip_mzm(ax,7.7,yD,2.1,1.55,fc='#E7EFF7')
-_lab_mzm(ax,7.7,yD,'$\\hat{A}^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, 积分更新',6.2)
-_arr_mzm(ax,7.7,yT+0.55-0.38,7.7,yD+0.78,CIRC); _arr_mzm(ax,7.7,yT-0.55+0.38,7.7,yD+0.78,CIRC)
-# feedback: affine demod -> bias DAC + dither -> back to MZM electrode (dashed),
-# tucked directly under the optical row (no dead quadrant to its left)
-_chip_mzm(ax,3.3,0.75,3.6,0.85,fc='#F5F8F4')
-_lab_mzm(ax,3.3,0.75,'偏压 DAC + 导频 $m\\sin\\omega t$',5.8)
-_arr_mzm(ax,6.6,yD-0.78,5.1,0.75,BLU,ls='--')
-_arr_mzm(ax,3.3,1.18,3.3,yT-0.75,BLU,ls='--')
-ax.text(1.05,1.35,'偏压\n反馈',fontsize=5.4,color=BLU,ha='center')
-# line-style legend at the bottom, matching fig_exp_mzm.pdf's convention
-handles=[Line2D([0],[0],color=OPT,lw=1.1,label='光路'),
-         Line2D([0],[0],color=CIRC,lw=1.0,label='电路'),
-         Line2D([0],[0],color=BLU,lw=1.0,ls='--',label='偏压反馈')]
-ax.legend(handles=handles,loc='lower center',ncol=3,frameon=False,fontsize=5.6,
-          bbox_to_anchor=(0.5,-0.05),handlelength=1.4,columnspacing=1.0,
-          handletextpad=0.4)
-fig.subplots_adjust(left=0.02,right=0.98,top=0.97,bottom=0.05)
+fig,ax=plt.subplots(figsize=(CW,2.24))
+ax.set_xlim(0,10); ax.set_ylim(0,6.25); ax.axis('off'); ax.set_aspect('equal')
+yT=5.15
+# physical/optical plant
+_chip_mzm(ax,0.85,yT,1.35,1.25,fc='#EAF4FA'); _ic_laser_mzm(ax,0.85,yT+0.17,s=0.23); _lab_mzm(ax,0.85,yT-0.38,'激光器',5.6)
+_chip_mzm(ax,2.75,yT,1.55,1.25,fc='#EAF4FA'); _ic_mzm_mzm(ax,2.75,yT+0.17,s=0.27); _lab_mzm(ax,2.75,yT-0.38,'MZM  $\\varphi_b$',5.6)
+_chip_mzm(ax,4.65,yT,1.35,1.25,fc='#EAF4FA'); _ic_coupler_mzm(ax,4.65,yT+0.18); _lab_mzm(ax,4.65,yT-0.38,'1:9 光耦',5.4)
+for x0,x1 in ((1.53,1.98),(3.53,3.98)):
+    _arr_mzm(ax,x0,yT,x1,yT,OPT)
+_arr_mzm(ax,5.33,yT,9.15,yT,OPT)
+ax.text(7.25,yT+0.30,'90% 业务光输出',fontsize=5.0,color=OPT,ha='center')
+_chip_mzm(ax,6.35,3.65,1.35,1.20,fc='#FFF1E8')
+_ic_pd_mzm(ax,6.35,3.82,s=0.23); _lab_mzm(ax,6.35,3.28,'PD',5.6)
+_arr_mzm(ax,4.65,yT-0.63,5.68,3.65,OPT)
+ax.text(5.48,4.48,'10% 监测端',fontsize=4.8,color=OPT,ha='center')
+
+# acquisition and estimation (signal moves right-to-left on the lower row)
+yB=1.75
+_chip_mzm(ax,8.35,yB,2.25,1.30,fc='#FFF1E8')
+_lab_mzm(ax,8.35,yB,'隔直 $\\rightarrow$ TIA $\\rightarrow$ ADC',5.6)
+_chip_mzm(ax,5.65,yB,2.15,1.30,fc='#EEF0FA')
+_lab_mzm(ax,5.65,yB,'Goertzel\n$H_1{\\to}Y,\\ H_2{\\to}X$',5.4)
+_chip_mzm(ax,3.00,yB,2.35,1.30,fc='#EEF0FA')
+_lab_mzm(ax,3.00,yB,'$\\hat A^{-1}(\\mathbf{z}-\\hat{\\mathbf{b}})$\natan2, 积分控制',5.5)
+_arr_mzm(ax,7.03,3.65,8.35,yB+0.66,ELEC)
+_arr_mzm(ax,7.22,yB,6.73,yB,ELEC)
+_arr_mzm(ax,4.57,yB,4.18,yB,CTRL)
+
+# controller output and bias/pilot write-back
+_chip_mzm(ax,0.85,yB,1.35,1.30,fc='#EEF0FA'); _ic_adc_mzm(ax,0.85,yB+0.18,s=0.22); _lab_mzm(ax,0.85,yB-0.38,'DAC',5.5)
+_arr_mzm(ax,1.82,yB,1.53,yB,CTRL)
+_arr_mzm(ax,0.85,yB+0.66,2.75,yT-0.63,CTRL,ls='--')
+ax.text(1.52,3.53,'$V_b+m\\sin\\omega t$',fontsize=5.0,color=CTRL,ha='center')
+
+handles=[Line2D([0],[0],color=OPT,lw=1.2,label='光路'),
+         Line2D([0],[0],color=ELEC,lw=1.1,label='接收链路'),
+         Line2D([0],[0],color=CTRL,lw=1.1,label='数字控制'),
+         Line2D([0],[0],color=CTRL,lw=1.1,ls='--',label='偏压/导频')]
+ax.legend(handles=handles,loc='lower center',ncol=4,frameon=False,fontsize=4.8,
+          bbox_to_anchor=(0.5,0.00),handlelength=1.25,columnspacing=0.75,
+          handletextpad=0.35)
+fig.subplots_adjust(left=0.01,right=0.99,top=0.99,bottom=0.01)
 plt.savefig('figs/fig_arch_mzm.pdf'); plt.close()
 
 # ---- Fig 2: phase plane: raw ellipse + corrected circle ----
