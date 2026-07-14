@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render the EXPERIMENTAL figures from recorded bench data.
 
-  fig_exp_mzm.pdf    single-MZM bench schematic   (data-free, always)
+  fig_exp_mzm.pdf    complete single-MZM bench platform (data-free, always)
   fig_exp_dpmzm.pdf  DPMZM bench schematic         (data-free, always)
   fig_exp1.pdf       calibration ellipse + circle  (needs calib.npz/_fit.json)
   fig_exp2.pdf       lock rms vs phi*: affine/H1   (needs lock_sweep.npz)
@@ -224,19 +224,74 @@ def _ic_mzm(ax, cx, cy, s=0.34, color=OPT):
             color=CIRC, lw=1.2, zorder=4)
 
 
+def _ic_pc(ax, cx, cy, s=0.30, color=CTRL):
+    """PC/upper-computer monitor with a small terminal trace."""
+    ax.add_patch(Rectangle((cx - s, cy - 0.60*s), 2*s, 1.25*s,
+                           fill=False, ec=color, lw=0.9, zorder=4))
+    ax.plot([cx - 0.70*s, cx - 0.15*s, cx + 0.10*s, cx + 0.65*s],
+            [cy - 0.10*s, cy + 0.20*s, cy - 0.02*s, cy + 0.30*s],
+            color=color, lw=0.8, zorder=4)
+    ax.plot([cx, cx], [cy - 0.60*s, cy - 0.88*s], color=color, lw=0.8, zorder=4)
+    ax.plot([cx - 0.55*s, cx + 0.55*s], [cy - 0.88*s, cy - 0.88*s],
+            color=color, lw=0.8, zorder=4)
+
+
+def _ic_dmm(ax, cx, cy, s=0.30, color=CIRC):
+    """Bench DMM: display plus two input terminals."""
+    ax.add_patch(Rectangle((cx - s, cy - 0.65*s), 2*s, 1.30*s,
+                           fill=False, ec=color, lw=0.85, zorder=4))
+    ax.text(cx, cy + 0.15*s, "V", ha="center", va="center",
+            fontsize=5.2, color=color, zorder=5)
+    for dx in (-0.42, 0.42):
+        ax.add_patch(Circle((cx + dx*s, cy - 0.38*s), 0.12*s,
+                            fill=False, ec=color, lw=0.75, zorder=4))
+
+
+def _ic_scope(ax, cx, cy, s=0.30, color=CIRC):
+    """Oscilloscope screen with a sinusoidal trace."""
+    ax.add_patch(Rectangle((cx - s, cy - 0.62*s), 2*s, 1.24*s,
+                           fill=False, ec=color, lw=0.85, zorder=4))
+    x = np.linspace(-0.82, 0.82, 80)
+    ax.plot(cx + s*x, cy + 0.28*s*np.sin(3*np.pi*x),
+            color=color, lw=0.8, zorder=4)
+
+
+def _ic_siggen(ax, cx, cy, s=0.30, color=CIRC):
+    """Signal generator with sine-wave display and output terminal."""
+    ax.add_patch(Rectangle((cx - s, cy - 0.62*s), 2*s, 1.24*s,
+                           fill=False, ec=color, lw=0.85, zorder=4))
+    x = np.linspace(-0.78, 0.48, 70)
+    ax.plot(cx + s*x, cy + 0.25*s*np.sin(2.5*np.pi*x),
+            color=color, lw=0.8, zorder=4)
+    ax.add_patch(Circle((cx + 0.72*s, cy - 0.30*s), 0.12*s,
+                        fill=False, ec=color, lw=0.75, zorder=4))
+
+
+def _ic_specan(ax, cx, cy, s=0.30, color=CIRC):
+    """Spectrum analyzer screen with a dominant RF tone."""
+    ax.add_patch(Rectangle((cx - s, cy - 0.62*s), 2*s, 1.24*s,
+                           fill=False, ec=color, lw=0.85, zorder=4))
+    xx = np.array([-0.82, -0.48, -0.25, 0.00, 0.18, 0.42, 0.78]) * s
+    yy = np.array([-0.38, -0.30, -0.18, 0.46, -0.16, -0.28, -0.35]) * s
+    ax.plot(cx + xx, cy + yy, color=color, lw=0.8, zorder=4)
+
+
 def fig_setup_mzm(out):
-    """Single-column measured main loop.
+    """Complete measured single-MZM platform, including auxiliary instruments.
 
-    Exact ordering: laser -> MZM -> 1:9 coupler monitor port -> PD -> DC block
-    -> TIA -> ADC -> STM32 -> DAC -> MZM.  The unused 90% optical port is shown
-    explicitly; the separate DC diagnostic/DMM branch is intentionally omitted.
+    The solid paths are the physical optical/electrical loop used in every lock
+    run.  The PC is in the realised feedback loop: STM32 supplies Goertzel H1/H2
+    over USB serial, while the PC performs affine inversion and integral control
+    before returning the next bias command.  DMM/scope are diagnostic branches;
+    signal generator/spectrum analyzer are connected only in the RF-load stage.
     """
-    fig, ax = plt.subplots(figsize=(CW, 2.70))
-    ax.set_xlim(0, 10); ax.set_ylim(0, 7.65); ax.axis("off")
+    fig, ax = plt.subplots(figsize=(TW, 3.55))
+    ax.set_xlim(0, 18); ax.set_ylim(0, 8.75); ax.axis("off")
     ax.set_aspect("equal")
-    yT, yM, yB = 6.55, 3.85, 1.25
+    yT, yM = 7.45, 5.05
+    RF, AUX = "#B23A2B", "#6B7280"
 
-    def cell(cx, cy, w, h, glyph, lab, fc="#F5F8F4", labdy=None, fs=5.2):
+    def cell(cx, cy, w, h, glyph, lab, fc="#F5F8F4", fs=6.2):
         _chip(ax, cx, cy, w, h, fc=fc)
         if glyph is not None:
             glyph(ax, cx, cy + h * 0.16)
@@ -244,58 +299,120 @@ def fig_setup_mzm(out):
         else:
             _label(ax, cx, cy, lab, fs=fs)
 
-    # ---- optical plant: laser -> MZM -> 1:9 coupler -------------------------
-    cell(0.90, yT, 1.35, 1.35, _ic_laser, "DFB 激光\n9 dBm", fc="#EAF4FA")
-    cell(2.80, yT, 1.55, 1.35, _ic_mzm, "MZM\n$V_\\pi{=}5.28$ V", fc="#EAF4FA")
-    cell(4.75, yT, 1.35, 1.35, _ic_coupler, "1:9 光耦", fc="#EAF4FA")
-    for x0, x1 in [(1.58, 2.02), (3.58, 4.07)]:
-        ax.annotate("", xy=(x1, yT), xytext=(x0, yT),
-                    arrowprops=dict(arrowstyle="-|>", lw=1.15, color=OPT), zorder=3)
-    # 90% service output continues; 10% monitor port descends to PD.
-    ax.annotate("", xy=(8.45, yT), xytext=(5.43, yT),
-                arrowprops=dict(arrowstyle="-|>", lw=1.15, color=OPT), zorder=3)
-    ax.text(6.95, yT + 0.27, "9端（90% ）业务光输出", fontsize=5.0,
+    def path_arrow(points, color, lw=1.15, ls="-", arrow=True, z=3):
+        xx, yy = zip(*points)
+        ax.plot(xx, yy, color=color, lw=lw, ls=ls, zorder=z,
+                solid_capstyle="round", solid_joinstyle="round")
+        if arrow:
+            ax.annotate("", xy=points[-1], xytext=points[-2],
+                        arrowprops=dict(arrowstyle="-|>", lw=lw, color=color,
+                                        ls=ls, shrinkA=0, shrinkB=0), zorder=z+0.1)
+
+    # ---- optical plant ------------------------------------------------------
+    cell(1.00, yT, 1.55, 1.35, _ic_laser, "DFB 激光器\n1550 nm, 9 dBm",
+         fc="#EAF4FA", fs=5.8)
+    cell(3.55, yT, 1.85, 1.35, _ic_mzm, "MZM\n$V_\\pi{=}5.28$ V",
+         fc="#EAF4FA", fs=6.0)
+    cell(5.95, yT, 1.50, 1.35, _ic_coupler, "1:9 光耦",
+         fc="#EAF4FA", fs=6.0)
+    path_arrow([(1.78, yT), (2.62, yT)], OPT)
+    path_arrow([(4.48, yT), (5.20, yT)], OPT)
+    path_arrow([(6.70, yT), (9.40, yT)], OPT)
+    ax.text(8.05, yT + 0.31, "90% 业务光输出", fontsize=6.2,
             color=OPT, ha="center")
-    ax.plot([4.75, 4.75], [yT - 0.48, yM + 0.68], color=OPT, lw=1.1, zorder=3)
-    ax.annotate("", xy=(5.58, yM), xytext=(4.75, yM + 0.68),
-                arrowprops=dict(arrowstyle="-|>", lw=1.1, color=OPT), zorder=3)
-    ax.text(4.92, 5.13, "1端（10% ）监测", fontsize=4.9, color=OPT,
-            ha="left", rotation=90, va="center")
 
-    # ---- monitor receiver: PD -> DC block -> TIA ---------------------------
-    cell(6.15, yM, 1.25, 1.35, _ic_pd, "PD", fc="#FFF1E8")
-    cell(7.75, yM, 1.15, 1.35, _ic_cap, "隔直", fs=5.0, fc="#FFF1E8")
-    cell(9.20, yM, 1.15, 1.35, _ic_opamp, "TIA", fs=5.0, fc="#FFF1E8")
-    for x0, x1 in [(6.78, 7.17), (8.33, 8.62)]:
-        ax.annotate("", xy=(x1, yM), xytext=(x0, yM),
-                    arrowprops=dict(arrowstyle="-|>", lw=1.05, color=ELEC), zorder=3)
+    # 10% monitor branch and realised analog receive path.
+    cell(6.95, yM, 1.20, 1.30, _ic_pd, "PD", fc="#FFF1E8", fs=6.0)
+    cell(8.40, yM, 1.10, 1.30, _ic_cap, "隔直", fc="#FFF1E8", fs=5.8)
+    cell(9.78, yM, 1.10, 1.30, _ic_opamp, "TIA", fc="#FFF1E8", fs=5.8)
+    path_arrow([(5.95, yT - 0.68), (5.95, yM + 0.80),
+                (6.35, yM + 0.10)], OPT)
+    ax.text(5.73, 6.18, "10% 监测端", fontsize=5.9, color=OPT,
+            rotation=90, ha="center", va="center")
+    path_arrow([(7.55, yM), (7.85, yM)], ELEC, lw=1.1)
+    path_arrow([(8.95, yM), (9.23, yM)], ELEC, lw=1.1)
 
-    # ---- digitization and control: ADC -> STM32 -> DAC ---------------------
-    cell(9.20, yB, 1.15, 1.35, _ic_adc, "ADC", fs=5.0, fc="#EEF0FA")
-    cell(6.80, yB, 2.15, 1.45, _ic_mcu,
-         "STM32H523\nGoertzel + 控制接口", fs=4.8, fc="#EEF0FA")
-    cell(3.90, yB, 1.75, 1.35, _ic_dac, "DAC8568\n×4 偏压驱动",
-         fs=4.8, fc="#EEF0FA")
-    ax.annotate("", xy=(9.20, yB + 0.68), xytext=(9.20, yM - 0.68),
-                arrowprops=dict(arrowstyle="-|>", lw=1.05, color=ELEC), zorder=3)
-    ax.annotate("", xy=(7.88, yB), xytext=(8.62, yB),
-                arrowprops=dict(arrowstyle="-|>", lw=1.05, color=CTRL), zorder=3)
-    ax.annotate("", xy=(4.78, yB), xytext=(5.72, yB),
-                arrowprops=dict(arrowstyle="-|>", lw=1.05, color=CTRL), zorder=3)
-    # DAC bias + pilot closes the loop at the MZM electrode.
-    ax.annotate("", xy=(2.80, yT - 0.70), xytext=(3.90, yB + 0.70),
-                arrowprops=dict(arrowstyle="-|>", lw=1.1, color=CTRL,
-                                ls="--", connectionstyle="arc3,rad=-0.10"), zorder=3)
-    ax.text(2.25, 3.30, "$V_b+m\\sin\\omega t$", fontsize=5.0, color=CTRL,
-            ha="center", rotation=74)
+    # ---- self-developed controller board ----------------------------------
+    ax.add_patch(FancyBboxPatch((10.45, 1.75), 4.35, 4.35,
+                               boxstyle="round,pad=0.05,rounding_size=0.12",
+                               fc="#F7F7FC", ec=CTRL, lw=0.9, ls="--", zorder=1))
+    ax.text(12.62, 5.86, "自研偏压控制板", ha="center", va="center",
+            fontsize=6.2, color=CTRL, zorder=5)
+    cell(11.15, yM, 1.10, 1.30, _ic_adc, "ADS131M02\nADC",
+         fc="#EEF0FA", fs=5.5)
+    cell(13.35, yM, 1.85, 1.40, _ic_mcu, "STM32H523\nGoertzel / 串口接口",
+         fc="#EEF0FA", fs=5.5)
+    cell(12.35, 2.75, 1.90, 1.35, _ic_dac, "DAC8568\n×4 偏压驱动",
+         fc="#EEF0FA", fs=5.5)
+    path_arrow([(10.33, yM), (10.60, yM)], ELEC, lw=1.1)
+    path_arrow([(11.70, yM), (12.42, yM)], CTRL, lw=1.15)
+    path_arrow([(13.35, 4.35), (13.35, 3.60),
+                (12.35, 3.60), (12.35, 3.43)], CTRL, lw=1.15)
+
+    # The PC is part of the realised feedback loop, not merely a logger.
+    cell(16.45, yM, 2.35, 1.55, _ic_pc,
+         "PC 上位机\natan2 仿射反演 + 积分",
+         fc="#F1ECFA", fs=5.3)
+    ax.annotate("", xy=(15.28, yM), xytext=(14.28, yM),
+                arrowprops=dict(arrowstyle="<->", lw=1.25, color=CTRL), zorder=4)
+    ax.text(14.78, yM + 0.28, "USB 串口", fontsize=5.4, color=CTRL,
+            ha="center")
+
+    # DAC bias + pilot closes the physical loop at the MZM bias port.
+    path_arrow([(11.40, 2.75), (10.95, 2.75), (10.95, 1.48),
+                (5.00, 1.48), (5.00, 6.12), (3.95, yT - 0.68)], CTRL, lw=1.2)
+    ax.text(7.75, 1.65, "$V_b+m\\sin(\\omega t)$（偏置口）", fontsize=5.9,
+            color=CTRL, ha="center")
+
+    # ---- diagnostic/truth branches ----------------------------------------
+    cell(6.95, 3.05, 1.95, 1.30, _ic_dmm, "RIGOL DM858E\nDE4 直流真值/标定",
+         fc="#F7F3E8", fs=5.4)
+    path_arrow([(7.68, yM), (7.68, 4.02), (6.95, 4.02), (6.95, 3.70)],
+               AUX, lw=1.0, ls="--")
+    cell(9.35, 3.05, 2.05, 1.30, _ic_scope, "Siglent SDS824X HD\nDE2 交流/FFT核对",
+         fc="#F7F3E8", fs=5.2)
+    path_arrow([(10.33, yM), (10.33, 4.08), (9.35, 4.08), (9.35, 3.70)],
+               AUX, lw=1.0, ls="--")
+
+    # ---- RF-load-only branch ----------------------------------------------
+    cell(1.25, 4.25, 2.05, 1.35, _ic_siggen,
+         "RIGOL DG922 Pro\n50 MHz RF 源", fc="#FAECE9", fs=5.5)
+    cell(3.70, 3.05, 1.95, 1.30, _ic_specan,
+         "R&S FSV30\nRF 输入核对", fc="#FAECE9", fs=5.5)
+    path_arrow([(2.28, 4.25), (3.10, 4.25), (3.10, 6.42),
+                (3.15, 6.77)], RF, lw=1.05, ls="--")
+    ax.text(2.77, 5.43, "仅 RF 加载试验", fontsize=5.5, color=RF,
+            rotation=90, ha="center", va="center")
+    ax.add_patch(Circle((3.10, 4.25), 0.055, fc=RF, ec=RF, zorder=5))
+    path_arrow([(3.10, 4.25), (3.70, 3.70)], RF, lw=1.0, ls="--")
+    ax.text(3.52, 4.28, "RF 输入测试点", fontsize=5.2, color=RF,
+            ha="left", va="bottom")
+
+    # PC-orchestrated auxiliary acquisition; one bus avoids crossing the loop.
+    bus_y = 0.58
+    ax.plot([1.25, 16.55], [bus_y, bus_y], color=AUX, lw=0.8,
+            ls=(0, (2, 2)), zorder=1)
+    aux_routes = [
+        [(1.25, bus_y), (1.25, 3.58)],
+        [(3.70, bus_y), (3.70, 2.40)],
+        [(5.70, bus_y), (5.70, 2.20), (6.95, 2.20), (6.95, 2.40)],
+        [(10.25, bus_y), (10.25, 2.20), (9.35, 2.20), (9.35, 2.40)],
+        [(17.25, bus_y), (17.25, 4.00), (16.45, 4.00), (16.45, 4.28)],
+    ]
+    for pts in aux_routes:
+        xx, yy = zip(*pts)
+        ax.plot(xx, yy, color=AUX, lw=0.8, ls=(0, (2, 2)), zorder=1)
+    ax.text(8.90, 0.30, "PC 仪器控制与数据记录（USB/LAN）", fontsize=5.5,
+            color=AUX, ha="center")
 
     handles = [Line2D([0], [0], color=OPT, lw=1.2, label="光路"),
-               Line2D([0], [0], color=ELEC, lw=1.1, label="接收链路"),
-               Line2D([0], [0], color=CTRL, lw=1.1, label="数字控制"),
-               Line2D([0], [0], color=CTRL, lw=1.1, ls="--", label="偏压/导频")]
-    ax.legend(handles=handles, loc="lower left", ncol=1, frameon=False,
-              fontsize=4.7, bbox_to_anchor=(0.00, 0.00), handlelength=1.35,
-              labelspacing=0.25, handletextpad=0.4)
+               Line2D([0], [0], color=ELEC, lw=1.1, label="模拟接收"),
+               Line2D([0], [0], color=CTRL, lw=1.1, label="实时数字控制"),
+               Line2D([0], [0], color=AUX, lw=1.0, ls="--", label="诊断/仪器通信"),
+               Line2D([0], [0], color=RF, lw=1.0, ls="--", label="RF阶段专用")]
+    ax.legend(handles=handles, loc="upper right", ncol=5, frameon=False,
+              fontsize=5.2, bbox_to_anchor=(0.995, 0.995), handlelength=1.45,
+              columnspacing=0.9, handletextpad=0.35)
     fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
     fig.savefig(os.path.join(out, "fig_exp_mzm.pdf"))
     plt.close(fig); print("[fig] fig_exp_mzm.pdf")
