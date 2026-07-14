@@ -1,0 +1,210 @@
+<mxfile host="app.diagrams.net" agent="Codex" version="24.7.17">
+  <diagram id="fig-arch-visio-source" name="图2-单MZM闭环-Visio源图标">
+    <mxGraphModel dx="1200" dy="540" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="540" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="visio_g549_ld" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="65" y="90" width="100" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="v550_frame" value="" style="rounded=1;arcSize=9.09;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=4.81;" vertex="1" parent="visio_g549_ld">
+          <mxGeometry x="0" y="0" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="v554_h" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=4.81;endArrow=none;endFill=1;" edge="1" parent="visio_g549_ld">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="13.54" y="34.885" as="sourcePoint" />
+            <mxPoint x="63.638" y="34.885" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v555_v" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=4.81;endArrow=none;endFill=1;" edge="1" parent="visio_g549_ld">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="40.214" y="0.805" as="sourcePoint" />
+            <mxPoint x="40.214" y="98.759" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v556_red" value="" style="shape=triangle;direction=north;fillColor=#C00000;strokeColor=#000000;strokeWidth=4.81;" vertex="1" parent="visio_g549_ld">
+          <mxGeometry x="15.104" y="39.09" width="50.098" height="33.15" as="geometry" />
+        </mxCell>
+        <mxCell id="v551_ray" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=4.81;endArrow=block;endFill=1;" edge="1" parent="visio_g549_ld">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70.362" y="30.558" as="sourcePoint" />
+            <mxPoint x="90.637" y="10.283" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v552_ray" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=4.81;endArrow=block;endFill=1;" edge="1" parent="visio_g549_ld">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="76.792" y="47.181" as="sourcePoint" />
+            <mxPoint x="95.53" y="28.443" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ld_name" value="LD" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=TeX Gyre Termes;fontSize=30;" vertex="1" parent="visio_g549_ld">
+          <mxGeometry x="10" y="106" width="80" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="visio_s575_mzm" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="245" y="100" width="230" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="v575_hex" value="MZM" style="shape=hexagon;perimeter=hexagonPerimeter2;size=0.25;fillColor=#FEFAF6;gradientColor=#FBE1CC;gradientDirection=east;strokeColor=#000000;strokeWidth=7;whiteSpace=wrap;html=1;fontFamily=TeX Gyre Termes;fontSize=32;align=center;verticalAlign=middle;" vertex="1" parent="visio_s575_mzm">
+          <mxGeometry x="0" y="14" width="230" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="visio_s42_oc" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="610" y="105" width="95" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="v42_ellipse" value="" style="ellipse;fillColor=#F9C499;gradientColor=#DDD6E5;gradientDirection=east;strokeColor=#000000;strokeWidth=6.62;" vertex="1" parent="visio_s42_oc">
+          <mxGeometry x="8" y="15" width="78" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="oc_name" value="OC" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=TeX Gyre Termes;fontSize=30;" vertex="1" parent="visio_s42_oc">
+          <mxGeometry x="17" y="86" width="60" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="visio_g368_pd" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="990" y="296" width="100" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="v233_frame" value="" style="rounded=1;arcSize=10.65;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=5.64;" vertex="1" parent="visio_g368_pd">
+          <mxGeometry x="0" y="0" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="v237_bar" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=5.64;endArrow=none;endFill=1;" edge="1" parent="visio_g368_pd">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="35.45" y="66.128" as="sourcePoint" />
+            <mxPoint x="84.698" y="66.128" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v238_v" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=5.64;endArrow=none;endFill=1;" edge="1" parent="visio_g368_pd">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="61.013" y="6.165" as="sourcePoint" />
+            <mxPoint x="61.013" y="98.121" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v239_yellow" value="" style="shape=triangle;direction=south;fillColor=#FEE599;strokeColor=#000000;strokeWidth=5.64;" vertex="1" parent="visio_g368_pd">
+          <mxGeometry x="38.029" y="33.305" width="46.364" height="33.39" as="geometry" />
+        </mxCell>
+        <mxCell id="v234_ray" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=3.29;endArrow=block;endFill=1;" edge="1" parent="visio_g368_pd">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="14.166" y="33.906" as="sourcePoint" />
+            <mxPoint x="34.194" y="60.123" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v235_ray" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=3.29;endArrow=block;endFill=1;" edge="1" parent="visio_g368_pd">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="13.576" y="60.123" as="sourcePoint" />
+            <mxPoint x="31.168" y="82.018" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pd_name" value="PD" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=TeX Gyre Termes;fontSize=30;" vertex="1" parent="visio_g368_pd">
+          <mxGeometry x="10" y="106" width="80" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="blk_dac" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="110" y="305" width="130" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dac_frame" value="DAC" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=4;fontColor=#000000;align=center;verticalAlign=middle;fontFamily=TeX Gyre Termes;fontSize=31;" vertex="1" parent="blk_dac">
+          <mxGeometry x="0" y="0" width="130" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="dac_sub" value="偏置 + 导频" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Songti SC;fontSize=24;" vertex="1" parent="blk_dac">
+          <mxGeometry x="0" y="88" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="blk_ctrl" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="325" y="295" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_frame" value="" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=4;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="blk_ctrl">
+          <mxGeometry x="0" y="0" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_main" value="仿射反演" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Songti SC;fontSize=28;" vertex="1" parent="blk_ctrl">
+          <mxGeometry x="15" y="10" width="150" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_sub" value="atan2 + 积分控制" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=TeX Gyre Termes;fontSize=23;" vertex="1" parent="blk_ctrl">
+          <mxGeometry x="5" y="53" width="170" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="blk_stm32" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="565" y="305" width="130" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="stm_frame" value="STM32" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=4;fontColor=#000000;align=center;verticalAlign=middle;fontFamily=TeX Gyre Termes;fontSize=30;" vertex="1" parent="blk_stm32">
+          <mxGeometry x="0" y="0" width="130" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="stm_sub" value="H₁→Y, H₂→X" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=TeX Gyre Termes;fontSize=24;" vertex="1" parent="blk_stm32">
+          <mxGeometry x="-5" y="88" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="blk_afe" value="" style="group;" vertex="1" parent="1">
+          <mxGeometry x="760" y="305" width="165" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="afe_frame" value="" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=4;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="blk_afe">
+          <mxGeometry x="0" y="0" width="165" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="afe_main" value="接收前端" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Songti SC;fontSize=27;" vertex="1" parent="blk_afe">
+          <mxGeometry x="10" y="8" width="145" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="afe_sub" value="隔直 · TIA · ADC" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=TeX Gyre Termes;fontSize=21;" vertex="1" parent="blk_afe">
+          <mxGeometry x="3" y="45" width="159" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="opt_ld_mzm" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#12AEE4;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="165" y="140" as="sourcePoint" />
+            <mxPoint x="245" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="opt_mzm_oc" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#12AEE4;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="475" y="140" as="sourcePoint" />
+            <mxPoint x="618" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="opt_main" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#12AEE4;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="696" y="140" as="sourcePoint" />
+            <mxPoint x="1135" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="main_label" value="90% 业务光输出" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Songti SC;fontSize=25;fontColor=#12AEE4;align=right;" vertex="1" parent="1">
+          <mxGeometry x="850" y="94" width="280" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="opt_monitor" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#12AEE4;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="657" y="178" as="sourcePoint" />
+            <mxPoint x="1040" y="296" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="657" y="245" />
+              <mxPoint x="1040" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="monitor_label" value="10% 监测端" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Songti SC;fontSize=25;fontColor=#12AEE4;" vertex="1" parent="1">
+          <mxGeometry x="775" y="204" width="180" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="sig_pd_afe" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="990" y="346" as="sourcePoint" />
+            <mxPoint x="925" y="346" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sig_afe_stm" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="346" as="sourcePoint" />
+            <mxPoint x="695" y="346" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sig_stm_ctrl" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="565" y="346" as="sourcePoint" />
+            <mxPoint x="505" y="346" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sig_ctrl_dac" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="325" y="346" as="sourcePoint" />
+            <mxPoint x="240" y="346" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bias_feedback" value="" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;rounded=0;html=1;dashed=0;strokeColor=#000000;strokeWidth=5;endArrow=block;endFill=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="175" y="305" as="sourcePoint" />
+            <mxPoint x="360" y="186" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="175" y="245" />
+              <mxPoint x="360" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bias_label" value="Vᵦ + m sin(ωt)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=TeX Gyre Termes;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="195" y="203" width="180" height="34" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
