@@ -433,7 +433,7 @@ for xd,yd,col,ls,lw,lab in step_a_lines:
 ax.set_xlabel('控制周期',fontsize=7,labelpad=1)
 ax.set_ylabel('$\\varphi_b$ (rad)',fontsize=7,labelpad=1)
 ax.tick_params(labelsize=6.5,pad=1)
-ax.legend(loc='lower left',borderpad=0.25,handlelength=1.2,
+ax.legend(loc='upper left',borderpad=0.25,handlelength=1.2,
           handletextpad=0.4,fontsize=6.5,frameon=False)
 ax.set_ylim(step_a_ylim)
 ax.set_title('(b) 设定点阶跃',fontsize=7,pad=2)
@@ -483,11 +483,10 @@ axs[0].set_ylabel('$|e|$ (mrad)',fontsize=7,labelpad=1)
 axs[0].set_ylim(0,1.05*max(err_buf))
 axs[0].tick_params(labelsize=6.5,pad=1)
 axs[0].set_title('(a) 锁定误差（第1200周期注入突变）',fontsize=6.8,pad=2)
-# local-zoom inset: at full 3200-step span the drift-jump line (k=1200, red)
-# and the recal line (k=1231, blue) sit only 31 steps apart and visually
-# merge into one line; the caption's "31 周期" delay is otherwise invisible.
-# Placed in the flat, data-free upper-right corner of panel (a) (the error
-# trace hugs the bottom except for the narrow spike) so it covers no data.
+# Local zoom: at full 3200-step span the drift-jump line (k=1200, red)
+# and the recal line (k=1231, blue) visually merge.  Keep the zoom fully
+# inside the axes; connector artists are deliberately avoided because their
+# automatic paths can cross the top boundary after single-column scaling.
 _ax0=axs[0]
 _axins=_ax0.inset_axes([0.58,0.42,0.40,0.54])
 # tight window: only ~20 cycles of flat lead-in/lead-out around the
@@ -512,7 +511,8 @@ _axins.annotate('',xy=(ev,_ins_y),xytext=(1200,_ins_y),
     arrowprops=dict(arrowstyle='<->',lw=0.7,color=INK,mutation_scale=6))
 _axins.text(0.5*(1200+ev),_ins_y,'31 周期',fontsize=5.0,color=INK,
             ha='center',va='bottom')
-_ax0.indicate_inset_zoom(_axins,edgecolor=INK,lw=0.5,alpha=0.6)
+_ax0.axvspan(_win_lo,_win_hi,facecolor=GLD,edgecolor=GLD,alpha=0.10,
+             linewidth=0.55,zorder=0,clip_on=True)
 axs[1].semilogy(rho_buf,color=INK,lw=0.6)
 axs[1].axhline(RHO_TH,color=GLD,lw=0.8,ls='--')
 axs[1].axvline(1200,color=RED,lw=0.8,ls='--')

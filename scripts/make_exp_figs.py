@@ -6,6 +6,8 @@
   fig_exp1.pdf       calibration ellipse + circle  (needs calib.npz/_fit.json)
   fig_exp2.pdf       lock rms vs phi*: affine/H1   (needs lock_sweep.npz)
   fig_exp3.pdf       drift + recal record          (needs drift.npz)
+  fig_exprepeat_mzm.pdf static acquisition repeatability
+                                                   (needs frozen v1.2 analysis)
 
 Offline (no hardware). Missing measured data -> that figure is SKIPPED with a
 warning, never an error, so `make figs`-style runs stay green before the bench
@@ -276,14 +278,30 @@ def _ic_specan(ax, cx, cy, s=0.30, color=CIRC):
     ax.plot(cx + xx, cy + yy, color=color, lw=0.8, zorder=4)
 
 
+def _ic_pp10g(ax, cx, cy, s=0.30, color=CIRC):
+    """PP-10G optical receiver: PIN detector followed by a TIA/preamp."""
+    ax.add_patch(Polygon([[cx - 0.88*s, cy + 0.52*s],
+                          [cx - 0.88*s, cy - 0.52*s],
+                          [cx - 0.12*s, cy]],
+                         closed=True, fill=False, ec=color, lw=0.85, zorder=4))
+    ax.plot([cx - 0.02*s, cx - 0.02*s],
+            [cy - 0.58*s, cy + 0.58*s], color=color, lw=0.9, zorder=4)
+    ax.add_patch(Polygon([[cx + 0.18*s, cy - 0.56*s],
+                          [cx + 0.18*s, cy + 0.56*s],
+                          [cx + 0.92*s, cy]],
+                         closed=True, fill=False, ec=color, lw=0.85, zorder=4))
+
+
 def fig_setup_mzm(out):
     """Complete measured single-MZM platform, including auxiliary instruments.
 
     The solid paths are the physical optical/electrical loop used in every lock
     run.  The PC is in the realised feedback loop: STM32 supplies Goertzel H1/H2
     over USB serial, while the PC performs affine inversion and integral control
-    before returning the next bias command.  DMM/scope are diagnostic branches;
-    signal generator/spectrum analyzer are connected only in the RF-load stage.
+    before returning the next bias command.  The DMM is the independent DC
+    truth branch.  In the RF-load stage the DG922 Pro drives the MZM RF port,
+    while the 90% optical output is detected by a PP-10G receiver and measured
+    by the FSV30; the analyzer is not an electrical tap on the generator output.
     """
     fig, ax = plt.subplots(figsize=(TW, 3.55))
     ax.set_xlim(0, 18); ax.set_ylim(0, 8.75); ax.axis("off")
@@ -317,9 +335,16 @@ def fig_setup_mzm(out):
          fc="#EAF4FA", fs=6.0)
     path_arrow([(1.78, yT), (2.62, yT)], OPT)
     path_arrow([(4.48, yT), (5.20, yT)], OPT)
-    path_arrow([(6.70, yT), (9.40, yT)], OPT)
-    ax.text(8.05, yT + 0.31, "90% 业务光输出", fontsize=6.2,
+    cell(8.65, yT, 1.90, 1.35, _ic_pp10g,
+         "PP-10G\nPIN + 前置 TIA", fc="#FAECE9", fs=5.5)
+    cell(11.25, yT, 1.95, 1.35, _ic_specan,
+         "R&S FSV30\n输出 RF 频谱", fc="#FAECE9", fs=5.5)
+    path_arrow([(6.70, yT), (7.70, yT)], OPT)
+    ax.text(7.18, yT + 0.31, "90% 光口", fontsize=6.0,
             color=OPT, ha="center")
+    path_arrow([(9.60, yT), (10.28, yT)], RF, lw=1.05)
+    ax.text(9.94, yT + 0.31, r"50 $\Omega$ SMA", fontsize=5.5,
+            color=RF, ha="center")
 
     # 10% monitor branch and realised analog receive path.
     cell(6.95, yM, 1.20, 1.30, _ic_pd, "PD", fc="#FFF1E8", fs=6.0)
@@ -369,24 +394,15 @@ def fig_setup_mzm(out):
          fc="#F7F3E8", fs=5.4)
     path_arrow([(7.68, yM), (7.68, 4.02), (6.95, 4.02), (6.95, 3.70)],
                AUX, lw=1.0, ls="--")
-    cell(9.35, 3.05, 2.05, 1.30, _ic_scope, "Siglent SDS824X HD\nDE2 交流/FFT核对",
-         fc="#F7F3E8", fs=5.2)
-    path_arrow([(10.33, yM), (10.33, 4.08), (9.35, 4.08), (9.35, 3.70)],
-               AUX, lw=1.0, ls="--")
-
     # ---- RF-load-only branch ----------------------------------------------
     cell(1.25, 4.25, 2.05, 1.35, _ic_siggen,
          "RIGOL DG922 Pro\n50 MHz RF 源", fc="#FAECE9", fs=5.5)
-    cell(3.70, 3.05, 1.95, 1.30, _ic_specan,
-         "R&S FSV30\nRF 输入核对", fc="#FAECE9", fs=5.5)
     path_arrow([(2.28, 4.25), (3.10, 4.25), (3.10, 6.42),
-                (3.15, 6.77)], RF, lw=1.05, ls="--")
+                (3.15, 6.77)], RF, lw=1.05)
     ax.text(2.77, 5.43, "仅 RF 加载试验", fontsize=5.5, color=RF,
             rotation=90, ha="center", va="center")
-    ax.add_patch(Circle((3.10, 4.25), 0.055, fc=RF, ec=RF, zorder=5))
-    path_arrow([(3.10, 4.25), (3.70, 3.70)], RF, lw=1.0, ls="--")
-    ax.text(3.52, 4.28, "RF 输入测试点", fontsize=5.2, color=RF,
-            ha="left", va="bottom")
+    ax.text(3.32, 6.30, "MZM 射频口", fontsize=5.2, color=RF,
+            ha="left", va="center")
 
     # PC-orchestrated auxiliary acquisition; one bus avoids crossing the loop.
     bus_y = 0.58
@@ -394,14 +410,16 @@ def fig_setup_mzm(out):
             ls=(0, (2, 2)), zorder=1)
     aux_routes = [
         [(1.25, bus_y), (1.25, 3.58)],
-        [(3.70, bus_y), (3.70, 2.40)],
         [(5.70, bus_y), (5.70, 2.20), (6.95, 2.20), (6.95, 2.40)],
-        [(10.25, bus_y), (10.25, 2.20), (9.35, 2.20), (9.35, 2.40)],
         [(17.25, bus_y), (17.25, 4.00), (16.45, 4.00), (16.45, 4.28)],
     ]
     for pts in aux_routes:
         xx, yy = zip(*pts)
         ax.plot(xx, yy, color=AUX, lw=0.8, ls=(0, (2, 2)), zorder=1)
+    # FSV30 is controlled by the PC but its RF input comes only from PP-10G.
+    ax.plot([12.23, 17.55, 17.55, 16.95],
+            [7.95, 7.95, 5.90, 5.90], color=AUX, lw=0.8,
+            ls=(0, (2, 2)), zorder=1)
     ax.text(8.90, 0.30, "PC 仪器控制与数据记录（USB/LAN）", fontsize=5.5,
             color=AUX, ha="center")
 
@@ -409,7 +427,7 @@ def fig_setup_mzm(out):
                Line2D([0], [0], color=ELEC, lw=1.1, label="模拟接收"),
                Line2D([0], [0], color=CTRL, lw=1.1, label="实时数字控制"),
                Line2D([0], [0], color=AUX, lw=1.0, ls="--", label="诊断/仪器通信"),
-               Line2D([0], [0], color=RF, lw=1.0, ls="--", label="RF阶段专用")]
+               Line2D([0], [0], color=RF, lw=1.0, label="RF激励/检测")]
     ax.legend(handles=handles, loc="upper right", ncol=5, frameon=False,
               fontsize=5.2, bbox_to_anchor=(0.995, 0.995), handlelength=1.45,
               columnspacing=0.9, handletextpad=0.35)
@@ -1020,54 +1038,72 @@ def fig_expperf_mzm(data, out):
 
 def fig_expstab_mzm(data, out):
     """fig_expstab_mzm — single-column (CW) narrow relayout of fig_exp3's two
-    panels: (a) 3 h long-term stability (bias drift band + lock-error
-    scatter, twin y-axes) and (b) residual-triggered detection/recovery
-    (twin y-axes). Same data/logic as _panel_stability/_panel_drift above,
-    just redrawn at column width with smaller fonts, shortened Chinese
-    annotations, and thinned ticks so nothing overlaps or gets clipped at
-    3.45 in. Offline/deterministic (reads stability.npz/drift.npz; no RNG),
-    so this is an ordinary new function, not a capture-replot."""
+    panels: (a) the complete 3 h record, including raw controller commands,
+    raw demodulated error, sparse DMM checks and a short-cycle inset; and (b)
+    residual-triggered detection/recalibration.  Raw dynamics are deliberately
+    retained so smoothing cannot hide a period-2 orbit.  Offline/deterministic
+    (reads stability.npz/drift.npz; no RNG)."""
     sp = os.path.join(data, "stability.npz"); dp = os.path.join(data, "drift.npz")
     has_s, has_d = os.path.exists(sp), os.path.exists(dp)
     if not (has_s or has_d):
         print("[skip] fig_expstab_mzm: stability.npz / drift.npz not found"); return
     nrows = int(has_s) + int(has_d)
-    fig, axs = plt.subplots(nrows, 1, figsize=(CW, 1.15 * nrows + 0.35), squeeze=False)
+    fig, axs = plt.subplots(nrows, 1, figsize=(CW, 1.42 * nrows + 0.35), squeeze=False)
     r = 0
     if has_s:
         ax1 = axs[r, 0]
         d = np.load(sp)
-        th = d["t"] / 3600.0; V = d["V"]
-        dt = d["dmm_t"] / 3600.0; de = np.abs(d["dmm_err_mrad"])
+        th = d["t"] / 3600.0; V = d["V"]; err = d["err_mrad"]
+        dt = d["dmm_t"] / 3600.0; de = d["dmm_err_mrad"]
         rec = int(d["recal_events"]); hrs = float(d["t"][-1]) / 3600
-        vdrift = float(V.max() - V.min())     # caption number: full raw range
-        # The raw V toggles fast between two dither states (a dense "band" that
-        # buries the lock-error scatter). Show the DRIFT as a thin smoothed
-        # trend line (centred rolling mean) instead, and draw the error scatter
-        # as prominent open circles on top so both are legible.
+        vrange = float(V.max() - V.min())
+        raw_rms = float(np.sqrt(np.mean(err ** 2)))
+        lag1 = float(np.corrcoef(err[:-1], err[1:])[0, 1])
+        flip = float(np.mean(np.signbit(err[1:]) != np.signbit(err[:-1])))
+        # Show both the raw command and its low-frequency trend.  The raw band
+        # is evidence: it must not be described as two pilot/dither states.
         w = max(5, (len(V) // 120) | 1)       # odd window ~1/120 of the record
         kern = np.ones(w) / w
         Vtrend = np.convolve(V, kern, mode="same")
         edge = w // 2
-        ax1.plot(th[edge:-edge], Vtrend[edge:-edge], color=INK, lw=0.8,
-                 alpha=0.85, zorder=2, label="$V_b$ 漂移趋势")
+        ax1.plot(th, V, color=INK, lw=0.30, alpha=0.20, zorder=1,
+                 label="$V_b$ 原始命令")
+        ax1.plot(th[edge:-edge], Vtrend[edge:-edge], color=INK, lw=0.85,
+                 alpha=0.95, zorder=2, label="$V_b$ 低频趋势")
         ax1.set_ylabel("$V_b$ (V)", color=INK, fontsize=6.8, labelpad=1)
         ax1.set_xlabel("时间 (h)", fontsize=6.8, labelpad=1)
         ax1.tick_params(axis="y", labelcolor=INK, labelsize=6.3, pad=1)
         ax1.tick_params(axis="x", labelsize=6.3, pad=1)
         ax1.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
         ax1.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
-        vlo, vhi = float(Vtrend[edge:-edge].min()), float(Vtrend[edge:-edge].max())
-        ax1.set_ylim(vlo - 0.08 * (vhi - vlo), vhi + 0.12 * (vhi - vlo))
-        ax1.set_title(f"(a) 长期稳定性 ({hrs:.1f} h, 漂移 {vdrift:.2f} V, "
-                      f"重定标{rec}次)", fontsize=6.5, pad=2)
+        vlo, vhi = float(V.min()), float(V.max())
+        ax1.set_ylim(vlo - 0.05 * (vhi - vlo), vhi + 0.05 * (vhi - vlo))
+        ax1.set_title(f"(a) 3 h 原始动态 (命令范围 {vrange:.2f} V, "
+                      f"触发{rec}次)", fontsize=6.5, pad=2)
         ax2 = ax1.twinx()
-        ax2.plot(dt, de, "o", mfc="none", mec=GRN, mew=0.9, ms=3.2,
-                 alpha=0.9, zorder=4, label="锁定误差")
-        ax2.set_ylabel("锁定误差 (mrad)", color=GRN, fontsize=6.8, labelpad=1)
+        ax2.plot(th, err, color=GRN, lw=0.25, alpha=0.18, zorder=2,
+                 label="逐周期解调误差")
+        ax2.plot(dt, de, "o", mfc="none", mec=RED, mew=0.8, ms=2.8,
+                 alpha=0.9, zorder=4, label="DMM 稀疏评价")
+        ax2.set_ylabel("相位误差 (mrad)", color=GRN, fontsize=6.8, labelpad=1)
         ax2.tick_params(axis="y", labelcolor=GRN, labelsize=6.3, pad=1)
         ax2.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
-        ax2.set_ylim(0, max(800.0, float(de.max()) * 1.25))
+        elim = max(1000.0, float(np.max(np.abs(err))) * 1.10,
+                   float(np.max(np.abs(de))) * 1.20)
+        ax2.set_ylim(-elim, elim)
+        # A short inset makes the alternating orbit visible instead of leaving
+        # it as an uninterpretable dense band over the full 3 h axis.
+        nshow = min(24, len(err))
+        ins = ax1.inset_axes([0.08, 0.08, 0.37, 0.34], zorder=8)
+        ins.plot(np.arange(nshow), err[:nshow], "o-", color=GRN,
+                 lw=0.45, ms=1.7)
+        ins.axhline(0, color="#777777", lw=0.35)
+        ins.set_title(f"前 {nshow} 周期: rms={raw_rms:.0f} mrad\n"
+                      f"lag1={lag1:.3f}, 翻转={flip:.2f}", fontsize=4.8,
+                      pad=1.0)
+        ins.tick_params(labelsize=4.5, length=1.5, pad=0.5)
+        ins.set_xlabel("周期", fontsize=4.8, labelpad=0)
+        ins.set_ylabel("mrad", fontsize=4.8, labelpad=0)
         r += 1
     if has_d:
         ax1 = axs[r, 0]
@@ -1103,6 +1139,205 @@ def fig_expstab_mzm(data, out):
     plt.close(fig); print("[fig] fig_expstab_mzm.pdf")
 
 
+def fig_exprepeat_mzm(data, out):
+    """Render the frozen v1.2 static-repeat result without touching raw data."""
+    src = os.path.join(
+        data, "diagnostics", "static_repeats",
+        "20260717_static_v12_board2", "analysis.json")
+    if not os.path.exists(src):
+        print(f"[skip] fig_exprepeat_mzm.pdf (missing {src})")
+        return
+    with open(src, encoding="utf-8") as f:
+        analysis = json.load(f)
+    if not analysis.get("quality_gate", {}).get("accepted", False):
+        print("[skip] fig_exprepeat_mzm.pdf (v1.2 analysis not accepted)")
+        return
+
+    blocks = list(analysis["statistics"]["blocks"].values())
+    grids = sorted({int(row["grid_index"]) for row in blocks})
+    conditions = ["none", "gen", "acq", "both"]
+    labels = {"none": "无重启", "gen": "发生器", "acq": "采集器",
+              "both": "两者"}
+    colors = {"none": INK, "gen": GRN, "acq": BLU, "both": RED}
+    styles = {"none": "-", "gen": "--", "acq": "-.", "both": ":"}
+    marks = {"none": "o", "gen": "s", "acq": "^", "both": "D"}
+    by_key = {(int(row["grid_index"]), row["condition"]): row
+              for row in blocks}
+    x = np.arange(len(grids))
+
+    fig, axs = plt.subplots(2, 1, figsize=(CW, 3.05), sharex=True)
+    for condition in conditions:
+        h1 = np.array([1000.0 * by_key[(g, condition)]["h1_phase_cstd_rad"]
+                       for g in grids])
+        h2 = np.array([1000.0 * by_key[(g, condition)]["h2_phase_cstd_rad"]
+                       for g in grids])
+        kw = dict(color=colors[condition], ls=styles[condition],
+                  marker=marks[condition], ms=3.0, lw=0.85,
+                  label=labels[condition])
+        axs[0].plot(x, h1, **kw)
+        axs[1].plot(x, h2, **kw)
+
+    thresholds = analysis["statistics"]["thresholds"]
+    restart_gate = 1000.0 * thresholds["restart_excess_min_rad"]
+    environment_gate = 1000.0 * thresholds["environment_h2_cstd_rad"]
+    axs[0].axhline(restart_gate, color=GLD, ls=(0, (4, 2)), lw=0.8,
+                   label="重启增量门 20 mrad")
+    axs[0].set_yscale("log")
+    axs[0].set_ylim(0.02, 30.0)
+    axs[0].set_ylabel("H1 相位圆标准差 (mrad)", fontsize=6.8, labelpad=1)
+    axs[0].set_title("(a) H1 参考相位", fontsize=6.7, pad=2)
+    axs[0].text(0.02, 0.06, "最大 0.330 mrad；最大重启增量 0.287 mrad",
+                transform=axs[0].transAxes, fontsize=6.0, color=INK)
+
+    axs[1].axhline(environment_gate, color=GLD, ls=(0, (4, 2)), lw=0.8,
+                   label="环境门 50 mrad")
+    axs[1].set_ylim(0, 55)
+    axs[1].set_ylabel("H2 相位圆标准差 (mrad)", fontsize=6.8, labelpad=1)
+    axs[1].set_title("(b) H2 弱轴相位", fontsize=6.7, pad=2)
+    axs[1].text(0.02, 0.84, "最大 29.9 mrad",
+                transform=axs[1].transAxes, fontsize=6.0, color=INK)
+    axs[1].set_xlabel("满周期扫描相位", fontsize=6.8, labelpad=1)
+    axs[1].set_xticks(x, [r"$0$", r"$\pi/2$", r"$\pi$",
+                         r"$3\pi/2$", r"$2\pi$"])
+
+    for ax in axs:
+        ax.grid(True, which="major", color="#D8DDD9", lw=0.35)
+        ax.tick_params(labelsize=6.3, pad=1, length=2)
+        ax.spines[["top", "right"]].set_visible(False)
+    handles, legend_labels = axs[0].get_legend_handles_labels()
+    fig.legend(handles, legend_labels, loc="upper center", ncol=3,
+               bbox_to_anchor=(0.5, 0.995), frameon=False, fontsize=6.0,
+               handlelength=2.2, columnspacing=0.9)
+    fig.subplots_adjust(left=0.18, right=0.98, top=0.85, bottom=0.13,
+                        hspace=0.42)
+    fig.savefig(os.path.join(out, "fig_exprepeat_mzm.pdf"))
+    plt.close(fig); print("[fig] fig_exprepeat_mzm.pdf")
+
+
+def fig_expdiag_mzm(data, out):
+    """Compact 2x2 evidence figure for final single-column placement."""
+    stability_path = os.path.join(data, "stability.npz")
+    drift_path = os.path.join(data, "drift.npz")
+    repeat_path = os.path.join(
+        data, "diagnostics", "static_repeats",
+        "20260717_static_v12_board2", "analysis.json")
+    if not all(os.path.exists(p) for p in
+               (stability_path, drift_path, repeat_path)):
+        print("[skip] fig_expdiag_mzm.pdf (missing frozen input)")
+        return
+    with open(repeat_path, encoding="utf-8") as f:
+        repeat = json.load(f)
+    if not repeat.get("quality_gate", {}).get("accepted", False):
+        print("[skip] fig_expdiag_mzm.pdf (v1.2 analysis not accepted)")
+        return
+
+    fig, axs = plt.subplots(2, 2, figsize=(CW, 3.20))
+
+    # (a) The full 3 h record is represented by its two alternating branches.
+    # This preserves the period-2 evidence without overplotting 6078 samples.
+    stable = np.load(stability_path)
+    t_h = stable["t"] / 3600.0
+    err = stable["err_mrad"]
+    dmm_t_h = stable["dmm_t"] / 3600.0
+    dmm_err = stable["dmm_err_mrad"]
+    ax = axs[0, 0]
+    smooth_n = 61
+    kernel = np.ones(smooth_n) / smooth_n
+    for parity, color, label in ((0, GRN, "偶周期"),
+                                 (1, BLU, "奇周期")):
+        branch_t = t_h[parity::2]
+        branch_e = err[parity::2]
+        branch_s = np.convolve(branch_e, kernel, mode="valid")
+        half = smooth_n // 2
+        ax.plot(branch_t[half:half + len(branch_s)], branch_s,
+                color=color, lw=0.75, label=label)
+    ax.plot(dmm_t_h, dmm_err, "o", mfc="none", mec=RED, mew=0.55,
+            ms=2.0, label="DMM")
+    ax.axhline(0, color="#777777", lw=0.35)
+    ax.set_xlim(0, 3.0)
+    ax.set_ylim(-1100, 1100)
+    ax.set_xlabel("时间 (h)", fontsize=6.2, labelpad=1)
+    ax.set_ylabel("相位误差 (mrad)", fontsize=6.2, labelpad=1)
+    ax.set_title("(a) 3 h 周期--2 分支", fontsize=6.4, pad=2)
+    ax.legend(loc="lower center", ncol=3, frameon=False, fontsize=5.2,
+              handlelength=1.0, handletextpad=0.25, columnspacing=0.55,
+              borderpad=0.1)
+
+    # (b) Show error and residual on the same time support.  Annotations carry
+    # the event semantics so a long legend is unnecessary at half-column width.
+    drift = np.load(drift_path)
+    drift_err = np.abs(drift["err_mrad"])
+    rho = drift["rho_bar"]
+    step = int(drift["step_at"])
+    recal = int(drift["recal_at"])
+    threshold = float(drift["thr"])
+    ax = axs[0, 1]
+    ax.plot(drift_err, color=GRN, lw=0.70)
+    ax.axvline(step, color=RED, ls="--", lw=0.70)
+    ax.axvline(recal, color=BLU, ls=":", lw=0.75)
+    ax.set_xlim(0, len(drift_err) - 1)
+    ax.set_ylim(0, 1800)
+    ax.set_xlabel("控制周期", fontsize=6.2, labelpad=1)
+    ax.set_ylabel("误差 (mrad)", color=GRN, fontsize=6.2, labelpad=1)
+    ax.set_title("(b) 残差触发重扫", fontsize=6.4, pad=2)
+    ax.text(step - 2, 1730, "突变", color=RED, fontsize=5.3,
+            ha="right", va="top")
+    ax.text(recal + 2, 1420, "+6 重扫", color=BLU, fontsize=5.3,
+            ha="left", va="top")
+    ax_r = ax.twinx()
+    ax_r.plot(rho, color=INK, lw=0.60, alpha=0.90)
+    ax_r.axhline(threshold, color=GLD, ls="--", lw=0.65)
+    ax_r.set_ylim(0, 0.25)
+    ax_r.set_ylabel(r"残差 $\bar\rho$", color=INK, fontsize=6.2, labelpad=1)
+    ax_r.tick_params(axis="y", labelcolor=INK, labelsize=5.4, pad=1)
+
+    blocks = list(repeat["statistics"]["blocks"].values())
+    grids = sorted({int(row["grid_index"]) for row in blocks})
+    by_key = {(int(row["grid_index"]), row["condition"]): row
+              for row in blocks}
+    conditions = ["none", "gen", "acq", "both"]
+    labels = {"none": "无重启", "gen": "发生器", "acq": "采集器",
+              "both": "两者"}
+    colors = {"none": INK, "gen": GRN, "acq": BLU, "both": RED}
+    styles = {"none": "-", "gen": "--", "acq": "-.", "both": ":"}
+    marks = {"none": "o", "gen": "s", "acq": "^", "both": "D"}
+    x = np.arange(len(grids))
+    for panel, key, title in ((axs[1, 0], "h1_phase_cstd_rad",
+                               "(c) H1 参考相位"),
+                              (axs[1, 1], "h2_phase_cstd_rad",
+                               "(d) H2 弱轴相位")):
+        for condition in conditions:
+            values = np.array([1000.0 * by_key[(g, condition)][key]
+                               for g in grids])
+            panel.plot(x, values, color=colors[condition],
+                       ls=styles[condition], marker=marks[condition],
+                       ms=2.2, lw=0.65, label=labels[condition])
+        panel.set_title(title, fontsize=6.4, pad=2)
+        panel.set_xticks(x, [r"$0$", r"$\pi/2$", r"$\pi$",
+                             r"$3\pi/2$", r"$2\pi$"])
+        panel.set_xlabel("扫描相位", fontsize=6.2, labelpad=1)
+        panel.grid(True, which="major", color="#D8DDD9", lw=0.30)
+    axs[1, 0].set_yscale("log")
+    axs[1, 0].set_ylim(0.02, 30.0)
+    axs[1, 0].axhline(20.0, color=GLD, ls="--", lw=0.65)
+    axs[1, 0].set_ylabel("圆标准差 (mrad)", fontsize=6.2, labelpad=1)
+    axs[1, 0].legend(loc="upper left", ncol=2, frameon=False, fontsize=5.0,
+                     handlelength=1.0, handletextpad=0.2,
+                     columnspacing=0.45, borderpad=0.1, labelspacing=0.15)
+    axs[1, 1].set_ylim(0, 55)
+    axs[1, 1].axhline(50.0, color=GLD, ls="--", lw=0.65)
+    axs[1, 1].set_ylabel("圆标准差 (mrad)", fontsize=6.2, labelpad=1)
+
+    for ax in axs.ravel():
+        ax.tick_params(labelsize=5.4, pad=1, length=2)
+        ax.spines[["top", "right"]].set_visible(False)
+        ax.xaxis.set_major_locator(ax.xaxis.get_major_locator())
+    fig.subplots_adjust(left=0.15, right=0.89, top=0.95, bottom=0.11,
+                        hspace=0.62, wspace=0.68)
+    fig.savefig(os.path.join(out, "fig_expdiag_mzm.pdf"))
+    plt.close(fig); print("[fig] fig_expdiag_mzm.pdf")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1126,6 +1361,8 @@ def main():
     fig_expcal_mzm(a.data_dir, a.out_dir)
     fig_expperf_mzm(a.data_dir, a.out_dir)
     fig_expstab_mzm(a.data_dir, a.out_dir)
+    fig_exprepeat_mzm(a.data_dir, a.out_dir)
+    fig_expdiag_mzm(a.data_dir, a.out_dir)
 
 
 if __name__ == "__main__":
