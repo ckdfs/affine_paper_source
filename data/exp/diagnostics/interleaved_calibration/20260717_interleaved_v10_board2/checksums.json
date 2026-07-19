@@ -1,0 +1,10 @@
+{
+  "conditioning.csv": "501679d49b666b03d1f84e73efdc29842933705f6257f5e07b0eb853cb9dfceb",
+  "formal_windows.csv": "11be0ff7369c066ffd00e90cca8953f4392d4f31cbcb1761f1227e3900628635",
+  "interleaved_calibration.csv": "5b7b4ae5e8e99f7a6b507ecab0fa7fac07388b26f6b4741524b3313dd0e0c928",
+  "manifest.json": "52bbb64c44e00cf0982d499c47d9a9efc58bf9e533cf0ba42ec3117dd61c8046",
+  "pilot_verification.json": "3a2c0bf3f6569093689d8befa262b537e06a4f59584b24aca2d77090207bb723",
+  "protocol.json": "0e5f1b90740e3c4f2c6df2c90ab5dbe91738f589b37ae069e2d86c9a2f964c71",
+  "summary.json": "40de7fa8b3dc333c6199656922ae6b2d3c3da1d9e866523a4640b43fedcb5c58",
+  "transition_discard.csv": "4848f15d9b9950ebc58a09ae8c9d2a1fedb0ad512cfcb4d60a895b59635825b7"
+}

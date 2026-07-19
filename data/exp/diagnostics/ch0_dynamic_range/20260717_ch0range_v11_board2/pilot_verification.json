@@ -1,0 +1,35 @@
+{
+  "0.06": {
+    "amplitude_pass": true,
+    "expected_amplitude_V": 0.06,
+    "expected_frequency_Hz": 1000.0,
+    "expected_pilot_count": 1,
+    "frequency_pass": true,
+    "pilot_count_pass": true,
+    "response": "[gen] bias: A=-4.407V\r\n[gen] pilots: 1\r\n  A f=1000.0Hz amp=0.0600V\r\n[acq] freqs: 2\r\n  f=1000.0Hz\r\n  f=2000.0Hz\r\n",
+    "simulated": false,
+    "verified": true
+  },
+  "0.08": {
+    "amplitude_pass": true,
+    "expected_amplitude_V": 0.08,
+    "expected_frequency_Hz": 1000.0,
+    "expected_pilot_count": 1,
+    "frequency_pass": true,
+    "pilot_count_pass": true,
+    "response": "[gen] bias: A=-4.407V\r\n[gen] pilots: 1\r\n  A f=1000.0Hz amp=0.0800V\r\n[acq] freqs: 2\r\n  f=1000.0Hz\r\n  f=2000.0Hz\r\n",
+    "simulated": false,
+    "verified": true
+  },
+  "0.10": {
+    "amplitude_pass": true,
+    "expected_amplitude_V": 0.1,
+    "expected_frequency_Hz": 1000.0,
+    "expected_pilot_count": 1,
+    "frequency_pass": true,
+    "pilot_count_pass": true,
+    "response": "[gen] bias: A=-0.130V\r\n[gen] pilots: 1\r\n  A f=1000.0Hz amp=0.1000V\r\n[acq] freqs: 2\r\n  f=1000.0Hz\r\n  f=2000.0Hz\r\n",
+    "simulated": false,
+    "verified": true
+  }
+}

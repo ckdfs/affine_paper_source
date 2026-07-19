@@ -1,0 +1,9 @@
+{
+  "created_unix": 1784383072.559672,
+  "derived_bundle": true,
+  "failure": null,
+  "quality_gate_accepted": false,
+  "run_id": "20260718_interleaved_v132_donor_board2_bundle_rejected",
+  "stage": "donor",
+  "status": "complete"
+}

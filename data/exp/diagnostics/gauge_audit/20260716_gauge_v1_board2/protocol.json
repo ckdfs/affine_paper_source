@@ -1,0 +1,44 @@
+{
+  "protocol_version": "gauge-audit-v1.0",
+  "purpose": "diagnostic_only",
+  "excluded_from_primary_analysis": true,
+  "run_id": "20260716_gauge_v1_board2",
+  "targets_rad": [
+    0.0,
+    1.5707963267948966,
+    3.141592653589793,
+    4.71238898038469
+  ],
+  "approaches_rad": [
+    -1.0,
+    1.0
+  ],
+  "conditions": [
+    "continuous",
+    "frontend_reset",
+    "post_reset_delay60"
+  ],
+  "repeats": 6,
+  "delay_s": 60.0,
+  "vpi_points": 151,
+  "calibration_points": 181,
+  "n_blocks": 16,
+  "cal_n_avg": 4,
+  "sample_n_avg": 1,
+  "pilot_v": 0.15,
+  "calibration_method": "ellipse",
+  "metadata": {
+    "device_id": "MZM-ANON-01",
+    "firmware_rev": "8b1b1c2",
+    "ambient_c": 28.0,
+    "operator": "ckdfs",
+    "session_id": "20260716_gauge_audit_v1_board2",
+    "instrument_ids": "STLINK-066FFF505754675087091823,DM858E-DM8E275002095,DFB-ANON-01,PD-TIA-ANON-01",
+    "notes": "Frozen gauge-audit v1.0; approximate ambient 28 C; scope intentionally off; diagnostic only."
+  },
+  "repo_commit": "19f33fe3542a42123f54de8cf6228583817e8e9d",
+  "controller_source_sha256": {
+    "measure_bench.py": "51fea2ef9a8ba89769a5025dadcf4d3a89879b44e4cc54e407656c63f9094ef6",
+    "exp_common.py": "b0c1ea0034f33775565972f455111138a16c9f07360e2052bffc9c41e2a60a00"
+  }
+}

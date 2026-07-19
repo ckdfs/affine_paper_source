@@ -1,0 +1,3 @@
+{
+  "response": "[acq] n=2 win=40.0ms dc=+1.200000V\r\n  f=1000.0 mag=0.182989 ph=+1.042 i=+0.092360 q=+0.157970\r\n  f=2000.0 mag=0.024773 ph=+2.080 i=-0.012078 q=+0.021629\r\nACQ n=2 dc=+1.200000 | 1000.0,+0.092360,+0.157970 2000.0,-0.012078,+0.021629\r\nRAWADC v=1 scope=acq expected=2560 used=2560 read_fail=0 blocks=2 complete=1 timeout=0 gain=1 fs_uv=1200000 guard=8381618 crc=0\r\nRAWADC_CH v=1 scope=acq ch=0 min=-1163776 max=1790378 rail_lo=0 rail_hi=0 guard_lo=0 guard_hi=0\r\n"
+}

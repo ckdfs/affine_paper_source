@@ -1,0 +1,8 @@
+{
+  "analysis.json": "2e663bac4286702431d5b72051fb4f2ebba3b97b48c4266f15b5577fa4959c9f",
+  "manifest.json": "48a63bf141783d33a90cd913b5f3d980decd99f02935f78e4aaf67227d097402",
+  "protocol.json": "ac7e855bfa9388b390f02c1d87dd0ca5341e6b9584d93365678a485645a9204c",
+  "summary.json": "6c53b524e1e5159aaa51549d84e5e97ece4d3585b1e12dde200c547d10af471d",
+  "time_calibration.csv": "baf3410a3df0e517361810703ff481ac111afbaac9555e8b870d82041545fb8e",
+  "time_calibration.npz": "fb36d1899a1d5a85eedd28fe434e5c1027a3ed42d2eff20f1ccdd10124ee0cee"
+}

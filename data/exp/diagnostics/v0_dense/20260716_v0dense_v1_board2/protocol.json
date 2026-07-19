@@ -1,0 +1,36 @@
+{
+  "conditioning_points": 34,
+  "controller_source_sha256": {
+    "exp_common.py": "b0c1ea0034f33775565972f455111138a16c9f07360e2052bffc9c41e2a60a00",
+    "measure_bench.py": "51fea2ef9a8ba89769a5025dadcf4d3a89879b44e4cc54e407656c63f9094ef6"
+  },
+  "diagnostic_source_sha256": "22325cc25195353c5ef1575121206ace9f180441e704b0baf46e1859222f6172",
+  "direction_split_phase_limit_rad": 0.05,
+  "epoch_v0_ptp_phase_limit_rad": 0.05,
+  "epochs": 3,
+  "excluded_from_primary_analysis": true,
+  "extrapolated_30min_phase_limit_rad": 0.05,
+  "fit_rmse_over_amplitude_limit": 0.04997916927067833,
+  "hi_V": 6.036902619530071,
+  "lo_V": -4.407375476557824,
+  "metadata": {
+    "ambient_c": 28.0,
+    "device_id": "MZM-ANON-01",
+    "firmware_rev": "8b1b1c2",
+    "instrument_ids": "STLINK-066FFF505754675087091823,DM858E-DM8E275002095,DFB-ANON-01,PD-TIA-ANON-01",
+    "notes": "Frozen production-path dense V0 diagnostic v1.0; approximate ambient 28 C; scope off; 0.15 V pilot, 6 blocks, DMM truth; no closed loop.",
+    "operator": "ckdfs",
+    "session_id": "20260716_v0_dense_v1_board2"
+  },
+  "n_blocks": 6,
+  "pilot_Hz": 1000.0,
+  "pilot_V": 0.15,
+  "points_per_direction": 81,
+  "protocol_version": "v0-dense-sweep-v1.0",
+  "purpose": "diagnostic_only",
+  "repo_commit": "19f33fe3542a42123f54de8cf6228583817e8e9d",
+  "run_id": "20260716_v0dense_v1_board2",
+  "step_V": 0.1305534762010987,
+  "v0_reference_V": 0.8147635714861232,
+  "vpi_V": 5.222139048043948
+}

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "pyocd",
+    "flash",
+    "-u",
+    "066FFF505754675087091823",
+    "-t",
+    "stm32h523cetx",
+    "/Users/ckdfs/code/biascontrol_h523/build-codex-rawadc/biascontrol.elf"
+  ],
+  "returncode": 0,
+  "stderr": "0000908 I Loading /Users/ckdfs/code/biascontrol_h523/build-codex-rawadc/biascontrol.elf [load_cmd]\n0008019 I Erased 122880 bytes (15 sectors), programmed 117760 bytes (115 pages), skipped 24576 bytes (24 pages) at 19.55 kB/s [loader]\n",
+  "stdout": "[---|---|---|---|---|---|---|---|---|----]\n[========================================]\n"
+}

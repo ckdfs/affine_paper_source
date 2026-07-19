@@ -1,0 +1,12 @@
+{
+  "acquired_discards": 96,
+  "acquired_observations": 96,
+  "acquired_windows": 384,
+  "analysis": null,
+  "complete": false,
+  "conditioning_rows": 1536,
+  "expected_conditioning_rows": 2506,
+  "expected_discards": 162,
+  "expected_observations": 162,
+  "expected_windows": 648
+}

@@ -1,0 +1,29 @@
+{
+  "acquired_discards": 54,
+  "acquired_observations": 54,
+  "acquired_windows": 216,
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "board_initial_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "conditioning_rows": 872,
+  "ended_unix": 1784278044.852108,
+  "expected_discards": 54,
+  "expected_observations": 54,
+  "expected_windows": 216,
+  "failure": null,
+  "quality_gate_accepted": false,
+  "run_id": "20260717_interleaved_v11s0c_board2",
+  "started_unix": 1784276228.772695,
+  "status": "complete"
+}

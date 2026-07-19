@@ -1,0 +1,18 @@
+{
+  "acquired_schedule_rows": 5,
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "conditioning_rows": 34,
+  "ended_unix": 1784223759.0960279,
+  "expected_schedule_rows": 243,
+  "failure": "KeyboardInterrupt: received signal 2",
+  "quality_gate_accepted": null,
+  "run_id": "20260717_timecal_v13_board2",
+  "started_unix": 1784223651.5891771,
+  "status": "failed"
+}

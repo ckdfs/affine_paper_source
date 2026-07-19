@@ -1,0 +1,16 @@
+{
+  "acquired_discards": 96,
+  "acquired_observations": 96,
+  "acquired_windows": 384,
+  "board_final_status": null,
+  "conditioning_rows": 1536,
+  "ended_unix": 1784261295.5943081,
+  "expected_discards": 162,
+  "expected_observations": 162,
+  "expected_windows": 648,
+  "failure": "SerialException: read failed: [Errno 6] Device not configured; cleanup failed: error: (6, 'Device not configured')",
+  "quality_gate_accepted": null,
+  "run_id": "20260717_interleaved_v10_board2",
+  "started_unix": 1784258101.3434691,
+  "status": "failed"
+}

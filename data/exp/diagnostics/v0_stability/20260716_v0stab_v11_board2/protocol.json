@@ -1,0 +1,52 @@
+{
+  "biases_V": [
+    -3.101840714546838,
+    -0.49077119052486373,
+    2.12029833349711,
+    4.731367857519084
+  ],
+  "confirm_delta_over_amplitude_limit": 0.04997916927067833,
+  "controller_source_sha256": {
+    "exp_common.py": "b0c1ea0034f33775565972f455111138a16c9f07360e2052bffc9c41e2a60a00",
+    "measure_bench.py": "51fea2ef9a8ba89769a5025dadcf4d3a89879b44e4cc54e407656c63f9094ef6"
+  },
+  "diagnostic_source_sha256": "c76880f9694856bd7489c5b6b32ddab155928aad1c5ba9d5e58f1a2db241a145",
+  "direction_limit_rad": 0.05,
+  "epoch_interval_s": 120.0,
+  "epochs": 6,
+  "excluded_from_primary_analysis": true,
+  "extrapolated_drift_limit_rad": 0.05,
+  "extrapolation_s": 1800.0,
+  "metadata": {
+    "ambient_c": 28.0,
+    "device_id": "MZM-ANON-01",
+    "firmware_rev": "8b1b1c2",
+    "instrument_ids": "STLINK-066FFF505754675087091823,DM858E-DM8E275002095,DFB-ANON-01,PD-TIA-ANON-01",
+    "notes": "Frozen V0 stability v1.1; 0.75 s post-DAC wait plus priming and two confirmation reads; approximate ambient 28 C; scope off; no pilot or closed loop.",
+    "operator": "ckdfs",
+    "session_id": "20260716_v0_stability_v11_board2"
+  },
+  "offsets_vpi": [
+    -0.75,
+    -0.25,
+    0.25,
+    0.75
+  ],
+  "post_dac_wait_s": 0.75,
+  "protocol_version": "v0-stability-v1.1",
+  "purpose": "diagnostic_only",
+  "readings_per_visit": [
+    "priming",
+    "confirm_1",
+    "confirm_2"
+  ],
+  "repo_commit": "19f33fe3542a42123f54de8cf6228583817e8e9d",
+  "rmse_over_amplitude_limit": 0.04997916927067833,
+  "run_id": "20260716_v0stab_v11_board2",
+  "scored_reading": "mean(confirm_1, confirm_2)",
+  "sequence": "forward4_reverse4",
+  "tail_epoch_count": 5,
+  "tail_ptp_limit_rad": 0.05,
+  "v0_reference_V": 0.8147635714861232,
+  "vpi_V": 5.222139048043948
+}

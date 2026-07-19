@@ -1,0 +1,85 @@
+{
+  "failure": null,
+  "quality_gate_accepted": false,
+  "source_segments": [
+    {
+      "board_final_status": {
+        "Bias": "0.000 V",
+        "Cal": "INVALID",
+        "Lock": "NO",
+        "State": "IDLE",
+        "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+      },
+      "checksums": {
+        "analysis.json": "a704a73d2861eab1b403fb6dce3852e00c22553237dd21ee0ee9bef06a6348ab",
+        "conditioning.csv": "508e5470acfd5ecaaf4e523cbba2e487f993fcf8b206ae532228010141d78ddf",
+        "formal_windows.csv": "2f7bc20320effdeed5c373e40db720e030d10a010e841bb9e9c95c54013c8266",
+        "formal_windows.npz": "d1f55a4ff0b43b50bc0486a8bc42a914dc68d10bc959776f34235eed1842d030",
+        "interleaved_calibration.csv": "292f0a0ef70536c6c21da2cd0a84493fd78da222119f2b9e6c2b318e3e49c730",
+        "interleaved_calibration.npz": "0cbaec4ee81960f5f70e9b75ff854fd232efa8711d05b3e6cbb54e9a96d9d0ba",
+        "manifest.json": "f25cc4cc47f1e0b9f030c842078bea7157bdc729fb286ec216f6042ce5a7e68f",
+        "pilot_verification.json": "522b8b5e270f6c3024c7c9e2be5634798f8f4e5494927da7313394ca61867888",
+        "protocol.json": "f2d53c96815dae4bf99bdda43d59dfd01d658372dbc490a942c85ffaa8d8a571",
+        "summary.json": "9145e63ab62156ac4994c381d9dfebcafee5ed739c8fbeb106f26eb322055e5b",
+        "transition_discard.csv": "8d845cc26b6d4bad9e9a3429ac685ce459315a78aa14e716f7a40fc7e886fa18",
+        "transition_discard.npz": "f4a7c45376559e294343eb1f24c3b22ef46a9051f7dbfc387147eda60333027f"
+      },
+      "checksums_sha256": "8dbad30ba2144410dea02ffba29c7ef2d8fbbee00d25e1448e90a7be5da390d0",
+      "path": "/Users/ckdfs/code/affine_paper_source/data/exp/diagnostics/interleaved_calibration/20260717_interleaved_v12s0_board2",
+      "segment_index": 0
+    },
+    {
+      "board_final_status": {
+        "Bias": "0.000 V",
+        "Cal": "INVALID",
+        "Lock": "NO",
+        "State": "IDLE",
+        "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+      },
+      "checksums": {
+        "analysis.json": "e8391481ddc471b241550c6a3eda6326faadf4b4fe5b43a9efc1f78dff7f5146",
+        "conditioning.csv": "5cb65f14daacf35bc8f095bdcab934ff609b0a0d20066196b8df6a577cdb2bbb",
+        "formal_windows.csv": "f32da5bb9c7ab318a528e1a21ac68b977504d9110371c322e3ae7721ae4420c4",
+        "formal_windows.npz": "5b34609607a3afc9ad016bb530914188634669576a008bce9161771405273c6c",
+        "interleaved_calibration.csv": "0d1583e0d447fb9f973d9db449b23b5aef1d574b198a4c79f5970531d9670d77",
+        "interleaved_calibration.npz": "ee6b10b4f47e13661e4d47f89ef27d2efc983fa651c7470bf41522b5d19191d5",
+        "manifest.json": "acb236d5e5a22c7ce97cf47ed50a870bdbfa92629368cbd740a0c8447d88a1e8",
+        "pilot_verification.json": "68f00ab3f305e4353e0da4c982e072804f5d3bd9f5395b09ea239b4c34a92c14",
+        "protocol.json": "4fc80158e773b8a6abb4ffd6a7cf1e1bfd0fc9bb573091baa357a0157ce00ef5",
+        "summary.json": "6618379c1921b9b851ea75302d520ccab8a3639f5d135d5d4be809c68711da2a",
+        "transition_discard.csv": "1e34e990c4117f93978fdbbeb86f9d06e19cd127c490015c7c4bfd7ec7a1795f",
+        "transition_discard.npz": "2638befd100a3bca4f628c466ebb849eb3b8018664a46ad916d122d4e8ab22c0"
+      },
+      "checksums_sha256": "9746cab3b2921110b0bbb3bb81be09afffce0a6651863c15de437fac1484d0fa",
+      "path": "/Users/ckdfs/code/affine_paper_source/data/exp/diagnostics/interleaved_calibration/20260717_interleaved_v12s1_board2",
+      "segment_index": 1
+    },
+    {
+      "board_final_status": {
+        "Bias": "0.000 V",
+        "Cal": "INVALID",
+        "Lock": "NO",
+        "State": "IDLE",
+        "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+      },
+      "checksums": {
+        "analysis.json": "32f676634a355bb929a66a19e35ea4100caf129d9fa6a55394829e5ac554922f",
+        "conditioning.csv": "28445d624c476ee3015501aad42fc8c4945307034e6a6f286427335b344c9bc6",
+        "formal_windows.csv": "9971fd1c950324b215e0fb7be7421d7fd85fe7d20206827faa53fb9aef75d9ec",
+        "formal_windows.npz": "000b85d30603ab292eb5ed84ef9e8e27616ce7b09e07ce5a863541d67cd59730",
+        "interleaved_calibration.csv": "a7248b93c334732971a362581e07467f2707fd9ac3f8b94f05451f1801ec6e1e",
+        "interleaved_calibration.npz": "00d4f0b1348467f1448052cb45050cc19c7c532422e9a86c6310a1ee292bc91c",
+        "manifest.json": "8c249c049f8ebf552284051384dcec7a7a73efa082fd1a09a0ca6ff3b20346e1",
+        "pilot_verification.json": "a93185279bd9e97cc57a2dc96d036348d3240b862332de3f6222eae5b40f1f7c",
+        "protocol.json": "e44f8e5b723f1f0ad3a94e0dcaddba84d17821e014ce62bcca458f0c33bf8b46",
+        "summary.json": "dc006827563dc918541f1aca1f0e93e24a5274306436bb5f3f4f5a2636ec5be3",
+        "transition_discard.csv": "6e6f0428dbc6484009daa0df3c2c3c6ae2c01f91b1e671184ca9c077520770e2",
+        "transition_discard.npz": "4f7c84e0e6809e1350ccf75009ec36eef3f67c8b9ba4dde9e10a20239c535b06"
+      },
+      "checksums_sha256": "8c49d21dfa91ecb8b504200961d7d6e58c2c825b66f282a069562fa33d9f8340",
+      "path": "/Users/ckdfs/code/affine_paper_source/data/exp/diagnostics/interleaved_calibration/20260717_interleaved_v12s2b_board2",
+      "segment_index": 2
+    }
+  ],
+  "status": "complete"
+}

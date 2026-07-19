@@ -1,0 +1,8 @@
+{
+  "run_id": "20260715_gain_v12_board2",
+  "status": "complete",
+  "failure": null,
+  "started_unix": 1784115415.8714921,
+  "ended_unix": 1784120678.1418,
+  "selected_gain": 0.1
+}

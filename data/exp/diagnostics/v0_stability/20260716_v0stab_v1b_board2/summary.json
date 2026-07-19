@@ -1,0 +1,78 @@
+{
+  "complete": true,
+  "epoch_metrics": [
+    {
+      "amplitude_V": 0.6032130792529463,
+      "direction_split_phase_rad": 0.835773748149353,
+      "epoch": 0,
+      "forward_v0_V": 2.297511241012132,
+      "midpoint_unix": 1784188186.873098,
+      "reverse_v0_V": 0.9082392357591323,
+      "rmse_over_amplitude": 0.498642003959692,
+      "v0_V": 1.5001467493448744
+    },
+    {
+      "amplitude_V": 0.7369944982398445,
+      "direction_split_phase_rad": 0.05813154534762755,
+      "epoch": 1,
+      "forward_v0_V": 1.2628903037588366,
+      "midpoint_unix": 1784188303.3289518,
+      "reverse_v0_V": 1.1662606491993561,
+      "rmse_over_amplitude": 0.02588127087453594,
+      "v0_V": 1.2152401316494392
+    },
+    {
+      "amplitude_V": 0.6604878748240313,
+      "direction_split_phase_rad": 0.9049435919329968,
+      "epoch": 2,
+      "forward_v0_V": 2.52548061246014,
+      "midpoint_unix": 1784188423.330618,
+      "reverse_v0_V": 1.0212304474011837,
+      "rmse_over_amplitude": 0.4633444276539667,
+      "v0_V": 1.696509582372356
+    },
+    {
+      "amplitude_V": 0.36481782181459316,
+      "direction_split_phase_rad": 1.1222475837794834,
+      "epoch": 3,
+      "forward_v0_V": 2.1793154874181044,
+      "midpoint_unix": 1784188543.3316262,
+      "reverse_v0_V": 0.3138499178665661,
+      "rmse_over_amplitude": 0.9301389489924539,
+      "v0_V": 1.3967252596001414
+    },
+    {
+      "amplitude_V": 0.6912303300188273,
+      "direction_split_phase_rad": 0.9118252684415751,
+      "epoch": 4,
+      "forward_v0_V": 2.5854437206642618,
+      "midpoint_unix": 1784188663.3387506,
+      "reverse_v0_V": 1.069754430430885,
+      "rmse_over_amplitude": 0.4478887529009847,
+      "v0_V": 1.7785822219942988
+    },
+    {
+      "amplitude_V": 0.5077361313605443,
+      "direction_split_phase_rad": 0.5225808834498218,
+      "epoch": 5,
+      "forward_v0_V": 1.5569107980168038,
+      "midpoint_unix": 1784188783.3423622,
+      "reverse_v0_V": 0.688246289871137,
+      "rmse_over_amplitude": 0.5183560958229475,
+      "v0_V": 1.2857889393029862
+    }
+  ],
+  "epochs_completed": 6,
+  "quality_gate": {
+    "accepted": false,
+    "all_direction_splits_pass": false,
+    "all_fit_residuals_pass": false,
+    "extrapolated_30min_limit_rad": 0.05,
+    "extrapolated_30min_pass": false,
+    "extrapolated_30min_phase_rad": 0.15915132325129358,
+    "tail_ptp_limit_rad": 0.05,
+    "tail_ptp_pass": false,
+    "tail_ptp_phase_rad": 0.3389016179391542,
+    "theil_sen_slope_V_per_s": 0.0001469725764642131
+  }
+}

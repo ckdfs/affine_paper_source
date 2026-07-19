@@ -1,0 +1,16 @@
+{
+  "complete": false,
+  "epoch_metrics": [
+    {
+      "amplitude_V": 0.002617635267546996,
+      "direction_split_phase_rad": 2.7547170587171372,
+      "epoch": 0,
+      "forward_v0_V": -3.764288235947187,
+      "midpoint_unix": 1784188092.8578048,
+      "reverse_v0_V": 0.8147635714861176,
+      "rmse_over_amplitude": 5.142639479646135,
+      "v0_V": -1.6456063954925733
+    }
+  ],
+  "epochs_completed": 1
+}

@@ -1,0 +1,23 @@
+{
+  "calib_headline": {
+    "accepted": true,
+    "kappa_A": 49.884,
+    "method": "ellipse",
+    "n_avg": 4,
+    "n_blocks": 16,
+    "pilot_v": 0.15,
+    "selfcheck_median_mrad": 47.73,
+    "selfcheck_p95_mrad": 101.16,
+    "v0_V": 2.2834,
+    "vpi_V": 4.9082
+  },
+  "kappa_A": 49.884,
+  "selfcheck_median_mrad": 47.73,
+  "selfcheck_p95_mrad": 101.16,
+  "v0_V": 2.3694,
+  "v0_fit_V": 2.3694,
+  "vpi_V": 5.2434,
+  "vpi_dir_split_V": 0.0125,
+  "vpi_down_V": 5.2371,
+  "vpi_up_V": 5.2497
+}

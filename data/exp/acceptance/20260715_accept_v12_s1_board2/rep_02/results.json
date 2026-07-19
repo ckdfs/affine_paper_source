@@ -1,0 +1,20 @@
+{
+  "calib_diagnostic": {
+    "accepted": false,
+    "kappa_A": 49.956,
+    "method": "ellipse",
+    "n_avg": 4,
+    "n_blocks": 16,
+    "pilot_v": 0.15,
+    "selfcheck_median_mrad": 1410.463,
+    "selfcheck_p95_mrad": 2960.447,
+    "v0_V": -1.0988,
+    "vpi_V": 1.1657
+  },
+  "v0_V": -3.4449,
+  "v0_fit_V": -3.4449,
+  "vpi_V": 5.1953,
+  "vpi_dir_split_V": 0.0148,
+  "vpi_down_V": 5.1879,
+  "vpi_up_V": 5.2027
+}

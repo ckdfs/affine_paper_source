@@ -1,0 +1,8 @@
+{
+  "run_id": "20260716_gain_v13_board2",
+  "status": "failed",
+  "failure": "no candidate passed all frozen gates",
+  "started_unix": 1784164875.603858,
+  "ended_unix": 1784173539.9422562,
+  "selected_gain": null
+}

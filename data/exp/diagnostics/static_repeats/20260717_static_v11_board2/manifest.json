@@ -1,0 +1,29 @@
+{
+  "acquired_discards": 55,
+  "acquired_repeats": 54,
+  "acquired_windows": 108,
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "board_initial_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "conditioning_rows": 49,
+  "ended_unix": 1784287867.386271,
+  "expected_discards": 240,
+  "expected_repeats": 240,
+  "expected_windows": 480,
+  "failure": "RuntimeError: invalid formal acquisition window",
+  "quality_gate_accepted": null,
+  "run_id": "20260717_static_v11_board2",
+  "started_unix": 1784287365.588419,
+  "status": "failed"
+}

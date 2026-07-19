@@ -1,0 +1,9 @@
+{
+  "analysis.json": "40c1722417042d8bc984fc5f324ce13b2c6f417b24677f8dd636ebc08fab5d4e",
+  "ch0_dynamic_range.csv": "208ce62ea261d8d7899841ceaadea296554d63648105a770c4e21832ec7b9f38",
+  "ch0_dynamic_range.npz": "a5d14c859c476241bca6a64777bac46097682c354085a43ad478b15afae86935",
+  "manifest.json": "98a87b6d79d7dfcf61957eb952f8ad0fc7e0d2e3a3830c40aa76209885d2ad06",
+  "pilot_verification.json": "dcb6afe072c8a3e50e612594a257fbb6b7210f9c250a56c61ad6db5fa72c2119",
+  "protocol.json": "b7eb22ec2d0a941a8e051a2d09568b732934c5c10c9c4ca3c0ecc7e08818c6c4",
+  "summary.json": "4380612c48043f6398d921991db807d940eddc3e5c35f53ea84c1dc1fa4a7410"
+}

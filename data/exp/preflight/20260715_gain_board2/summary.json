@@ -1,0 +1,89 @@
+{
+  "protocol": {
+    "protocol_version": "v1.1",
+    "purpose": "gain_preflight_only",
+    "excluded_from_primary_analysis": true,
+    "simulated": false,
+    "run_id": "20260715_gain_board2",
+    "candidates": [
+      0.05,
+      0.1,
+      0.15,
+      0.2
+    ],
+    "targets_rad": [
+      0.0,
+      1.5707963267948966,
+      3.141592653589793,
+      4.71238898038469
+    ],
+    "start_offsets_rad": [
+      -1.0,
+      1.0
+    ],
+    "iters": 40,
+    "calibration_points": 181,
+    "n_blocks": 16,
+    "cal_n_avg": 4,
+    "lock_n_avg": 1,
+    "pilot_v": 0.15,
+    "calibration_method": "ellipse",
+    "pass_thresholds": {
+      "abs_final_error_rad": 0.35,
+      "tail_std_rad": 0.1,
+      "period2_amp_rad": 0.05,
+      "rail_fraction": 0.0
+    },
+    "selection_rule": "largest candidate passing every target/start",
+    "controller_source_sha256": {
+      "measure_bench.py": "9360d6c403f80f266de65f393f42ec65a19e10bd9872e6715463704e3e5a9127",
+      "exp_common.py": "4b1c20ad8d185c1a83becf0ff5890571dc0d3bfeecc480ebcb049aaac5282dd7"
+    },
+    "metadata": {
+      "device_id": "MZM-ANON-01",
+      "firmware_rev": "8b1b1c2",
+      "ambient_c": 28.0,
+      "operator": "ckdfs",
+      "session_id": "20260715_preflight_board2",
+      "instrument_ids": "STLINK-066FFF505754675087091823,DM858E-DM8E275002095,DFB-ANON-01,PD-TIA-ANON-01",
+      "validation_channel_id": null,
+      "notes": "Replacement bias board; analog rails restored; scope intentionally off."
+    }
+  },
+  "selected_gain": null,
+  "any_candidate_passed": false,
+  "candidate_results": [
+    {
+      "gain": 0.05,
+      "passed": false,
+      "max_abs_error_mrad": 425.87793523641835,
+      "max_tail_std_mrad": 100.81670148565736,
+      "max_period2_amp_mrad": 7.961363277986244,
+      "rail_fraction": 0.0
+    },
+    {
+      "gain": 0.1,
+      "passed": false,
+      "max_abs_error_mrad": 343.3969274039792,
+      "max_tail_std_mrad": 89.07147155535176,
+      "max_period2_amp_mrad": 50.101065817513614,
+      "rail_fraction": 0.0
+    },
+    {
+      "gain": 0.15,
+      "passed": false,
+      "max_abs_error_mrad": 449.274740333478,
+      "max_tail_std_mrad": 1128.6119858515776,
+      "max_period2_amp_mrad": 1128.49585696227,
+      "rail_fraction": 0.0
+    },
+    {
+      "gain": 0.2,
+      "passed": false,
+      "max_abs_error_mrad": 404.4708988818222,
+      "max_tail_std_mrad": 1167.5456452406577,
+      "max_period2_amp_mrad": 1167.4614495646333,
+      "rail_fraction": 0.0
+    }
+  ]
+}

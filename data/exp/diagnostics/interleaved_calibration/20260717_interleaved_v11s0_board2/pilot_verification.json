@@ -1,0 +1,14 @@
+{
+  "0": {
+    "amplitude_pass": true,
+    "expected_amplitude_V": 0.1,
+    "expected_frequency_Hz": 1000.0,
+    "expected_pilot_count": 1,
+    "frequency_pass": true,
+    "pilot_count_pass": true,
+    "response": "[gen] bias: A=-4.407V\r\n[gen] pilots: 1\r\n  A f=1000.0Hz amp=0.1000V\r\n[acq] freqs: 0\r\n",
+    "simulated": false,
+    "source_sequence_index": 0,
+    "verified": true
+  }
+}

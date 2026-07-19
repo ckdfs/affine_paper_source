@@ -1,0 +1,143 @@
+{
+  "adc_raw_extrema_available": false,
+  "calibration": {
+    "A_hat": [
+      [
+        0.021595496303318494,
+        -0.0026166026561075333
+      ],
+      [
+        -0.05976793748175743,
+        -1.1004284859801825
+      ]
+    ],
+    "B": [
+      [
+        46.00321172654602,
+        -0.10938659579131006
+      ],
+      [
+        -2.4985877023922924,
+        -0.9027957758622525
+      ]
+    ],
+    "c0": [
+      -7.789464578730995e-05,
+      -0.0013498802385332343
+    ],
+    "kappa": 50.77266697151373
+  },
+  "components": [
+    "Q",
+    "Q"
+  ],
+  "dc_parameters": {
+    "a0": 0.7782440705660153,
+    "a1_per_tau": -0.0002718217760807275,
+    "history_h_V": 0.12474933241069157,
+    "lb0": -0.2330267744336397,
+    "lb1_per_tau": 0.00439071839799977,
+    "v00_V": 1.871930691005591,
+    "v1_V_per_tau": -0.05484822489042524
+  },
+  "formal_points": 216,
+  "headline_promotion": false,
+  "independent_optical_truth": false,
+  "optimizer": {
+    "cost": 0.07130936311651377,
+    "message": "`ftol` termination condition is satisfied.",
+    "nfev": 5,
+    "status": 2,
+    "success": true
+  },
+  "protocol_version": "mzm-time-resolved-calibration-v1.0",
+  "quality_gate": {
+    "accepted": false,
+    "adc_raw_extrema_available": false,
+    "bias_max_abs_V": 6.036902619530071,
+    "bias_rail_limit_V": 8.955,
+    "bias_rail_pass": true,
+    "board_dc_finite_pass": true,
+    "board_dc_max_V": 1.2,
+    "board_dc_rail_limit_V": 1.199,
+    "board_dc_rail_pass": false,
+    "calibration_finite_positive_pass": true,
+    "design_abs_corr": 0.0013738077756323059,
+    "design_abs_corr_limit": 0.05,
+    "design_condition_limit": 3.0,
+    "design_condition_number": 1.9745981247933833,
+    "design_condition_pass": true,
+    "design_corr_pass": true,
+    "direction_split_pass": false,
+    "direction_split_phase_limit_rad": 0.05,
+    "direction_split_phase_rad": 0.15009618956372206,
+    "drift_30min_pass": false,
+    "drift_30min_phase_limit_rad": 0.05,
+    "drift_30min_phase_rad": 0.0682908356690083,
+    "finite_positive_model_pass": true,
+    "formal_selfcheck_median_limit_mrad": 50.0,
+    "formal_selfcheck_median_mrad": 97.43893075391851,
+    "formal_selfcheck_median_pass": false,
+    "formal_selfcheck_p95_limit_mrad": 200.0,
+    "formal_selfcheck_p95_mrad": 388.5148540919424,
+    "formal_selfcheck_p95_pass": false,
+    "required_pass_fields": [
+      "finite_positive_model_pass",
+      "bias_rail_pass",
+      "design_corr_pass",
+      "design_condition_pass",
+      "train_dc_pass",
+      "sentinel_dc_pass",
+      "direction_split_pass",
+      "drift_30min_pass",
+      "board_dc_finite_pass",
+      "board_dc_rail_pass",
+      "calibration_finite_positive_pass",
+      "formal_selfcheck_median_pass",
+      "formal_selfcheck_p95_pass",
+      "sentinel_selfcheck_median_pass",
+      "sentinel_selfcheck_p95_pass"
+    ],
+    "sentinel_dc_pass": true,
+    "sentinel_normalized_rmse": 0.03161341175387166,
+    "sentinel_normalized_rmse_limit": 0.04997916927067833,
+    "sentinel_selfcheck_median_limit_mrad": 50.0,
+    "sentinel_selfcheck_median_mrad": 77.9314724554463,
+    "sentinel_selfcheck_median_pass": false,
+    "sentinel_selfcheck_p95_limit_mrad": 200.0,
+    "sentinel_selfcheck_p95_mrad": 412.529881279897,
+    "sentinel_selfcheck_p95_pass": false,
+    "train_dc_pass": true,
+    "train_normalized_rmse": 0.0324237384110222,
+    "train_normalized_rmse_limit": 0.04997916927067833,
+    "v1_4_authorization_ready": false
+  },
+  "selfcheck": {
+    "formal": {
+      "median": 97.43893075391851,
+      "p95": 388.5148540919424,
+      "rms": 184.38966926796184
+    },
+    "sentinel": {
+      "median": 77.9314724554463,
+      "p95": 412.529881279897,
+      "rms": 195.1852806978599
+    },
+    "static_coordinate_map_counterfactual": {
+      "formal": {
+        "median": 723.0480598063698,
+        "p95": 937.7226163593717,
+        "rms": 711.1744593446357
+      },
+      "sentinel": {
+        "median": 756.0074534984481,
+        "p95": 943.0898785993437,
+        "rms": 727.094699554967
+      }
+    }
+  },
+  "sentinel_points": 27,
+  "time_midpoint_unix": 1784213010.4210327,
+  "time_scale_s": 869.7092633247375,
+  "v1_4_authorization_ready": false
+}

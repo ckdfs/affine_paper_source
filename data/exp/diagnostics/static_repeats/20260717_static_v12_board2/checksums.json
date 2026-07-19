@@ -1,0 +1,16 @@
+{
+  "acq_read_failures.json": "d1d94d3876b41a48f23214cd2e025377fe8bdbbd612110e8e3b4f95836137630",
+  "analysis.json": "7a6cc60849d059bb98b035d0b216339a93bfe7893e52aa468823e7aba004ad5e",
+  "block_config.json": "4e5544fc403b4088b575ada0d65fe76fc4da954ee653ed496b85e10cab0107b8",
+  "conditioning.csv": "de025e1a42c8c519072f7511788f2a912c0e654b5834f8e725dd98e6a291aca2",
+  "formal_windows.csv": "42ddd47ee81d768dbfa4b62ad58d3baacd4df7ef3e9c9bdde76cce27d5d72280",
+  "formal_windows.npz": "b944128756751b21bb1c02bb167cb17b9032f65302e1f3726936d0f70ca707e5",
+  "manifest.json": "8149d80f536c58177a17ecdd7d54639f084aca01295b4ae77c3c606c197c7a00",
+  "pilot_verification.json": "6144d9008912a9774d96d9fb0b46447390ab452248ac401ef5bb7f01aeb70ad8",
+  "protocol.json": "c0aac310fb4c3e70edde150d0964110e161b729dde3014ffeda1b7ab96c7cceb",
+  "static_repeats.csv": "724244da414f52cb73fae02b7a345df2aa5e3d9d1e069e8ca5aa53fe8bc216ce",
+  "static_repeats.npz": "74065edbc0abe6fc5023aff77d26d3f3a55d5da33fa9392ed5927684f63ce572",
+  "summary.json": "9bc94aa056151ad45ba32dead44cc37c988b8af867eae37c2dcd2c03f44a654e",
+  "transition_discard.csv": "828f3170c74e8bf933969c87acb52840caf2c3acab8cee0150dd1a591fddc66d",
+  "transition_discard.npz": "77dc28d0c3e730c7e99b2f8ec468a5f3c812d5b128f110ac8f039ac33bb601a8"
+}

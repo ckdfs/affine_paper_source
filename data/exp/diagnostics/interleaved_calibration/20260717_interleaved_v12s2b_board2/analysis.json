@@ -1,0 +1,33 @@
+{
+  "conditioning_rows": 826,
+  "discards": 54,
+  "formal_max_abs_raw_V": 0.7478005886077881,
+  "formal_max_abs_raw_code": 5227505,
+  "headline_promotion": false,
+  "independent_optical_truth": false,
+  "observations": 54,
+  "protocol_version": "mzm-interleaved-calibration-v1.2",
+  "quality_gate": {
+    "accepted": true,
+    "conditioning_contract_pass": true,
+    "dmm_bracket_pass": true,
+    "formal_capture_pass": true,
+    "formal_headroom_pass": true,
+    "formal_window_contract_pass": true,
+    "preposition_settle_pass": true,
+    "schedule_contract_pass": true,
+    "single_pilot_configuration_verified": true,
+    "transition_discard_capture_pass": true,
+    "transition_discard_contract_pass": true,
+    "transition_discard_hash_contract_pass": true
+  },
+  "segment_end": 162,
+  "segment_index": 2,
+  "segment_start": 108,
+  "transition_discard_file_sha256": {
+    "transition_discard.csv": "6e6f0428dbc6484009daa0df3c2c3c6ae2c01f91b1e671184ca9c077520770e2",
+    "transition_discard.npz": "4f7c84e0e6809e1350ccf75009ec36eef3f67c8b9ba4dde9e10a20239c535b06"
+  },
+  "v1_4_authorization_ready": false,
+  "windows": 216
+}

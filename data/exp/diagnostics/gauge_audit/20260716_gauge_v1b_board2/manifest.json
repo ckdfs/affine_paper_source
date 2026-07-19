@@ -1,0 +1,9 @@
+{
+  "run_id": "20260716_gauge_v1b_board2",
+  "status": "failed",
+  "failure": "RuntimeError: calibration quality gate failed: selfcheck_median_pass",
+  "started_unix": 1784185619.6601422,
+  "ended_unix": 1784187493.697132,
+  "row_count": 0,
+  "pre_row_count": 0
+}

@@ -1,0 +1,55 @@
+{
+  "c0": [
+    -1.198434157805104e-05,
+    6.926414110699011e-05
+  ],
+  "B": [
+    [
+      49.29674014709104,
+      -0.07809431032071062
+    ],
+    [
+      -1.5838164540275792,
+      -0.9847478900480372
+    ]
+  ],
+  "comps": [
+    "Q",
+    "Q"
+  ],
+  "kappa": 49.984627145840584,
+  "slope": 0.6478058242033532,
+  "vpi": 4.824866737662147,
+  "v0": 2.477705816911309,
+  "pilot_v": 0.15,
+  "method": "ellipse",
+  "a_dc": 0.7535164643601577,
+  "b_dc": 0.7357102416089358,
+  "scan_vpi": 5.201970154447029,
+  "scan_v0": 2.5641734522969903,
+  "v0_fit": 2.477705816911309,
+  "dc_fit_rmse": 0.016391231310824424,
+  "dc_fit_rmse_over_amplitude": 0.022279465995985313,
+  "dc_fit_correlation": 0.9995328717934697,
+  "quality_gate": {
+    "finite_positive": true,
+    "selfcheck_median_mrad": 48.80368158029968,
+    "selfcheck_median_limit_mrad": 50.0,
+    "selfcheck_median_pass": true,
+    "selfcheck_p95_mrad": 107.77663814318394,
+    "selfcheck_p95_limit_mrad": 200.0,
+    "selfcheck_p95_pass": true,
+    "dc_rmse_over_amplitude": 0.022279465995985313,
+    "dc_rmse_over_amplitude_limit": 0.04997916927067833,
+    "dc_fit_pass": true,
+    "refit_vpi_mismatch_phase_rad": 0.22774166107089674,
+    "refit_vpi_mismatch_phase_limit_rad": 0.35,
+    "refit_vpi_pass": true,
+    "accepted": true
+  },
+  "ellipse_diag": {
+    "kappa": 49.984627145840584,
+    "selfcheck_median_mrad": 48.80368158029968,
+    "selfcheck_p95_mrad": 107.77663814318394
+  }
+}

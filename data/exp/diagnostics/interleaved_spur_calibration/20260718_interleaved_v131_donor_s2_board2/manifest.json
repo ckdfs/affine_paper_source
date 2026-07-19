@@ -1,0 +1,19 @@
+{
+  "acquired_discards": 0,
+  "acquired_dmm_reads": 0,
+  "acquired_observations": 0,
+  "acquired_windows": 0,
+  "board_final_status": null,
+  "ended_unix": null,
+  "expected_discards": 54,
+  "expected_dmm_reads": 864,
+  "expected_observations": 54,
+  "expected_windows": 432,
+  "failure": "initialization incomplete",
+  "quality_gate_accepted": null,
+  "run_id": "20260718_interleaved_v131_donor_s2_board2",
+  "segment_index": 2,
+  "stage": "donor",
+  "started_unix": 1784367148.205424,
+  "status": "failed"
+}

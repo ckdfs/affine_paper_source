@@ -1,0 +1,17 @@
+{
+  "acquired_rows": 277,
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "ended_unix": 1784252453.931651,
+  "expected_rows": 277,
+  "failure": null,
+  "quality_gate_accepted": false,
+  "run_id": "20260717_ch0range_v11_board2",
+  "started_unix": 1784251599.131201,
+  "status": "complete"
+}

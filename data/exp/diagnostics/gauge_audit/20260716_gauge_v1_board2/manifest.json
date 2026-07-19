@@ -1,0 +1,11 @@
+{
+  "run_id": "20260716_gauge_v1_board2",
+  "status": "failed",
+  "failure": "External process interruption during bidirectional Vpi sweep after 160/302 points; Python finally was not reached",
+  "started_unix": 1784174414,
+  "ended_unix": 1784185428,
+  "row_count": 0,
+  "pre_row_count": 0,
+  "vpi_rows_preserved": 160,
+  "recovery_note": "Board was explicitly reset after interruption and verified IDLE at 0.000 V; this directory is immutable and excluded from analysis"
+}

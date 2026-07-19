@@ -1,0 +1,677 @@
+{
+  "acquired_discards": 162,
+  "acquired_observations": 162,
+  "acquired_windows": 648,
+  "analysis": {
+    "calibration": {
+      "A_hat": [
+        [
+          0.006141998120444683,
+          0.0001553972726915237
+        ],
+        [
+          -0.011238325795378423,
+          -0.5762133645206532
+        ]
+      ],
+      "B": [
+        [
+          162.8938472562168,
+          0.04393035837149554
+        ],
+        [
+          -3.1770421136463556,
+          -1.7363250581874103
+        ]
+      ],
+      "c0": [
+        2.89972964125132e-05,
+        0.002398917512410952
+      ],
+      "kappa": 93.89733782425745
+    },
+    "components": [
+      "Q",
+      "Q"
+    ],
+    "dc_parameters": {
+      "a0": 0.7985671515079763,
+      "a1_per_tau": 0.06312298850480291,
+      "history_h_V": 0.0022911264516063613,
+      "lb0": -0.2509231278285939,
+      "lb1_per_tau": 0.06772914034897853,
+      "v00_V": 1.584594641541741,
+      "v1_V_per_tau": -0.01658956834236959
+    },
+    "direction_pair_position_corr": 0.0,
+    "dmm_prepost_normalized_advisory": {
+      "maximum": 0.14406983248377828,
+      "median": 0.020451716640980905,
+      "p95": 0.06134786161746163
+    },
+    "formal_max_abs_raw_V": 0.9493882656097412,
+    "formal_max_abs_raw_code": 6636705,
+    "formal_points": 144,
+    "formal_raw_gate": {
+      "accepted": true,
+      "acquisition_complete_pass": true,
+      "ch0_max_code": 6636705,
+      "ch0_min_code": -5226912,
+      "contract_pass": true,
+      "count_values_nonnegative_pass": true,
+      "crc_checked_all": false,
+      "extrema_guard_pass": true,
+      "failed_point_indices": [],
+      "no_near_rail_pass": true,
+      "points": 162,
+      "total_guard_hi": 0,
+      "total_guard_lo": 0,
+      "total_rail_hi": 0,
+      "total_rail_lo": 0
+    },
+    "formal_window_raw_gate": {
+      "accepted": true,
+      "acquisition_complete_pass": true,
+      "ch0_max_code": 6636705,
+      "ch0_min_code": -5226912,
+      "contract_pass": true,
+      "count_values_nonnegative_pass": true,
+      "crc_checked_all": false,
+      "extrema_guard_pass": true,
+      "failed_point_indices": [],
+      "no_near_rail_pass": true,
+      "points": 648,
+      "total_guard_hi": 0,
+      "total_guard_lo": 0,
+      "total_rail_hi": 0,
+      "total_rail_lo": 0
+    },
+    "headline_promotion": false,
+    "independent_optical_truth": false,
+    "interleaved_direction_mapping": {
+      "accepted": false,
+      "direction_mapping": {
+        "accepted": false,
+        "calibrations": {
+          "down": {
+            "A_hat": [
+              [
+                0.0061441224659765795,
+                0.0001655698734369247
+              ],
+              [
+                -0.011197036251254315,
+                -0.5756028054882266
+              ]
+            ],
+            "B": [
+              [
+                162.84253545582177,
+                0.046841012115465305
+              ],
+              [
+                -3.167729127377051,
+                -1.7382202987389141
+              ]
+            ],
+            "c0": [
+              3.4709781266431875e-05,
+              0.0028806028653607326
+            ],
+            "kappa": 93.76811242663611
+          },
+          "up": {
+            "A_hat": [
+              [
+                0.006139873748521776,
+                0.000145224667687018
+              ],
+              [
+                -0.011279617373894046,
+                -0.5768239235120043
+              ]
+            ],
+            "B": [
+              [
+                162.945164125391,
+                0.04102405664320804
+              ],
+              [
+                -3.1863434045355215,
+                -1.7344334984768357
+              ]
+            ],
+            "c0": [
+              2.328481555959138e-05,
+              0.0019172325151419597
+            ],
+            "kappa": 94.02662949797583
+          }
+        },
+        "cross_direction_mapping_pass": false,
+        "evaluations": {
+          "down_to_down_formal": {
+            "median_mrad": 179.67443777103932,
+            "p95_mrad": 531.1872198725973,
+            "passed": false,
+            "rms_mrad": 289.4453006302878,
+            "source_direction": "down",
+            "target_direction": "down",
+            "target_role": "formal"
+          },
+          "down_to_down_sentinel": {
+            "median_mrad": 77.73939198651192,
+            "p95_mrad": 546.6878157883843,
+            "passed": false,
+            "rms_mrad": 266.5046245448994,
+            "source_direction": "down",
+            "target_direction": "down",
+            "target_role": "sentinel"
+          },
+          "down_to_up_formal": {
+            "median_mrad": 174.3382807972722,
+            "p95_mrad": 539.465501452686,
+            "passed": false,
+            "rms_mrad": 290.1110484205185,
+            "source_direction": "down",
+            "target_direction": "up",
+            "target_role": "formal"
+          },
+          "down_to_up_sentinel": {
+            "median_mrad": 90.86937282246765,
+            "p95_mrad": 535.9226286768705,
+            "passed": false,
+            "rms_mrad": 262.51652889663825,
+            "source_direction": "down",
+            "target_direction": "up",
+            "target_role": "sentinel"
+          },
+          "up_to_down_formal": {
+            "median_mrad": 177.56971930301233,
+            "p95_mrad": 530.4744976925884,
+            "passed": false,
+            "rms_mrad": 289.892453582555,
+            "source_direction": "up",
+            "target_direction": "down",
+            "target_role": "formal"
+          },
+          "up_to_down_sentinel": {
+            "median_mrad": 78.83800437116584,
+            "p95_mrad": 550.3582031613998,
+            "passed": false,
+            "rms_mrad": 267.8805017907759,
+            "source_direction": "up",
+            "target_direction": "down",
+            "target_role": "sentinel"
+          },
+          "up_to_up_formal": {
+            "median_mrad": 172.19942172471514,
+            "p95_mrad": 538.1344394545872,
+            "passed": false,
+            "rms_mrad": 290.51114873898337,
+            "source_direction": "up",
+            "target_direction": "up",
+            "target_role": "formal"
+          },
+          "up_to_up_sentinel": {
+            "median_mrad": 91.99498961751118,
+            "p95_mrad": 539.6009743150917,
+            "passed": false,
+            "rms_mrad": 263.80009017518125,
+            "source_direction": "up",
+            "target_direction": "up",
+            "target_role": "sentinel"
+          }
+        },
+        "median_limit_mrad": 50.0,
+        "own_direction_mapping_pass": false,
+        "p95_limit_mrad": 200.0,
+        "pairwise": {
+          "center_l2": 0.0009634380942863136,
+          "relative_A_frobenius": 0.0021215839361337276
+        }
+      },
+      "early_late_mapping": {
+        "accepted": false,
+        "calibrations": {
+          "early": {
+            "A_hat": [
+              [
+                0.005806331602334126,
+                0.00030118015606086536
+              ],
+              [
+                -0.00518964884969149,
+                -0.5500344783775948
+              ]
+            ],
+            "B": [
+              [
+                172.31011210988856,
+                0.09435115160270907
+              ],
+              [
+                -1.6257689476829724,
+                -1.818958062949925
+              ]
+            ],
+            "c0": [
+              6.428982474727133e-05,
+              0.006285940045203427
+            ],
+            "kappa": 94.78497949905248
+          },
+          "late": {
+            "A_hat": [
+              [
+                0.006479772956548154,
+                4.347590471058113e-06
+              ],
+              [
+                -0.015262575439443496,
+                -0.5970812465662302
+              ]
+            ],
+            "B": [
+              [
+                154.32904173565916,
+                0.0011237322811945092
+              ],
+              [
+                -3.944954988175544,
+                -1.6748426730863508
+              ]
+            ],
+            "c0": [
+              3.1128255914027604e-05,
+              -0.0005253543671378542
+            ],
+            "kappa": 92.2071942584053
+          }
+        },
+        "cross_mapping_pass": false,
+        "evaluations": {
+          "early_to_early_formal": {
+            "median_mrad": 171.55021781248792,
+            "p95_mrad": 559.0263636616337,
+            "passed": false,
+            "rms_mrad": 295.43686666999304,
+            "source_group": "early",
+            "target_group": "early",
+            "target_role": "formal"
+          },
+          "early_to_early_sentinel": {
+            "median_mrad": 73.40527407058195,
+            "p95_mrad": 654.7483096056817,
+            "passed": false,
+            "rms_mrad": 284.0588553890531,
+            "source_group": "early",
+            "target_group": "early",
+            "target_role": "sentinel"
+          },
+          "early_to_late_formal": {
+            "median_mrad": 199.2253630061629,
+            "p95_mrad": 538.9387508259414,
+            "passed": false,
+            "rms_mrad": 288.1112619281158,
+            "source_group": "early",
+            "target_group": "late",
+            "target_role": "formal"
+          },
+          "early_to_late_sentinel": {
+            "median_mrad": 90.06056566383756,
+            "p95_mrad": 354.55940534846144,
+            "passed": false,
+            "rms_mrad": 213.18715821607822,
+            "source_group": "early",
+            "target_group": "late",
+            "target_role": "sentinel"
+          },
+          "late_to_early_formal": {
+            "median_mrad": 148.65245016420835,
+            "p95_mrad": 535.3231205882814,
+            "passed": false,
+            "rms_mrad": 292.82164868095424,
+            "source_group": "late",
+            "target_group": "early",
+            "target_role": "formal"
+          },
+          "late_to_early_sentinel": {
+            "median_mrad": 62.125256060180824,
+            "p95_mrad": 702.157813318245,
+            "passed": false,
+            "rms_mrad": 296.5001435982966,
+            "source_group": "late",
+            "target_group": "early",
+            "target_role": "sentinel"
+          },
+          "late_to_late_formal": {
+            "median_mrad": 162.37769618012555,
+            "p95_mrad": 557.8500140854285,
+            "passed": false,
+            "rms_mrad": 284.3281122562563,
+            "source_group": "late",
+            "target_group": "late",
+            "target_role": "formal"
+          },
+          "late_to_late_sentinel": {
+            "median_mrad": 135.9896711945565,
+            "p95_mrad": 301.7802557657854,
+            "passed": false,
+            "rms_mrad": 191.34359491493433,
+            "source_group": "late",
+            "target_group": "late",
+            "target_role": "sentinel"
+          }
+        },
+        "median_limit_mrad": 50.0,
+        "own_mapping_pass": false,
+        "p95_limit_mrad": 200.0,
+        "pairwise": {
+          "center_l2": 0.006811375137315449,
+          "relative_A_frobenius": 0.08747417902835673
+        },
+        "partition": "target_ordinal_epoch"
+      },
+      "pair_position_mapping": {
+        "accepted": false,
+        "calibrations": {
+          "first": {
+            "A_hat": [
+              [
+                0.006133548458368108,
+                0.00016297912397937727
+              ],
+              [
+                -0.012196154258745094,
+                -0.576632597633643
+              ]
+            ],
+            "B": [
+              [
+                163.12944010064888,
+                0.04610681628467027
+              ],
+              [
+                -3.450293694416268,
+                -1.7351816909932716
+              ]
+            ],
+            "c0": [
+              4.8583659649367274e-05,
+              0.00332449477106487
+            ],
+            "kappa": 94.10785734004584
+          },
+          "second": {
+            "A_hat": [
+              [
+                0.00615045319633852,
+                0.00014781430295664322
+              ],
+              [
+                -0.010280364854943427,
+                -0.5757945932546527
+              ]
+            ],
+            "B": [
+              [
+                162.65944055405606,
+                0.041756890576047825
+              ],
+              [
+                -2.9041578639088157,
+                -1.7374759815222454
+              ]
+            ],
+            "c0": [
+              9.410803948657309e-06,
+              0.0014733317854490082
+            ],
+            "kappa": 93.68830096098998
+          }
+        },
+        "cross_mapping_pass": false,
+        "evaluations": {
+          "first_to_first_formal": {
+            "median_mrad": 176.2937696049971,
+            "p95_mrad": 532.1703407762517,
+            "passed": false,
+            "rms_mrad": 291.26666410494886,
+            "source_group": "first",
+            "target_group": "first",
+            "target_role": "formal"
+          },
+          "first_to_first_sentinel": {
+            "median_mrad": 90.60762887598273,
+            "p95_mrad": 547.8298471999952,
+            "passed": false,
+            "rms_mrad": 266.6797183620111,
+            "source_group": "first",
+            "target_group": "first",
+            "target_role": "sentinel"
+          },
+          "first_to_second_formal": {
+            "median_mrad": 179.59601225720334,
+            "p95_mrad": 542.3332404235539,
+            "passed": false,
+            "rms_mrad": 289.2417270064071,
+            "source_group": "first",
+            "target_group": "second",
+            "target_role": "formal"
+          },
+          "first_to_second_sentinel": {
+            "median_mrad": 77.53350715153928,
+            "p95_mrad": 533.6460551765853,
+            "passed": false,
+            "rms_mrad": 262.3667534656857,
+            "source_group": "first",
+            "target_group": "second",
+            "target_role": "sentinel"
+          },
+          "second_to_first_formal": {
+            "median_mrad": 172.28816617086906,
+            "p95_mrad": 528.1555948361223,
+            "passed": false,
+            "rms_mrad": 290.8734668520459,
+            "source_group": "second",
+            "target_group": "first",
+            "target_role": "formal"
+          },
+          "second_to_first_sentinel": {
+            "median_mrad": 92.26149702793585,
+            "p95_mrad": 552.5639731006765,
+            "passed": false,
+            "rms_mrad": 268.07041602547696,
+            "source_group": "second",
+            "target_group": "first",
+            "target_role": "sentinel"
+          },
+          "second_to_second_formal": {
+            "median_mrad": 175.6058497655988,
+            "p95_mrad": 535.2818231188787,
+            "passed": false,
+            "rms_mrad": 288.6180487757044,
+            "source_group": "second",
+            "target_group": "second",
+            "target_role": "formal"
+          },
+          "second_to_second_sentinel": {
+            "median_mrad": 79.04810325103284,
+            "p95_mrad": 538.4991119382883,
+            "passed": false,
+            "rms_mrad": 263.60873425836644,
+            "source_group": "second",
+            "target_group": "second",
+            "target_role": "sentinel"
+          }
+        },
+        "median_limit_mrad": 50.0,
+        "own_mapping_pass": false,
+        "p95_limit_mrad": 200.0,
+        "pairwise": {
+          "center_l2": 0.0018515774118135,
+          "relative_A_frobenius": 0.0036255145860537865
+        },
+        "partition": "pair_position"
+      }
+    },
+    "optimizer": {
+      "cost": 0.10404954369118137,
+      "message": "`ftol` termination condition is satisfied.",
+      "nfev": 6,
+      "status": 2,
+      "success": true
+    },
+    "pilot_only_calibration": true,
+    "protocol_version": "mzm-interleaved-calibration-v1.2",
+    "quality_gate": {
+      "accepted": false,
+      "adc_raw_extrema_available": true,
+      "adc_raw_telemetry_pass": true,
+      "bias_max_abs_V": 6.036902619530071,
+      "bias_rail_limit_V": 8.955,
+      "bias_rail_pass": true,
+      "board_dc_finite_pass": true,
+      "board_dc_max_V": 1.2,
+      "board_dc_monitor_only": true,
+      "board_dc_rail_advisory": true,
+      "board_dc_rail_limit_V": 1.199,
+      "board_dc_rail_pass": false,
+      "calibration_finite_positive_pass": true,
+      "conditioning_contract_pass": true,
+      "design_abs_corr": 5.949575820840001e-07,
+      "design_abs_corr_limit": 0.05,
+      "design_condition_limit": 3.0,
+      "design_condition_number": 1.5870639596452947,
+      "design_condition_pass": true,
+      "design_corr_pass": true,
+      "direction_split_pass": true,
+      "direction_split_phase_limit_rad": 0.05,
+      "direction_split_phase_rad": 0.002756642809619504,
+      "dmm_bracket_pass": true,
+      "dmm_bracket_stability_pass": false,
+      "drift_30min_pass": true,
+      "drift_30min_phase_limit_rad": 0.05,
+      "drift_30min_phase_rad": 0.006345615910273921,
+      "finite_positive_model_pass": true,
+      "formal_exact_capture_pass": true,
+      "formal_headroom_pass": true,
+      "formal_selfcheck_median_limit_mrad": 50.0,
+      "formal_selfcheck_median_mrad": 177.60193155720262,
+      "formal_selfcheck_median_pass": false,
+      "formal_selfcheck_p95_limit_mrad": 200.0,
+      "formal_selfcheck_p95_mrad": 531.0465110344323,
+      "formal_selfcheck_p95_pass": false,
+      "formal_window_contract_pass": true,
+      "formal_window_raw_pass": true,
+      "interleaved_mapping_stability_pass": false,
+      "pair_orthogonality_pass": true,
+      "preposition_settle_pass": true,
+      "required_pass_fields": [
+        "finite_positive_model_pass",
+        "bias_rail_pass",
+        "design_corr_pass",
+        "design_condition_pass",
+        "train_dc_pass",
+        "sentinel_dc_pass",
+        "direction_split_pass",
+        "drift_30min_pass",
+        "board_dc_finite_pass",
+        "calibration_finite_positive_pass",
+        "formal_selfcheck_median_pass",
+        "formal_selfcheck_p95_pass",
+        "sentinel_selfcheck_median_pass",
+        "sentinel_selfcheck_p95_pass",
+        "interleaved_mapping_stability_pass",
+        "adc_raw_telemetry_pass",
+        "schedule_contract_pass",
+        "conditioning_contract_pass",
+        "single_pilot_configuration_verified",
+        "transition_discard_contract_pass",
+        "transition_discard_capture_pass",
+        "transition_discard_hash_contract_pass",
+        "dmm_bracket_pass",
+        "dmm_bracket_stability_pass",
+        "target_time_corr_pass",
+        "pair_orthogonality_pass",
+        "preposition_settle_pass",
+        "formal_window_contract_pass",
+        "formal_window_raw_pass",
+        "formal_exact_capture_pass",
+        "formal_headroom_pass"
+      ],
+      "schedule_contract_pass": true,
+      "sentinel_dc_pass": true,
+      "sentinel_normalized_rmse": 0.04840618199111718,
+      "sentinel_normalized_rmse_limit": 0.04997916927067833,
+      "sentinel_selfcheck_median_limit_mrad": 50.0,
+      "sentinel_selfcheck_median_mrad": 84.8601027876077,
+      "sentinel_selfcheck_median_pass": false,
+      "sentinel_selfcheck_p95_limit_mrad": 200.0,
+      "sentinel_selfcheck_p95_mrad": 678.2269454577955,
+      "sentinel_selfcheck_p95_pass": false,
+      "single_pilot_configuration_verified": true,
+      "target_time_corr_pass": true,
+      "train_dc_pass": true,
+      "train_normalized_rmse": 0.0483385695911323,
+      "train_normalized_rmse_limit": 0.04997916927067833,
+      "transition_discard_capture_pass": true,
+      "transition_discard_contract_pass": true,
+      "transition_discard_hash_contract_pass": true,
+      "v1_4_authorization_ready": false
+    },
+    "selfcheck": {
+      "formal": {
+        "median": 177.60193155720262,
+        "p95": 531.0465110344323,
+        "rms": 289.9870142431598
+      },
+      "frozen_coordinate_map_formal": {
+        "median": 465.47802093732344,
+        "p95": 977.6187563554462,
+        "rms": 547.3157216377292
+      },
+      "frozen_coordinate_map_sentinel": {
+        "median": 441.02923134278126,
+        "p95": 1142.0142277428213,
+        "rms": 557.8082887323213
+      },
+      "sentinel": {
+        "median": 84.8601027876077,
+        "p95": 678.2269454577955,
+        "rms": 265.17831365853164
+      }
+    },
+    "sentinel_points": 18,
+    "target_direction_corr": 0.0,
+    "target_time_abs_corr": 0.0030607286193640552,
+    "time_midpoint_unix": 1784281463.1801267,
+    "time_scale_s": 2830.969893693924,
+    "transition_discard_file_sha256": {
+      "transition_discard.csv": "73ffaafe7c64a973001522206dbbfb9cf7f5362acb1f8b444769bbea4b9bda14",
+      "transition_discard.npz": "52e74c6cba195def2be5de53a88dce9830a33bfe6feda977d45930fb72724321"
+    },
+    "transition_discard_raw_gate": {
+      "accepted": true,
+      "acquisition_complete_pass": true,
+      "ch0_max_code": 5209298,
+      "ch0_min_code": -5127320,
+      "contract_pass": true,
+      "count_values_nonnegative_pass": true,
+      "crc_checked_all": false,
+      "extrema_guard_pass": true,
+      "failed_point_indices": [],
+      "no_near_rail_pass": true,
+      "points": 162,
+      "total_guard_hi": 0,
+      "total_guard_lo": 0,
+      "total_rail_hi": 0,
+      "total_rail_lo": 0
+    },
+    "transition_discard_records": 162,
+    "v1_4_authorization_ready": false
+  },
+  "complete": true,
+  "conditioning_rows": 2489
+}

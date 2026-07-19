@@ -1,0 +1,17 @@
+{
+  "108": {
+    "acquisition_count_pass": true,
+    "acquisition_frequencies_pass": true,
+    "amplitude_pass": true,
+    "expected_acquisition_count": 2,
+    "expected_amplitude_V": 0.07,
+    "expected_frequency_Hz": 1000.0,
+    "expected_pilot_count": 1,
+    "frequency_pass": true,
+    "pilot_count_pass": true,
+    "response": "[gen] bias: A=-3.624V\r\n[gen] pilots: 1\r\n  A f=1000.0Hz amp=0.0700V\r\n[acq] freqs: 2\r\n  f=1000.0Hz\r\n  f=2000.0Hz\r\n",
+    "simulated": false,
+    "source_sequence_index": 108,
+    "verified": true
+  }
+}

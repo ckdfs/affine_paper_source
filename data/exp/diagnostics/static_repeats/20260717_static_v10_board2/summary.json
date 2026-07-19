@@ -1,0 +1,12 @@
+{
+  "acquired_discards": 36,
+  "acquired_repeats": 36,
+  "acquired_windows": 72,
+  "analysis": null,
+  "complete": false,
+  "conditioning_rows": 7,
+  "expected_conditioning_rows": 211,
+  "expected_discards": 240,
+  "expected_repeats": 240,
+  "expected_windows": 480
+}

@@ -1,0 +1,58 @@
+{
+  "conditioning_rows": 872,
+  "discards": 54,
+  "dmm_read_statistics": {
+    "accepted": true,
+    "adjacent_abs_diff_median_V": 0.013406159999999945,
+    "adjacent_abs_diff_p95_V": 0.03887786000000002,
+    "reason": null,
+    "side_range_median_V": 0.03887785999999993,
+    "side_range_p95_V": 0.05892006719999996,
+    "side_std_median_V": 0.013585670035301919,
+    "side_std_p95_V": 0.020042802723340653
+  },
+  "dmm_reads": 864,
+  "formal_max_abs_raw_V": 1.1999998569488526,
+  "headline_promotion": false,
+  "independent_optical_truth": false,
+  "observations": 54,
+  "protocol_version": "mzm-interleaved-spur-calibration-v1.3.2",
+  "quality_gate": {
+    "accepted": false,
+    "conditioning_contract_pass": true,
+    "discard_capture_pass": true,
+    "discard_contract_pass": true,
+    "dmm_read_contract_pass": true,
+    "formal_headroom_pass": false,
+    "formal_raw_pass": false,
+    "formal_window_contract_pass": true,
+    "pilot_configuration_pass": true,
+    "read_failure_contract_pass": true,
+    "required_pass_fields": [
+      "schedule_contract_pass",
+      "conditioning_contract_pass",
+      "pilot_configuration_pass",
+      "discard_contract_pass",
+      "discard_capture_pass",
+      "formal_window_contract_pass",
+      "formal_raw_pass",
+      "formal_headroom_pass",
+      "dmm_read_contract_pass",
+      "read_failure_contract_pass",
+      "timing_contract_pass"
+    ],
+    "schedule_contract_pass": true,
+    "timing_contract_pass": true
+  },
+  "read_failure_statistics": {
+    "accepted": true,
+    "discard_retries": 0,
+    "failures": 0,
+    "formal_retries": 0,
+    "reason": null
+  },
+  "segment_index": 0,
+  "stage": "donor",
+  "v1_4_authorization_ready": false,
+  "windows": 864
+}

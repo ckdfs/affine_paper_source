@@ -1,0 +1,16 @@
+{
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "ended_unix": 1784188133.4156039,
+  "epoch_count": 1,
+  "failure": "KeyboardInterrupt: received signal 2",
+  "row_count": 8,
+  "run_id": "20260716_v0stab_v1_board2",
+  "started_unix": 1784188084.1723971,
+  "status": "failed"
+}

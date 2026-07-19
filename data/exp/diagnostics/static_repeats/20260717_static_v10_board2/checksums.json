@@ -1,0 +1,11 @@
+{
+  "block_config.json": "39d34f9b5851c10ea52ba99f7a35b53a5dda8d8961c2348992232d7ce9662874",
+  "conditioning.csv": "6cb49dc73704aa32cdf18f93af4ead60046d13f2e0036d30062756387896a346",
+  "formal_windows.csv": "2a8041ca8ef4d39466a8af7f6e71bd113ef2f4f5f8122e6472e38b11961b6a52",
+  "manifest.json": "8453b6d2e0556efbaf2afb03baf97eac05977bd4923583fd8bee1c5f5b7b293d",
+  "pilot_verification.json": "b70af84377b58e5d31f4360597d27b725429cd60cd7fff88094e8753d459d6a6",
+  "protocol.json": "ff5f58aebda959f6215937742dfd560855bba5ffa4fc9acb4e8fc32b152190c0",
+  "static_repeats.csv": "ea1b766d76856e363b6be38a07abd747cd5568f81a5eadb397740162957e327e",
+  "summary.json": "993fdbac985f4a71fa79543ea71f54673048babbda8e919a30eac7aa1d2655d5",
+  "transition_discard.csv": "bb521d29b03b33a5e7bd55fc8c6a481a2b0fa6f7d11293eea5aceee6912eab08"
+}

@@ -1,0 +1,16 @@
+{
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "ended_unix": 1784188789.522481,
+  "epoch_count": 6,
+  "failure": null,
+  "row_count": 48,
+  "run_id": "20260716_v0stab_v1b_board2",
+  "started_unix": 1784188178.1624541,
+  "status": "complete"
+}

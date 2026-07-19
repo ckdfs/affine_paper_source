@@ -1,0 +1,29 @@
+{
+  "acquired_discards": 0,
+  "acquired_observations": 0,
+  "acquired_windows": 0,
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "board_initial_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "conditioning_rows": 35,
+  "ended_unix": 1784275964.2293382,
+  "expected_discards": 54,
+  "expected_observations": 54,
+  "expected_windows": 216,
+  "failure": "RuntimeError: transition-discard RAWADC telemetry missing",
+  "quality_gate_accepted": null,
+  "run_id": "20260717_interleaved_v11s0b_board2",
+  "started_unix": 1784275903.466347,
+  "status": "failed"
+}

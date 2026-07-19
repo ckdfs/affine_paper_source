@@ -1,0 +1,17 @@
+{
+  "acquired_discards": 0,
+  "acquired_observations": 0,
+  "acquired_windows": 0,
+  "board_final_status": null,
+  "board_initial_status": null,
+  "conditioning_rows": 0,
+  "ended_unix": 1784282454.64955,
+  "expected_discards": 54,
+  "expected_observations": 54,
+  "expected_windows": 216,
+  "failure": "ConnectionError: Cannot connect to DM858E at 192.168.99.147:5025. Verify power and LAN. (timed out)",
+  "quality_gate_accepted": null,
+  "run_id": "20260717_interleaved_v12s2_board2",
+  "started_unix": 1784282449.2874932,
+  "status": "failed"
+}

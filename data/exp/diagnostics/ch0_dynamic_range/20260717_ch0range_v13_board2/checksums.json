@@ -1,0 +1,11 @@
+{
+  "analysis.json": "ffa0066696683709ab8e8659d1a4d2c59bae752eae35b3529fe54931ebe739fc",
+  "ch0_dynamic_range.csv": "cd954406117c47aa3fd8a709648f968c41fbf7a28e862cd689743dc660411c11",
+  "ch0_dynamic_range.npz": "8fd26f8e84d39ffc0d8df280927cf81f3676b426a104abbe90a3831f6ef41f90",
+  "manifest.json": "0987d77dca6701ff77ca7f5dee886637bae267b2cf2d3e70aca457f77623bf83",
+  "pilot_verification.json": "dcb6afe072c8a3e50e612594a257fbb6b7210f9c250a56c61ad6db5fa72c2119",
+  "protocol.json": "39f780d074eb6a4f1ae5afd3b52299985955b7c8113cc6afc3e610ff66748d47",
+  "startup_discard.csv": "87fd9d003b05d7a0e4af28e724556449095ba27e3d07283c51376ba06757d243",
+  "startup_discard.npz": "1e4bac61e5f8bd743c566336347fcaf4d28d589e209b48ec2358cb8b09458379",
+  "summary.json": "ab6f8d2640f3205c0a2b6e198816186bf20454448492ab24dc9e6656c12613e3"
+}

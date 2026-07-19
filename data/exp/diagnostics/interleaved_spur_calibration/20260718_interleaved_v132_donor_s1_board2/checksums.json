@@ -1,0 +1,17 @@
+{
+  "acq_read_failures.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "analysis.json": "314d61ca74bff2b29599ade72ace744c6bb8db5641e030255370e84ba09ef0fc",
+  "conditioning.csv": "6fc8ad1f4882886cbce7203f7d6e097cb74212fd9fca4352f30e18180f089d75",
+  "dmm_reads.csv": "f0650010c4ef09e55964b486b8a781ebd6443beeaa82033078fd51de8e047b85",
+  "dmm_reads.npz": "215f9b7859b0b4451ecdc52706fdf6939e290dc626cd3812fc0250abd6ea7e05",
+  "formal_windows.csv": "437fc4b332205b9b46919e23c18816a523de9a268feefc8f45ee1b4c8987a4da",
+  "formal_windows.npz": "23e8f113e9e63be13804a920d97d3da3c767b3c0651ec1def54d6fedb8633f39",
+  "interleaved_calibration.csv": "063a8a042e741a018ec3270c935ffe749c233e07535e870b2c798158b50f64ba",
+  "interleaved_calibration.npz": "c9ba7d14c4624a4247366059fa0e205933ac10673b478375f71d0985226469d3",
+  "manifest.json": "8359727c964b92d4b75a7d1e55b7110e974ca7eea8c37303143f128533f901fd",
+  "pilot_verification.json": "d3b8f0f885d9a6fdd58e88ca031dc23436d2dbcafd2d3b9e58d342f1f6d19bdc",
+  "protocol.json": "438a6c5e58ef4a30e3b9ace6ff60696e43ecd3ec61e27b740802d88eea86533a",
+  "summary.json": "356e14dc5c334d84d79ca8bc087f29c1dd8ba5fd38daacdcb1a8b1ceb15f89ab",
+  "transition_discard.csv": "50ed12d03569ec24d0cf06658c6b95e0db2b612b4629ace035f3ff69ccb4fa34",
+  "transition_discard.npz": "1645e22ebcc244b87eb118e16c369f9ad89bfd31d85a0ae012945aaa12b0ad39"
+}

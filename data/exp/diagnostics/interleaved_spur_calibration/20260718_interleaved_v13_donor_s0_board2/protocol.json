@@ -1,0 +1,2217 @@
+{
+  "acq_read_attempts": 3,
+  "bias_settle_s": 0.5,
+  "coordinate_center_V": 0.8147635714861232,
+  "discard_blocks": 6,
+  "discard_to_formal_max_s": 2.0,
+  "dmm_reads_per_side": 8,
+  "donor_reference": null,
+  "expected_bridge_rows": 872,
+  "fixed_vpi_V": 5.222139048043948,
+  "formal_blocks": 16,
+  "formal_windows": 8,
+  "headline_promotion": false,
+  "headroom_limit_V": 0.95,
+  "headroom_limit_code": 6640981,
+  "independent_optical_truth": false,
+  "metadata": {
+    "ambient_c": 28.0,
+    "device_id": "MZM-ANON-01",
+    "firmware_rev": "8b1b1c2_rawadc_a3785e95",
+    "instrument_ids": "STLINK-066FFF505754675087091823,DM858E-DM8E275002095,DFB-ANON-01,PD-TIA-ANON-01",
+    "notes": "Frozen A68 interleaved v1.3 donor segment 0; 0.09 V pilot; 8 formal windows; 8+8 raw DMM reads; fully logged max-3 no-data retries only; independent safe start/end; no firmware change.",
+    "operator": "ckdfs",
+    "session_id": "20260718_interleaved_v13_donor_board2"
+  },
+  "pilot_Hz": 1000.0,
+  "pilot_V": 0.09,
+  "protocol_version": "mzm-interleaved-spur-calibration-v1.3",
+  "purpose": "diagnostic_only",
+  "repo_commit": "19f33fe3542a42123f54de8cf6228583817e8e9d",
+  "run_id": "20260718_interleaved_v13_donor_s0_board2",
+  "schedule": [
+    {
+      "approach_bias_V": -4.537928952758923,
+      "bias_V": -4.407375476557824,
+      "direction": "up",
+      "grid_index": 0,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 0,
+      "target_ordinal": 0
+    },
+    {
+      "approach_bias_V": -4.276822000356725,
+      "bias_V": -4.407375476557824,
+      "direction": "down",
+      "grid_index": 0,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 1,
+      "target_ordinal": 0
+    },
+    {
+      "approach_bias_V": 6.16745609573117,
+      "bias_V": 6.036902619530071,
+      "direction": "down",
+      "grid_index": 80,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 2,
+      "target_ordinal": 1
+    },
+    {
+      "approach_bias_V": 5.906349143328972,
+      "bias_V": 6.036902619530071,
+      "direction": "up",
+      "grid_index": 80,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 3,
+      "target_ordinal": 1
+    },
+    {
+      "approach_bias_V": -2.1879663811391468,
+      "bias_V": -2.057412904938048,
+      "direction": "up",
+      "grid_index": 18,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 4,
+      "target_ordinal": 2
+    },
+    {
+      "approach_bias_V": -1.926859428736949,
+      "bias_V": -2.057412904938048,
+      "direction": "down",
+      "grid_index": 18,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 5,
+      "target_ordinal": 2
+    },
+    {
+      "approach_bias_V": 3.817493524111393,
+      "bias_V": 3.6869400479102943,
+      "direction": "down",
+      "grid_index": 62,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 6,
+      "target_ordinal": 3
+    },
+    {
+      "approach_bias_V": 3.5563865717091954,
+      "bias_V": 3.6869400479102943,
+      "direction": "up",
+      "grid_index": 62,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 7,
+      "target_ordinal": 3
+    },
+    {
+      "approach_bias_V": 5.6452421909267745,
+      "bias_V": 5.775795667127873,
+      "direction": "up",
+      "grid_index": 78,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 8,
+      "target_ordinal": 4
+    },
+    {
+      "approach_bias_V": 5.906349143328972,
+      "bias_V": 5.775795667127873,
+      "direction": "down",
+      "grid_index": 78,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 9,
+      "target_ordinal": 4
+    },
+    {
+      "approach_bias_V": -4.015715047954528,
+      "bias_V": -4.1462685241556265,
+      "direction": "down",
+      "grid_index": 2,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 10,
+      "target_ordinal": 5
+    },
+    {
+      "approach_bias_V": -4.276822000356725,
+      "bias_V": -4.1462685241556265,
+      "direction": "up",
+      "grid_index": 2,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 11,
+      "target_ordinal": 5
+    },
+    {
+      "approach_bias_V": 0.29254966668172866,
+      "bias_V": 0.4231031428828276,
+      "direction": "up",
+      "grid_index": 37,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 12,
+      "target_ordinal": 6
+    },
+    {
+      "approach_bias_V": 0.5536566190839265,
+      "bias_V": 0.4231031428828276,
+      "direction": "down",
+      "grid_index": 37,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 13,
+      "target_ordinal": 6
+    },
+    {
+      "approach_bias_V": 1.3369774762905182,
+      "bias_V": 1.2064240000894193,
+      "direction": "down",
+      "grid_index": 43,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 14,
+      "target_ordinal": 7
+    },
+    {
+      "approach_bias_V": 1.0758705238883204,
+      "bias_V": 1.2064240000894193,
+      "direction": "up",
+      "grid_index": 43,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 15,
+      "target_ordinal": 7
+    },
+    {
+      "approach_bias_V": 1.728637904893814,
+      "bias_V": 1.859191381094913,
+      "direction": "up",
+      "grid_index": 48,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 16,
+      "target_ordinal": 8
+    },
+    {
+      "approach_bias_V": 1.989744857296012,
+      "bias_V": 1.859191381094913,
+      "direction": "down",
+      "grid_index": 48,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 17,
+      "target_ordinal": 8
+    },
+    {
+      "approach_bias_V": -0.0991107619215672,
+      "bias_V": -0.22966423812266612,
+      "direction": "down",
+      "grid_index": 32,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 18,
+      "target_ordinal": 9
+    },
+    {
+      "approach_bias_V": -0.36021771432376504,
+      "bias_V": -0.22966423812266612,
+      "direction": "up",
+      "grid_index": 32,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 19,
+      "target_ordinal": 9
+    },
+    {
+      "approach_bias_V": -3.101840714546838,
+      "bias_V": -2.971287238345739,
+      "direction": "up",
+      "grid_index": 11,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 20,
+      "target_ordinal": 10
+    },
+    {
+      "approach_bias_V": -2.84073376214464,
+      "bias_V": -2.971287238345739,
+      "direction": "down",
+      "grid_index": 11,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 21,
+      "target_ordinal": 10
+    },
+    {
+      "approach_bias_V": 4.731367857519084,
+      "bias_V": 4.600814381317985,
+      "direction": "down",
+      "grid_index": 69,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 22,
+      "target_ordinal": 11
+    },
+    {
+      "approach_bias_V": 4.470260905116886,
+      "bias_V": 4.600814381317985,
+      "direction": "up",
+      "grid_index": 69,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 23,
+      "target_ordinal": 11
+    },
+    {
+      "approach_bias_V": 2.7730657145026036,
+      "bias_V": 2.9036191907037026,
+      "direction": "up",
+      "grid_index": 56,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 24,
+      "target_ordinal": 12
+    },
+    {
+      "approach_bias_V": 3.0341726669048015,
+      "bias_V": 2.9036191907037026,
+      "direction": "down",
+      "grid_index": 56,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 25,
+      "target_ordinal": 12
+    },
+    {
+      "approach_bias_V": -1.1435385715303568,
+      "bias_V": -1.2740920477314557,
+      "direction": "down",
+      "grid_index": 24,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 26,
+      "target_ordinal": 13
+    },
+    {
+      "approach_bias_V": -1.4046455239325546,
+      "bias_V": -1.2740920477314557,
+      "direction": "up",
+      "grid_index": 24,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 27,
+      "target_ordinal": 13
+    },
+    {
+      "approach_bias_V": -1.2740920477314557,
+      "bias_V": -1.1435385715303568,
+      "direction": "up",
+      "grid_index": 25,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 28,
+      "target_ordinal": 14
+    },
+    {
+      "approach_bias_V": -1.0129850953292578,
+      "bias_V": -1.1435385715303568,
+      "direction": "down",
+      "grid_index": 25,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 29,
+      "target_ordinal": 14
+    },
+    {
+      "approach_bias_V": 2.9036191907037026,
+      "bias_V": 2.7730657145026036,
+      "direction": "down",
+      "grid_index": 55,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 30,
+      "target_ordinal": 15
+    },
+    {
+      "approach_bias_V": 2.6425122383015047,
+      "bias_V": 2.7730657145026036,
+      "direction": "up",
+      "grid_index": 55,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 31,
+      "target_ordinal": 15
+    },
+    {
+      "approach_bias_V": 3.817493524111393,
+      "bias_V": 3.948047000312492,
+      "direction": "up",
+      "grid_index": 64,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 32,
+      "target_ordinal": 16
+    },
+    {
+      "approach_bias_V": 4.078600476513591,
+      "bias_V": 3.948047000312492,
+      "direction": "down",
+      "grid_index": 64,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 33,
+      "target_ordinal": 16
+    },
+    {
+      "approach_bias_V": -2.1879663811391463,
+      "bias_V": -2.3185198573402452,
+      "direction": "down",
+      "grid_index": 16,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 34,
+      "target_ordinal": 17
+    },
+    {
+      "approach_bias_V": -2.449073333541344,
+      "bias_V": -2.3185198573402452,
+      "direction": "up",
+      "grid_index": 16,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 35,
+      "target_ordinal": 17
+    },
+    {
+      "approach_bias_V": 0.031442714279530826,
+      "bias_V": 0.16199619048062974,
+      "direction": "up",
+      "grid_index": 35,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 36,
+      "target_ordinal": 18
+    },
+    {
+      "approach_bias_V": 0.29254966668172866,
+      "bias_V": 0.16199619048062974,
+      "direction": "down",
+      "grid_index": 35,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 37,
+      "target_ordinal": 18
+    },
+    {
+      "approach_bias_V": 1.598084428692716,
+      "bias_V": 1.4675309524916171,
+      "direction": "down",
+      "grid_index": 45,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 38,
+      "target_ordinal": 19
+    },
+    {
+      "approach_bias_V": 1.3369774762905182,
+      "bias_V": 1.4675309524916171,
+      "direction": "up",
+      "grid_index": 45,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 39,
+      "target_ordinal": 19
+    },
+    {
+      "approach_bias_V": 3.0341726669048015,
+      "bias_V": 3.1647261431059004,
+      "direction": "up",
+      "grid_index": 58,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 40,
+      "target_ordinal": 20
+    },
+    {
+      "approach_bias_V": 3.2952796193069993,
+      "bias_V": 3.1647261431059004,
+      "direction": "down",
+      "grid_index": 58,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 41,
+      "target_ordinal": 20
+    },
+    {
+      "approach_bias_V": -1.4046455239325542,
+      "bias_V": -1.535199000133653,
+      "direction": "down",
+      "grid_index": 22,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 42,
+      "target_ordinal": 21
+    },
+    {
+      "approach_bias_V": -1.665752476334752,
+      "bias_V": -1.535199000133653,
+      "direction": "up",
+      "grid_index": 22,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 43,
+      "target_ordinal": 21
+    },
+    {
+      "approach_bias_V": 0.5536566190839256,
+      "bias_V": 0.6842100952850245,
+      "direction": "up",
+      "grid_index": 39,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 44,
+      "target_ordinal": 22
+    },
+    {
+      "approach_bias_V": 0.8147635714861234,
+      "bias_V": 0.6842100952850245,
+      "direction": "down",
+      "grid_index": 39,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 45,
+      "target_ordinal": 22
+    },
+    {
+      "approach_bias_V": 1.0758705238883213,
+      "bias_V": 0.9453170476872224,
+      "direction": "down",
+      "grid_index": 41,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 46,
+      "target_ordinal": 23
+    },
+    {
+      "approach_bias_V": 0.8147635714861234,
+      "bias_V": 0.9453170476872224,
+      "direction": "up",
+      "grid_index": 41,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 47,
+      "target_ordinal": 23
+    },
+    {
+      "approach_bias_V": 5.775795667127873,
+      "bias_V": 5.906349143328972,
+      "direction": "up",
+      "grid_index": 79,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 48,
+      "target_ordinal": 24
+    },
+    {
+      "approach_bias_V": 6.036902619530071,
+      "bias_V": 5.906349143328972,
+      "direction": "down",
+      "grid_index": 79,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 49,
+      "target_ordinal": 24
+    },
+    {
+      "approach_bias_V": -4.1462685241556265,
+      "bias_V": -4.276822000356725,
+      "direction": "down",
+      "grid_index": 1,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 50,
+      "target_ordinal": 25
+    },
+    {
+      "approach_bias_V": -4.407375476557824,
+      "bias_V": -4.276822000356725,
+      "direction": "up",
+      "grid_index": 1,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 51,
+      "target_ordinal": 25
+    },
+    {
+      "approach_bias_V": -1.9268594287369494,
+      "bias_V": -1.7963059525358505,
+      "direction": "up",
+      "grid_index": 20,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 52,
+      "target_ordinal": 26
+    },
+    {
+      "approach_bias_V": -1.6657524763347515,
+      "bias_V": -1.7963059525358505,
+      "direction": "down",
+      "grid_index": 20,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 53,
+      "target_ordinal": 26
+    },
+    {
+      "approach_bias_V": 3.5563865717091963,
+      "bias_V": 3.4258330955080973,
+      "direction": "down",
+      "grid_index": 60,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 54,
+      "target_ordinal": 27
+    },
+    {
+      "approach_bias_V": 3.2952796193069984,
+      "bias_V": 3.4258330955080973,
+      "direction": "up",
+      "grid_index": 60,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 55,
+      "target_ordinal": 27
+    },
+    {
+      "approach_bias_V": 4.992474809921282,
+      "bias_V": 5.123028286122381,
+      "direction": "up",
+      "grid_index": 73,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 56,
+      "target_ordinal": 28
+    },
+    {
+      "approach_bias_V": 5.2535817623234795,
+      "bias_V": 5.123028286122381,
+      "direction": "down",
+      "grid_index": 73,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 57,
+      "target_ordinal": 28
+    },
+    {
+      "approach_bias_V": -3.362947666949035,
+      "bias_V": -3.4935011431501337,
+      "direction": "down",
+      "grid_index": 7,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 58,
+      "target_ordinal": 29
+    },
+    {
+      "approach_bias_V": -3.6240546193512326,
+      "bias_V": -3.4935011431501337,
+      "direction": "up",
+      "grid_index": 7,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 59,
+      "target_ordinal": 29
+    },
+    {
+      "approach_bias_V": -0.0991107619215672,
+      "bias_V": 0.031442714279531714,
+      "direction": "up",
+      "grid_index": 34,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 60,
+      "target_ordinal": 30
+    },
+    {
+      "approach_bias_V": 0.16199619048063063,
+      "bias_V": 0.031442714279531714,
+      "direction": "down",
+      "grid_index": 34,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 61,
+      "target_ordinal": 30
+    },
+    {
+      "approach_bias_V": 1.728637904893814,
+      "bias_V": 1.5980844286927152,
+      "direction": "down",
+      "grid_index": 46,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 62,
+      "target_ordinal": 31
+    },
+    {
+      "approach_bias_V": 1.4675309524916162,
+      "bias_V": 1.5980844286927152,
+      "direction": "up",
+      "grid_index": 46,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 63,
+      "target_ordinal": 31
+    },
+    {
+      "approach_bias_V": 5.514688714725676,
+      "bias_V": 5.6452421909267745,
+      "direction": "up",
+      "grid_index": 77,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 64,
+      "target_ordinal": 32
+    },
+    {
+      "approach_bias_V": 5.775795667127873,
+      "bias_V": 5.6452421909267745,
+      "direction": "down",
+      "grid_index": 77,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 65,
+      "target_ordinal": 32
+    },
+    {
+      "approach_bias_V": -3.8851615717534296,
+      "bias_V": -4.0157150479545285,
+      "direction": "down",
+      "grid_index": 3,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 66,
+      "target_ordinal": 33
+    },
+    {
+      "approach_bias_V": -4.146268524155627,
+      "bias_V": -4.0157150479545285,
+      "direction": "up",
+      "grid_index": 3,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 67,
+      "target_ordinal": 33
+    },
+    {
+      "approach_bias_V": -2.3185198573402452,
+      "bias_V": -2.1879663811391463,
+      "direction": "up",
+      "grid_index": 17,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 68,
+      "target_ordinal": 34
+    },
+    {
+      "approach_bias_V": -2.0574129049380474,
+      "bias_V": -2.1879663811391463,
+      "direction": "down",
+      "grid_index": 17,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 69,
+      "target_ordinal": 34
+    },
+    {
+      "approach_bias_V": 3.948047000312492,
+      "bias_V": 3.817493524111393,
+      "direction": "down",
+      "grid_index": 63,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 70,
+      "target_ordinal": 35
+    },
+    {
+      "approach_bias_V": 3.6869400479102943,
+      "bias_V": 3.817493524111393,
+      "direction": "up",
+      "grid_index": 63,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 71,
+      "target_ordinal": 35
+    },
+    {
+      "approach_bias_V": 2.250851809698209,
+      "bias_V": 2.3814052858993078,
+      "direction": "up",
+      "grid_index": 52,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 72,
+      "target_ordinal": 36
+    },
+    {
+      "approach_bias_V": 2.5119587621004067,
+      "bias_V": 2.3814052858993078,
+      "direction": "down",
+      "grid_index": 52,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 73,
+      "target_ordinal": 36
+    },
+    {
+      "approach_bias_V": -0.621324666725962,
+      "bias_V": -0.7518781429270609,
+      "direction": "down",
+      "grid_index": 28,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 74,
+      "target_ordinal": 37
+    },
+    {
+      "approach_bias_V": -0.8824316191281598,
+      "bias_V": -0.7518781429270609,
+      "direction": "up",
+      "grid_index": 28,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 75,
+      "target_ordinal": 37
+    },
+    {
+      "approach_bias_V": -3.2323941907479363,
+      "bias_V": -3.1018407145468374,
+      "direction": "up",
+      "grid_index": 10,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 76,
+      "target_ordinal": 38
+    },
+    {
+      "approach_bias_V": -2.9712872383457385,
+      "bias_V": -3.1018407145468374,
+      "direction": "down",
+      "grid_index": 10,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 77,
+      "target_ordinal": 38
+    },
+    {
+      "approach_bias_V": 4.861921333720183,
+      "bias_V": 4.731367857519084,
+      "direction": "down",
+      "grid_index": 70,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 78,
+      "target_ordinal": 39
+    },
+    {
+      "approach_bias_V": 4.600814381317985,
+      "bias_V": 4.731367857519084,
+      "direction": "up",
+      "grid_index": 70,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 79,
+      "target_ordinal": 39
+    },
+    {
+      "approach_bias_V": 5.2535817623234795,
+      "bias_V": 5.384135238524578,
+      "direction": "up",
+      "grid_index": 75,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 80,
+      "target_ordinal": 40
+    },
+    {
+      "approach_bias_V": 5.514688714725677,
+      "bias_V": 5.384135238524578,
+      "direction": "down",
+      "grid_index": 75,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 81,
+      "target_ordinal": 40
+    },
+    {
+      "approach_bias_V": -3.6240546193512317,
+      "bias_V": -3.7546080955523307,
+      "direction": "down",
+      "grid_index": 5,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 82,
+      "target_ordinal": 41
+    },
+    {
+      "approach_bias_V": -3.8851615717534296,
+      "bias_V": -3.7546080955523307,
+      "direction": "up",
+      "grid_index": 5,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 83,
+      "target_ordinal": 41
+    },
+    {
+      "approach_bias_V": -1.7963059525358505,
+      "bias_V": -1.6657524763347515,
+      "direction": "up",
+      "grid_index": 21,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 84,
+      "target_ordinal": 42
+    },
+    {
+      "approach_bias_V": -1.5351990001336526,
+      "bias_V": -1.6657524763347515,
+      "direction": "down",
+      "grid_index": 21,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 85,
+      "target_ordinal": 42
+    },
+    {
+      "approach_bias_V": 3.4258330955080973,
+      "bias_V": 3.2952796193069984,
+      "direction": "down",
+      "grid_index": 59,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 86,
+      "target_ordinal": 43
+    },
+    {
+      "approach_bias_V": 3.1647261431058995,
+      "bias_V": 3.2952796193069984,
+      "direction": "up",
+      "grid_index": 59,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 87,
+      "target_ordinal": 43
+    },
+    {
+      "approach_bias_V": 1.5980844286927152,
+      "bias_V": 1.728637904893814,
+      "direction": "up",
+      "grid_index": 47,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 88,
+      "target_ordinal": 44
+    },
+    {
+      "approach_bias_V": 1.859191381094913,
+      "bias_V": 1.728637904893814,
+      "direction": "down",
+      "grid_index": 47,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 89,
+      "target_ordinal": 44
+    },
+    {
+      "approach_bias_V": 0.031442714279531714,
+      "bias_V": -0.0991107619215672,
+      "direction": "down",
+      "grid_index": 33,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 90,
+      "target_ordinal": 45
+    },
+    {
+      "approach_bias_V": -0.22966423812266612,
+      "bias_V": -0.0991107619215672,
+      "direction": "up",
+      "grid_index": 33,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 91,
+      "target_ordinal": 45
+    },
+    {
+      "approach_bias_V": -0.6213246667259624,
+      "bias_V": -0.4907711905248635,
+      "direction": "up",
+      "grid_index": 30,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 92,
+      "target_ordinal": 46
+    },
+    {
+      "approach_bias_V": -0.3602177143237646,
+      "bias_V": -0.4907711905248635,
+      "direction": "down",
+      "grid_index": 30,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 93,
+      "target_ordinal": 46
+    },
+    {
+      "approach_bias_V": 2.2508518096982097,
+      "bias_V": 2.120298333497111,
+      "direction": "down",
+      "grid_index": 50,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 94,
+      "target_ordinal": 47
+    },
+    {
+      "approach_bias_V": 1.989744857296012,
+      "bias_V": 2.120298333497111,
+      "direction": "up",
+      "grid_index": 50,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 95,
+      "target_ordinal": 47
+    },
+    {
+      "approach_bias_V": 2.511958762100406,
+      "bias_V": 2.6425122383015047,
+      "direction": "up",
+      "grid_index": 54,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 96,
+      "target_ordinal": 48
+    },
+    {
+      "approach_bias_V": 2.7730657145026036,
+      "bias_V": 2.6425122383015047,
+      "direction": "down",
+      "grid_index": 54,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 97,
+      "target_ordinal": 48
+    },
+    {
+      "approach_bias_V": -0.8824316191281594,
+      "bias_V": -1.0129850953292583,
+      "direction": "down",
+      "grid_index": 26,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 98,
+      "target_ordinal": 49
+    },
+    {
+      "approach_bias_V": -1.1435385715303572,
+      "bias_V": -1.0129850953292583,
+      "direction": "up",
+      "grid_index": 26,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 99,
+      "target_ordinal": 49
+    },
+    {
+      "approach_bias_V": -2.84073376214464,
+      "bias_V": -2.710180285943541,
+      "direction": "up",
+      "grid_index": 13,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 100,
+      "target_ordinal": 50
+    },
+    {
+      "approach_bias_V": -2.579626809742442,
+      "bias_V": -2.710180285943541,
+      "direction": "down",
+      "grid_index": 13,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 101,
+      "target_ordinal": 50
+    },
+    {
+      "approach_bias_V": 4.470260905116888,
+      "bias_V": 4.339707428915789,
+      "direction": "down",
+      "grid_index": 67,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 102,
+      "target_ordinal": 51
+    },
+    {
+      "approach_bias_V": 4.20915395271469,
+      "bias_V": 4.339707428915789,
+      "direction": "up",
+      "grid_index": 67,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 103,
+      "target_ordinal": 51
+    },
+    {
+      "approach_bias_V": 0.9453170476872224,
+      "bias_V": 1.0758705238883213,
+      "direction": "up",
+      "grid_index": 42,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 104,
+      "target_ordinal": 52
+    },
+    {
+      "approach_bias_V": 1.2064240000894202,
+      "bias_V": 1.0758705238883213,
+      "direction": "down",
+      "grid_index": 42,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 105,
+      "target_ordinal": 52
+    },
+    {
+      "approach_bias_V": 0.6842100952850245,
+      "bias_V": 0.5536566190839256,
+      "direction": "down",
+      "grid_index": 38,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 106,
+      "target_ordinal": 53
+    },
+    {
+      "approach_bias_V": 0.4231031428828267,
+      "bias_V": 0.5536566190839256,
+      "direction": "up",
+      "grid_index": 38,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 107,
+      "target_ordinal": 53
+    },
+    {
+      "approach_bias_V": -3.754608095552331,
+      "bias_V": -3.624054619351232,
+      "direction": "up",
+      "grid_index": 6,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 108,
+      "target_ordinal": 54
+    },
+    {
+      "approach_bias_V": -3.4935011431501333,
+      "bias_V": -3.624054619351232,
+      "direction": "down",
+      "grid_index": 6,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 109,
+      "target_ordinal": 54
+    },
+    {
+      "approach_bias_V": 5.384135238524578,
+      "bias_V": 5.2535817623234795,
+      "direction": "down",
+      "grid_index": 74,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 110,
+      "target_ordinal": 55
+    },
+    {
+      "approach_bias_V": 5.123028286122381,
+      "bias_V": 5.2535817623234795,
+      "direction": "up",
+      "grid_index": 74,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 111,
+      "target_ordinal": 55
+    },
+    {
+      "approach_bias_V": 1.2064240000894193,
+      "bias_V": 1.3369774762905182,
+      "direction": "up",
+      "grid_index": 44,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 112,
+      "target_ordinal": 56
+    },
+    {
+      "approach_bias_V": 1.4675309524916171,
+      "bias_V": 1.3369774762905182,
+      "direction": "down",
+      "grid_index": 44,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 113,
+      "target_ordinal": 56
+    },
+    {
+      "approach_bias_V": 0.4231031428828276,
+      "bias_V": 0.29254966668172866,
+      "direction": "down",
+      "grid_index": 36,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 114,
+      "target_ordinal": 57
+    },
+    {
+      "approach_bias_V": 0.16199619048062974,
+      "bias_V": 0.29254966668172866,
+      "direction": "up",
+      "grid_index": 36,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 115,
+      "target_ordinal": 57
+    },
+    {
+      "approach_bias_V": -0.49077119052486395,
+      "bias_V": -0.36021771432376504,
+      "direction": "up",
+      "grid_index": 31,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 116,
+      "target_ordinal": 58
+    },
+    {
+      "approach_bias_V": -0.22966423812266612,
+      "bias_V": -0.36021771432376504,
+      "direction": "down",
+      "grid_index": 31,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 117,
+      "target_ordinal": 58
+    },
+    {
+      "approach_bias_V": 2.120298333497111,
+      "bias_V": 1.989744857296012,
+      "direction": "down",
+      "grid_index": 49,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 118,
+      "target_ordinal": 59
+    },
+    {
+      "approach_bias_V": 1.859191381094913,
+      "bias_V": 1.989744857296012,
+      "direction": "up",
+      "grid_index": 49,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 119,
+      "target_ordinal": 59
+    },
+    {
+      "approach_bias_V": 4.078600476513591,
+      "bias_V": 4.20915395271469,
+      "direction": "up",
+      "grid_index": 66,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 120,
+      "target_ordinal": 60
+    },
+    {
+      "approach_bias_V": 4.339707428915789,
+      "bias_V": 4.20915395271469,
+      "direction": "down",
+      "grid_index": 66,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 121,
+      "target_ordinal": 60
+    },
+    {
+      "approach_bias_V": -2.4490733335413437,
+      "bias_V": -2.5796268097424426,
+      "direction": "down",
+      "grid_index": 14,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 122,
+      "target_ordinal": 61
+    },
+    {
+      "approach_bias_V": -2.7101802859435415,
+      "bias_V": -2.5796268097424426,
+      "direction": "up",
+      "grid_index": 14,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 123,
+      "target_ordinal": 61
+    },
+    {
+      "approach_bias_V": -2.579626809742443,
+      "bias_V": -2.449073333541344,
+      "direction": "up",
+      "grid_index": 15,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 124,
+      "target_ordinal": 62
+    },
+    {
+      "approach_bias_V": -2.3185198573402452,
+      "bias_V": -2.449073333541344,
+      "direction": "down",
+      "grid_index": 15,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 125,
+      "target_ordinal": 62
+    },
+    {
+      "approach_bias_V": 4.20915395271469,
+      "bias_V": 4.078600476513591,
+      "direction": "down",
+      "grid_index": 65,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 126,
+      "target_ordinal": 63
+    },
+    {
+      "approach_bias_V": 3.948047000312492,
+      "bias_V": 4.078600476513591,
+      "direction": "up",
+      "grid_index": 65,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 127,
+      "target_ordinal": 63
+    },
+    {
+      "approach_bias_V": 4.861921333720183,
+      "bias_V": 4.992474809921282,
+      "direction": "up",
+      "grid_index": 72,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 128,
+      "target_ordinal": 64
+    },
+    {
+      "approach_bias_V": 5.123028286122381,
+      "bias_V": 4.992474809921282,
+      "direction": "down",
+      "grid_index": 72,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 129,
+      "target_ordinal": 64
+    },
+    {
+      "approach_bias_V": -3.232394190747936,
+      "bias_V": -3.362947666949035,
+      "direction": "down",
+      "grid_index": 8,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 130,
+      "target_ordinal": 65
+    },
+    {
+      "approach_bias_V": -3.4935011431501337,
+      "bias_V": -3.362947666949035,
+      "direction": "up",
+      "grid_index": 8,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 131,
+      "target_ordinal": 65
+    },
+    {
+      "approach_bias_V": -3.362947666949035,
+      "bias_V": -3.232394190747936,
+      "direction": "up",
+      "grid_index": 9,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 132,
+      "target_ordinal": 66
+    },
+    {
+      "approach_bias_V": -3.101840714546837,
+      "bias_V": -3.232394190747936,
+      "direction": "down",
+      "grid_index": 9,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 133,
+      "target_ordinal": 66
+    },
+    {
+      "approach_bias_V": 4.992474809921282,
+      "bias_V": 4.861921333720183,
+      "direction": "down",
+      "grid_index": 71,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 134,
+      "target_ordinal": 67
+    },
+    {
+      "approach_bias_V": 4.731367857519084,
+      "bias_V": 4.861921333720183,
+      "direction": "up",
+      "grid_index": 71,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 135,
+      "target_ordinal": 67
+    },
+    {
+      "approach_bias_V": 2.12029833349711,
+      "bias_V": 2.250851809698209,
+      "direction": "up",
+      "grid_index": 51,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 136,
+      "target_ordinal": 68
+    },
+    {
+      "approach_bias_V": 2.3814052858993078,
+      "bias_V": 2.250851809698209,
+      "direction": "down",
+      "grid_index": 51,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 137,
+      "target_ordinal": 68
+    },
+    {
+      "approach_bias_V": -0.49077119052486307,
+      "bias_V": -0.621324666725962,
+      "direction": "down",
+      "grid_index": 29,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 138,
+      "target_ordinal": 69
+    },
+    {
+      "approach_bias_V": -0.7518781429270609,
+      "bias_V": -0.621324666725962,
+      "direction": "up",
+      "grid_index": 29,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 139,
+      "target_ordinal": 69
+    },
+    {
+      "approach_bias_V": -4.0157150479545285,
+      "bias_V": -3.8851615717534296,
+      "direction": "up",
+      "grid_index": 4,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 140,
+      "target_ordinal": 70
+    },
+    {
+      "approach_bias_V": -3.7546080955523307,
+      "bias_V": -3.8851615717534296,
+      "direction": "down",
+      "grid_index": 4,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 141,
+      "target_ordinal": 70
+    },
+    {
+      "approach_bias_V": 5.6452421909267745,
+      "bias_V": 5.514688714725676,
+      "direction": "down",
+      "grid_index": 76,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 142,
+      "target_ordinal": 71
+    },
+    {
+      "approach_bias_V": 5.384135238524577,
+      "bias_V": 5.514688714725676,
+      "direction": "up",
+      "grid_index": 76,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 143,
+      "target_ordinal": 71
+    },
+    {
+      "approach_bias_V": 4.339707428915789,
+      "bias_V": 4.470260905116888,
+      "direction": "up",
+      "grid_index": 68,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 144,
+      "target_ordinal": 72
+    },
+    {
+      "approach_bias_V": 4.600814381317987,
+      "bias_V": 4.470260905116888,
+      "direction": "down",
+      "grid_index": 68,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 145,
+      "target_ordinal": 72
+    },
+    {
+      "approach_bias_V": -2.710180285943541,
+      "bias_V": -2.84073376214464,
+      "direction": "down",
+      "grid_index": 12,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 146,
+      "target_ordinal": 73
+    },
+    {
+      "approach_bias_V": -2.971287238345739,
+      "bias_V": -2.84073376214464,
+      "direction": "up",
+      "grid_index": 12,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 147,
+      "target_ordinal": 73
+    },
+    {
+      "approach_bias_V": -2.0574129049380483,
+      "bias_V": -1.9268594287369494,
+      "direction": "up",
+      "grid_index": 19,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 148,
+      "target_ordinal": 74
+    },
+    {
+      "approach_bias_V": -1.7963059525358505,
+      "bias_V": -1.9268594287369494,
+      "direction": "down",
+      "grid_index": 19,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 149,
+      "target_ordinal": 74
+    },
+    {
+      "approach_bias_V": 3.686940047910295,
+      "bias_V": 3.5563865717091963,
+      "direction": "down",
+      "grid_index": 61,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 150,
+      "target_ordinal": 75
+    },
+    {
+      "approach_bias_V": 3.4258330955080973,
+      "bias_V": 3.5563865717091963,
+      "direction": "up",
+      "grid_index": 61,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 151,
+      "target_ordinal": 75
+    },
+    {
+      "approach_bias_V": 2.3814052858993078,
+      "bias_V": 2.5119587621004067,
+      "direction": "up",
+      "grid_index": 53,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 152,
+      "target_ordinal": 76
+    },
+    {
+      "approach_bias_V": 2.6425122383015056,
+      "bias_V": 2.5119587621004067,
+      "direction": "down",
+      "grid_index": 53,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 153,
+      "target_ordinal": 76
+    },
+    {
+      "approach_bias_V": -0.7518781429270609,
+      "bias_V": -0.8824316191281598,
+      "direction": "down",
+      "grid_index": 27,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 154,
+      "target_ordinal": 77
+    },
+    {
+      "approach_bias_V": -1.0129850953292587,
+      "bias_V": -0.8824316191281598,
+      "direction": "up",
+      "grid_index": 27,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 155,
+      "target_ordinal": 77
+    },
+    {
+      "approach_bias_V": -1.5351990001336535,
+      "bias_V": -1.4046455239325546,
+      "direction": "up",
+      "grid_index": 23,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 156,
+      "target_ordinal": 78
+    },
+    {
+      "approach_bias_V": -1.2740920477314557,
+      "bias_V": -1.4046455239325546,
+      "direction": "down",
+      "grid_index": 23,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 157,
+      "target_ordinal": 78
+    },
+    {
+      "approach_bias_V": 3.1647261431059004,
+      "bias_V": 3.0341726669048015,
+      "direction": "down",
+      "grid_index": 57,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 158,
+      "target_ordinal": 79
+    },
+    {
+      "approach_bias_V": 2.9036191907037026,
+      "bias_V": 3.0341726669048015,
+      "direction": "up",
+      "grid_index": 57,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 159,
+      "target_ordinal": 79
+    },
+    {
+      "approach_bias_V": 0.6842100952850245,
+      "bias_V": 0.8147635714861234,
+      "direction": "up",
+      "grid_index": 40,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 160,
+      "target_ordinal": 80
+    },
+    {
+      "approach_bias_V": 0.9453170476872224,
+      "bias_V": 0.8147635714861234,
+      "direction": "down",
+      "grid_index": 40,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 161,
+      "target_ordinal": 80
+    }
+  ],
+  "schedule_sha256": "e74b8c7bff750ed0f9d6d6acaedb127b57e4c1e599855a8592c2f8d80f136ce6",
+  "segment_end": 54,
+  "segment_index": 0,
+  "segment_schedule": [
+    {
+      "approach_bias_V": -4.537928952758923,
+      "bias_V": -4.407375476557824,
+      "direction": "up",
+      "grid_index": 0,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 0,
+      "target_ordinal": 0
+    },
+    {
+      "approach_bias_V": -4.276822000356725,
+      "bias_V": -4.407375476557824,
+      "direction": "down",
+      "grid_index": 0,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 1,
+      "target_ordinal": 0
+    },
+    {
+      "approach_bias_V": 6.16745609573117,
+      "bias_V": 6.036902619530071,
+      "direction": "down",
+      "grid_index": 80,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 2,
+      "target_ordinal": 1
+    },
+    {
+      "approach_bias_V": 5.906349143328972,
+      "bias_V": 6.036902619530071,
+      "direction": "up",
+      "grid_index": 80,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 3,
+      "target_ordinal": 1
+    },
+    {
+      "approach_bias_V": -2.1879663811391468,
+      "bias_V": -2.057412904938048,
+      "direction": "up",
+      "grid_index": 18,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 4,
+      "target_ordinal": 2
+    },
+    {
+      "approach_bias_V": -1.926859428736949,
+      "bias_V": -2.057412904938048,
+      "direction": "down",
+      "grid_index": 18,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 5,
+      "target_ordinal": 2
+    },
+    {
+      "approach_bias_V": 3.817493524111393,
+      "bias_V": 3.6869400479102943,
+      "direction": "down",
+      "grid_index": 62,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 6,
+      "target_ordinal": 3
+    },
+    {
+      "approach_bias_V": 3.5563865717091954,
+      "bias_V": 3.6869400479102943,
+      "direction": "up",
+      "grid_index": 62,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 7,
+      "target_ordinal": 3
+    },
+    {
+      "approach_bias_V": 5.6452421909267745,
+      "bias_V": 5.775795667127873,
+      "direction": "up",
+      "grid_index": 78,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 8,
+      "target_ordinal": 4
+    },
+    {
+      "approach_bias_V": 5.906349143328972,
+      "bias_V": 5.775795667127873,
+      "direction": "down",
+      "grid_index": 78,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 9,
+      "target_ordinal": 4
+    },
+    {
+      "approach_bias_V": -4.015715047954528,
+      "bias_V": -4.1462685241556265,
+      "direction": "down",
+      "grid_index": 2,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 10,
+      "target_ordinal": 5
+    },
+    {
+      "approach_bias_V": -4.276822000356725,
+      "bias_V": -4.1462685241556265,
+      "direction": "up",
+      "grid_index": 2,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 11,
+      "target_ordinal": 5
+    },
+    {
+      "approach_bias_V": 0.29254966668172866,
+      "bias_V": 0.4231031428828276,
+      "direction": "up",
+      "grid_index": 37,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 12,
+      "target_ordinal": 6
+    },
+    {
+      "approach_bias_V": 0.5536566190839265,
+      "bias_V": 0.4231031428828276,
+      "direction": "down",
+      "grid_index": 37,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 13,
+      "target_ordinal": 6
+    },
+    {
+      "approach_bias_V": 1.3369774762905182,
+      "bias_V": 1.2064240000894193,
+      "direction": "down",
+      "grid_index": 43,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 14,
+      "target_ordinal": 7
+    },
+    {
+      "approach_bias_V": 1.0758705238883204,
+      "bias_V": 1.2064240000894193,
+      "direction": "up",
+      "grid_index": 43,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 15,
+      "target_ordinal": 7
+    },
+    {
+      "approach_bias_V": 1.728637904893814,
+      "bias_V": 1.859191381094913,
+      "direction": "up",
+      "grid_index": 48,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 16,
+      "target_ordinal": 8
+    },
+    {
+      "approach_bias_V": 1.989744857296012,
+      "bias_V": 1.859191381094913,
+      "direction": "down",
+      "grid_index": 48,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 17,
+      "target_ordinal": 8
+    },
+    {
+      "approach_bias_V": -0.0991107619215672,
+      "bias_V": -0.22966423812266612,
+      "direction": "down",
+      "grid_index": 32,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 18,
+      "target_ordinal": 9
+    },
+    {
+      "approach_bias_V": -0.36021771432376504,
+      "bias_V": -0.22966423812266612,
+      "direction": "up",
+      "grid_index": 32,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 19,
+      "target_ordinal": 9
+    },
+    {
+      "approach_bias_V": -3.101840714546838,
+      "bias_V": -2.971287238345739,
+      "direction": "up",
+      "grid_index": 11,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 20,
+      "target_ordinal": 10
+    },
+    {
+      "approach_bias_V": -2.84073376214464,
+      "bias_V": -2.971287238345739,
+      "direction": "down",
+      "grid_index": 11,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 21,
+      "target_ordinal": 10
+    },
+    {
+      "approach_bias_V": 4.731367857519084,
+      "bias_V": 4.600814381317985,
+      "direction": "down",
+      "grid_index": 69,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 22,
+      "target_ordinal": 11
+    },
+    {
+      "approach_bias_V": 4.470260905116886,
+      "bias_V": 4.600814381317985,
+      "direction": "up",
+      "grid_index": 69,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 23,
+      "target_ordinal": 11
+    },
+    {
+      "approach_bias_V": 2.7730657145026036,
+      "bias_V": 2.9036191907037026,
+      "direction": "up",
+      "grid_index": 56,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 24,
+      "target_ordinal": 12
+    },
+    {
+      "approach_bias_V": 3.0341726669048015,
+      "bias_V": 2.9036191907037026,
+      "direction": "down",
+      "grid_index": 56,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 25,
+      "target_ordinal": 12
+    },
+    {
+      "approach_bias_V": -1.1435385715303568,
+      "bias_V": -1.2740920477314557,
+      "direction": "down",
+      "grid_index": 24,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 26,
+      "target_ordinal": 13
+    },
+    {
+      "approach_bias_V": -1.4046455239325546,
+      "bias_V": -1.2740920477314557,
+      "direction": "up",
+      "grid_index": 24,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 27,
+      "target_ordinal": 13
+    },
+    {
+      "approach_bias_V": -1.2740920477314557,
+      "bias_V": -1.1435385715303568,
+      "direction": "up",
+      "grid_index": 25,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 28,
+      "target_ordinal": 14
+    },
+    {
+      "approach_bias_V": -1.0129850953292578,
+      "bias_V": -1.1435385715303568,
+      "direction": "down",
+      "grid_index": 25,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 29,
+      "target_ordinal": 14
+    },
+    {
+      "approach_bias_V": 2.9036191907037026,
+      "bias_V": 2.7730657145026036,
+      "direction": "down",
+      "grid_index": 55,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 30,
+      "target_ordinal": 15
+    },
+    {
+      "approach_bias_V": 2.6425122383015047,
+      "bias_V": 2.7730657145026036,
+      "direction": "up",
+      "grid_index": 55,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 31,
+      "target_ordinal": 15
+    },
+    {
+      "approach_bias_V": 3.817493524111393,
+      "bias_V": 3.948047000312492,
+      "direction": "up",
+      "grid_index": 64,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 32,
+      "target_ordinal": 16
+    },
+    {
+      "approach_bias_V": 4.078600476513591,
+      "bias_V": 3.948047000312492,
+      "direction": "down",
+      "grid_index": 64,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 33,
+      "target_ordinal": 16
+    },
+    {
+      "approach_bias_V": -2.1879663811391463,
+      "bias_V": -2.3185198573402452,
+      "direction": "down",
+      "grid_index": 16,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 34,
+      "target_ordinal": 17
+    },
+    {
+      "approach_bias_V": -2.449073333541344,
+      "bias_V": -2.3185198573402452,
+      "direction": "up",
+      "grid_index": 16,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 35,
+      "target_ordinal": 17
+    },
+    {
+      "approach_bias_V": 0.031442714279530826,
+      "bias_V": 0.16199619048062974,
+      "direction": "up",
+      "grid_index": 35,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 36,
+      "target_ordinal": 18
+    },
+    {
+      "approach_bias_V": 0.29254966668172866,
+      "bias_V": 0.16199619048062974,
+      "direction": "down",
+      "grid_index": 35,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 37,
+      "target_ordinal": 18
+    },
+    {
+      "approach_bias_V": 1.598084428692716,
+      "bias_V": 1.4675309524916171,
+      "direction": "down",
+      "grid_index": 45,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 38,
+      "target_ordinal": 19
+    },
+    {
+      "approach_bias_V": 1.3369774762905182,
+      "bias_V": 1.4675309524916171,
+      "direction": "up",
+      "grid_index": 45,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 39,
+      "target_ordinal": 19
+    },
+    {
+      "approach_bias_V": 3.0341726669048015,
+      "bias_V": 3.1647261431059004,
+      "direction": "up",
+      "grid_index": 58,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 40,
+      "target_ordinal": 20
+    },
+    {
+      "approach_bias_V": 3.2952796193069993,
+      "bias_V": 3.1647261431059004,
+      "direction": "down",
+      "grid_index": 58,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 41,
+      "target_ordinal": 20
+    },
+    {
+      "approach_bias_V": -1.4046455239325542,
+      "bias_V": -1.535199000133653,
+      "direction": "down",
+      "grid_index": 22,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 42,
+      "target_ordinal": 21
+    },
+    {
+      "approach_bias_V": -1.665752476334752,
+      "bias_V": -1.535199000133653,
+      "direction": "up",
+      "grid_index": 22,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 43,
+      "target_ordinal": 21
+    },
+    {
+      "approach_bias_V": 0.5536566190839256,
+      "bias_V": 0.6842100952850245,
+      "direction": "up",
+      "grid_index": 39,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 44,
+      "target_ordinal": 22
+    },
+    {
+      "approach_bias_V": 0.8147635714861234,
+      "bias_V": 0.6842100952850245,
+      "direction": "down",
+      "grid_index": 39,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 45,
+      "target_ordinal": 22
+    },
+    {
+      "approach_bias_V": 1.0758705238883213,
+      "bias_V": 0.9453170476872224,
+      "direction": "down",
+      "grid_index": 41,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 46,
+      "target_ordinal": 23
+    },
+    {
+      "approach_bias_V": 0.8147635714861234,
+      "bias_V": 0.9453170476872224,
+      "direction": "up",
+      "grid_index": 41,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 47,
+      "target_ordinal": 23
+    },
+    {
+      "approach_bias_V": 5.775795667127873,
+      "bias_V": 5.906349143328972,
+      "direction": "up",
+      "grid_index": 79,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 48,
+      "target_ordinal": 24
+    },
+    {
+      "approach_bias_V": 6.036902619530071,
+      "bias_V": 5.906349143328972,
+      "direction": "down",
+      "grid_index": 79,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 49,
+      "target_ordinal": 24
+    },
+    {
+      "approach_bias_V": -4.1462685241556265,
+      "bias_V": -4.276822000356725,
+      "direction": "down",
+      "grid_index": 1,
+      "pair_position": 0,
+      "role": "formal",
+      "sequence_index": 50,
+      "target_ordinal": 25
+    },
+    {
+      "approach_bias_V": -4.407375476557824,
+      "bias_V": -4.276822000356725,
+      "direction": "up",
+      "grid_index": 1,
+      "pair_position": 1,
+      "role": "formal",
+      "sequence_index": 51,
+      "target_ordinal": 25
+    },
+    {
+      "approach_bias_V": -1.9268594287369494,
+      "bias_V": -1.7963059525358505,
+      "direction": "up",
+      "grid_index": 20,
+      "pair_position": 0,
+      "role": "sentinel",
+      "sequence_index": 52,
+      "target_ordinal": 26
+    },
+    {
+      "approach_bias_V": -1.6657524763347515,
+      "bias_V": -1.7963059525358505,
+      "direction": "down",
+      "grid_index": 20,
+      "pair_position": 1,
+      "role": "sentinel",
+      "sequence_index": 53,
+      "target_ordinal": 26
+    }
+  ],
+  "segment_start": 0,
+  "segmented": true,
+  "simulated": false,
+  "source_sha256": {
+    "analyze_mzm_interleaved_v13_segments.py": "9207860d9357e94f2cc9208b8256deb186a2c4a854c87b72e9949238c9b5092d",
+    "diagnose_mzm_interleaved_v13.py": "311a600898ac9e20d13ac4406ce590ad4cf413aba478f937c57fcca1b6ee75bc",
+    "exp_common.py": "ad4cf884f9a75247296771c7a238faf6282ad26e46d351264d3cf3fb55e7ad2b",
+    "measure_bench.py": "5c5c32bdd42f0fbdb55e1c0f9c23338f0417ac59e85c88b1900779fb42debd15",
+    "mzm_interleaved_truth.py": "6d45d27fdf88960bd15883529725aa8e6ce324761e14568b05338c630494bf24",
+    "mzm_interleaved_v13_contract.py": "5e6136b3689890003a688fe49441bf622d2cb124f52f3957e330373135b7abe7",
+    "mzm_interleaved_v13_truth.py": "6bf764c222a4119b5d54c99e47d5624dd7c693988f5fc77f355540b7f6608210",
+    "mzm_time_truth.py": "00c01a4d752944885e44214795cf0c3dd02c703ab926e6fabe4cbefceaf651fb",
+    "protocol.md": "d6f54cd9496249260687f1cb817313cf11f71ac50630510df2f92c2df915bc8c",
+    "validate_mzm_interleaved_v13_bundle.py": "4ba6aeac3d164abcd457597340717724d4264c01f515955a6fbe1c160345fe43",
+    "validate_mzm_interleaved_v13_segment.py": "0b3b7013eb35ab3719796cb9cfd1fffab71f57335f8c74e11328be98263fa8bb"
+  },
+  "stage": "donor",
+  "v1_4_authorization_ready": false
+}

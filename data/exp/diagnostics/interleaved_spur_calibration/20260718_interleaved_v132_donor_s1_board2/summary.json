@@ -1,0 +1,73 @@
+{
+  "acquired_discards": 54,
+  "acquired_dmm_reads": 864,
+  "acquired_observations": 54,
+  "acquired_windows": 864,
+  "analysis": {
+    "conditioning_rows": 791,
+    "discards": 54,
+    "dmm_read_statistics": {
+      "accepted": true,
+      "adjacent_abs_diff_median_V": 0.012735671554999991,
+      "adjacent_abs_diff_p95_V": 0.037537243992500004,
+      "reason": null,
+      "side_range_median_V": 0.038877859900000006,
+      "side_range_p95_V": 0.06388034474999993,
+      "side_std_median_V": 0.013249014660852656,
+      "side_std_p95_V": 0.02016037567268423
+    },
+    "dmm_reads": 864,
+    "formal_max_abs_raw_V": 0.3712896823883057,
+    "headline_promotion": false,
+    "independent_optical_truth": false,
+    "observations": 54,
+    "protocol_version": "mzm-interleaved-spur-calibration-v1.3.2",
+    "quality_gate": {
+      "accepted": true,
+      "conditioning_contract_pass": true,
+      "discard_capture_pass": true,
+      "discard_contract_pass": true,
+      "dmm_read_contract_pass": true,
+      "formal_headroom_pass": true,
+      "formal_raw_pass": true,
+      "formal_window_contract_pass": true,
+      "pilot_configuration_pass": true,
+      "read_failure_contract_pass": true,
+      "required_pass_fields": [
+        "schedule_contract_pass",
+        "conditioning_contract_pass",
+        "pilot_configuration_pass",
+        "discard_contract_pass",
+        "discard_capture_pass",
+        "formal_window_contract_pass",
+        "formal_raw_pass",
+        "formal_headroom_pass",
+        "dmm_read_contract_pass",
+        "read_failure_contract_pass",
+        "timing_contract_pass"
+      ],
+      "schedule_contract_pass": true,
+      "timing_contract_pass": true
+    },
+    "read_failure_statistics": {
+      "accepted": true,
+      "discard_retries": 0,
+      "failures": 0,
+      "formal_retries": 0,
+      "reason": null
+    },
+    "segment_index": 1,
+    "stage": "donor",
+    "v1_4_authorization_ready": false,
+    "windows": 864
+  },
+  "complete": true,
+  "conditioning_rows": 791,
+  "expected_conditioning_rows": 791,
+  "expected_discards": 54,
+  "expected_dmm_reads": 864,
+  "expected_observations": 54,
+  "expected_windows": 864,
+  "segment_index": 1,
+  "stage": "donor"
+}

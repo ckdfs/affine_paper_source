@@ -1,0 +1,245 @@
+{
+  "accepted": true,
+  "bias_preposition_contract_pass": true,
+  "candidates": {
+    "0.06": {
+      "accepted": true,
+      "conditioning_exact_capture_pass": true,
+      "conditioning_headroom_pass": true,
+      "conditioning_max_abs_raw_V": null,
+      "conditioning_raw_gate": null,
+      "ellipse": {
+        "A_hat": [
+          [
+            0.0033840264858325136,
+            -0.00018002167235207662
+          ],
+          [
+            -0.04346950590615903,
+            -0.42126507355880327
+          ]
+        ],
+        "c0": [
+          -2.3382389063796385e-05,
+          0.009888141902393066
+        ],
+        "components": [
+          "Q",
+          "Q"
+        ],
+        "h1_magnitude_max": 0.4978212774098753,
+        "h1_magnitude_min": 0.010347538499565972,
+        "h2_magnitude_max": 0.006092152739385315,
+        "h2_magnitude_min": 0.00046839299738574234,
+        "kappa": 125.12500788806616,
+        "static_coordinate_concurrence_mrad": {
+          "median": 214.99128634753095,
+          "p95": 873.7794415979696,
+          "rms": 422.0849717929035
+        }
+      },
+      "ellipse_finite_pass": true,
+      "finite_pass": true,
+      "formal_points": 81,
+      "headroom_pass": true,
+      "max_abs_raw_V": 0.5174527645111083,
+      "max_abs_raw_code": 3617257,
+      "raw_exact_capture_pass": true,
+      "raw_gate": {
+        "accepted": true,
+        "acquisition_complete_pass": true,
+        "ch0_max_code": 3617257,
+        "ch0_min_code": -3588040,
+        "contract_pass": true,
+        "count_values_nonnegative_pass": true,
+        "crc_checked_all": false,
+        "extrema_guard_pass": true,
+        "failed_point_indices": [],
+        "no_near_rail_pass": true,
+        "points": 81,
+        "total_guard_hi": 0,
+        "total_guard_lo": 0,
+        "total_rail_hi": 0,
+        "total_rail_lo": 0
+      },
+      "schedule_pass": true
+    },
+    "0.08": {
+      "accepted": true,
+      "conditioning_exact_capture_pass": true,
+      "conditioning_headroom_pass": true,
+      "conditioning_max_abs_raw_V": null,
+      "conditioning_raw_gate": null,
+      "ellipse": {
+        "A_hat": [
+          [
+            0.005982975398591532,
+            -0.0003895694446219715
+          ],
+          [
+            -0.05788827001035164,
+            -0.5614020337138633
+          ]
+        ],
+        "c0": [
+          -5.382746421492003e-05,
+          0.013202465802341301
+        ],
+        "components": [
+          "Q",
+          "Q"
+        ],
+        "h1_magnitude_max": 0.6590326088821402,
+        "h1_magnitude_min": 0.012972522383869683,
+        "h2_magnitude_max": 0.008714495108725462,
+        "h2_magnitude_min": 0.0007341559779774322,
+        "kappa": 94.19849050597877,
+        "static_coordinate_concurrence_mrad": {
+          "median": 132.49019773971017,
+          "p95": 546.1811359387636,
+          "rms": 282.18927105627563
+        }
+      },
+      "ellipse_finite_pass": true,
+      "finite_pass": true,
+      "formal_points": 81,
+      "headroom_pass": true,
+      "max_abs_raw_V": 0.6847075939178466,
+      "max_abs_raw_code": 4786453,
+      "raw_exact_capture_pass": true,
+      "raw_gate": {
+        "accepted": true,
+        "acquisition_complete_pass": true,
+        "ch0_max_code": 4786453,
+        "ch0_min_code": -4738774,
+        "contract_pass": true,
+        "count_values_nonnegative_pass": true,
+        "crc_checked_all": false,
+        "extrema_guard_pass": true,
+        "failed_point_indices": [],
+        "no_near_rail_pass": true,
+        "points": 81,
+        "total_guard_hi": 0,
+        "total_guard_lo": 0,
+        "total_rail_hi": 0,
+        "total_rail_lo": 0
+      },
+      "schedule_pass": true
+    },
+    "0.10": {
+      "accepted": true,
+      "conditioning_exact_capture_pass": true,
+      "conditioning_headroom_pass": true,
+      "conditioning_max_abs_raw_V": 0.8521925926208496,
+      "conditioning_raw_gate": {
+        "accepted": true,
+        "acquisition_complete_pass": true,
+        "ch0_max_code": 5957258,
+        "ch0_min_code": -5899839,
+        "contract_pass": true,
+        "count_values_nonnegative_pass": true,
+        "crc_checked_all": false,
+        "extrema_guard_pass": true,
+        "failed_point_indices": [],
+        "no_near_rail_pass": true,
+        "points": 34,
+        "total_guard_hi": 0,
+        "total_guard_lo": 0,
+        "total_rail_hi": 0,
+        "total_rail_lo": 0
+      },
+      "ellipse": {
+        "A_hat": [
+          [
+            0.009401562588191097,
+            -0.0006635006013803909
+          ],
+          [
+            -0.0722597797451693,
+            -0.701296884424581
+          ]
+        ],
+        "c0": [
+          -9.391898039270356e-05,
+          0.016398459509318952
+        ],
+        "components": [
+          "Q",
+          "Q"
+        ],
+        "h1_magnitude_max": 0.822317780341031,
+        "h1_magnitude_min": 0.015414788645972413,
+        "h2_magnitude_max": 0.011283440299837634,
+        "h2_magnitude_min": 0.0011488307098959359,
+        "kappa": 74.84137972653144,
+        "static_coordinate_concurrence_mrad": {
+          "median": 71.40321839810682,
+          "p95": 281.07416520405957,
+          "rms": 131.829716516611
+        }
+      },
+      "ellipse_finite_pass": true,
+      "finite_pass": true,
+      "formal_points": 81,
+      "headroom_pass": true,
+      "max_abs_raw_V": 0.8513444423675537,
+      "max_abs_raw_code": 5951329,
+      "raw_exact_capture_pass": true,
+      "raw_gate": {
+        "accepted": true,
+        "acquisition_complete_pass": true,
+        "ch0_max_code": 5951329,
+        "ch0_min_code": -5941336,
+        "contract_pass": true,
+        "count_values_nonnegative_pass": true,
+        "crc_checked_all": false,
+        "extrema_guard_pass": true,
+        "failed_point_indices": [],
+        "no_near_rail_pass": true,
+        "points": 81,
+        "total_guard_hi": 0,
+        "total_guard_lo": 0,
+        "total_rail_hi": 0,
+        "total_rail_lo": 0
+      },
+      "schedule_pass": true
+    }
+  },
+  "headline_promotion": false,
+  "headroom_limit_V": 0.95,
+  "headroom_limit_code": 6640981,
+  "pilot_only_aba_ready": false,
+  "protocol_version": "mzm-ch0-dynamic-range-v1.3",
+  "schedule_contract_pass": true,
+  "selected_pilot_V": 0.1,
+  "single_pilot_configuration_verified": true,
+  "startup_discard_capture_pass": true,
+  "startup_discard_contract_pass": true,
+  "startup_discard_expected": 115,
+  "startup_discard_file_sha256": {
+    "startup_discard.csv": "87fd9d003b05d7a0e4af28e724556449095ba27e3d07283c51376ba06757d243",
+    "startup_discard.npz": "1e4bac61e5f8bd743c566336347fcaf4d28d589e209b48ec2358cb8b09458379"
+  },
+  "startup_discard_hash_contract_pass": true,
+  "startup_discard_raw_gate": {
+    "accepted": false,
+    "acquisition_complete_pass": true,
+    "ch0_max_code": 8388607,
+    "ch0_min_code": -5893149,
+    "contract_pass": true,
+    "count_values_nonnegative_pass": true,
+    "crc_checked_all": false,
+    "extrema_guard_pass": false,
+    "failed_point_indices": [
+      9
+    ],
+    "no_near_rail_pass": false,
+    "points": 115,
+    "total_guard_hi": 261,
+    "total_guard_lo": 0,
+    "total_rail_hi": 260,
+    "total_rail_lo": 0
+  },
+  "startup_discard_records": 115,
+  "v1_4_authorization_ready": false
+}

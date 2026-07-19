@@ -1,0 +1,57 @@
+{
+  "protocol_version": "v1.2",
+  "run_id": "20260715_accept_v12_s1_board2",
+  "simulated": false,
+  "repeats": 3,
+  "n_grid": 16,
+  "iters": 60,
+  "calibration_points": 181,
+  "n_blocks": 16,
+  "cal_n_avg": 4,
+  "lock_n_avg": 1,
+  "gain": 0.1,
+  "eval_repeats": 5,
+  "pilot_v": 0.15,
+  "master_seed": 20260710,
+  "session_seed": 2520241070,
+  "calibration_method": "ellipse",
+  "controllers": [
+    "full_affine",
+    "calibrated_h1h2",
+    "h1_match"
+  ],
+  "start_offsets_rad": [
+    -1.0,
+    1.0
+  ],
+  "randomization": "target order; balanced controller and start-side order",
+  "primary_comparison": "paired RMS error; repetition-cluster bootstrap",
+  "primary_truth": "bidirectional shared-branch DC bias-to-phase map",
+  "truth_limitation": "not an independent optical validation channel",
+  "branch_success_definition": "absolute phase error < pi/2",
+  "headline_promotion": false,
+  "repo_commit": "19f33fe3542a42123f54de8cf6228583817e8e9d",
+  "metadata": {
+    "device_id": "MZM-ANON-01",
+    "firmware_rev": "8b1b1c2",
+    "ambient_c": 28.0,
+    "operator": "ckdfs",
+    "session_id": "20260715_accept_v12_s1_board2",
+    "instrument_ids": "STLINK-066FFF505754675087091823,DM858E-DM8E275002095,DFB-ANON-01,PD-TIA-ANON-01",
+    "validation_channel_id": null,
+    "notes": "Acceptance protocol v1.2 session 1; frozen gain loaded from preflight; approximate ambient 28 C; scope intentionally off."
+  },
+  "preflight_reference": {
+    "run_id": "20260715_gain_v12_board2",
+    "root": "data/exp/preflight/20260715_gain_v12_board2",
+    "summary_sha256": "a5fefdf3145343ba0bb31b5929ae4ffc6cb807a70ecff856c8a9710034eccae0",
+    "controller_source_sha256": {
+      "measure_bench.py": "d978e93dd9e4d31cc0a839afee20a818e089fdf07ce980be4fdae8159b4f22fb",
+      "exp_common.py": "4b1c20ad8d185c1a83becf0ff5890571dc0d3bfeecc480ebcb049aaac5282dd7"
+    }
+  },
+  "controller_source_sha256": {
+    "measure_bench.py": "d978e93dd9e4d31cc0a839afee20a818e089fdf07ce980be4fdae8159b4f22fb",
+    "exp_common.py": "4b1c20ad8d185c1a83becf0ff5890571dc0d3bfeecc480ebcb049aaac5282dd7"
+  }
+}

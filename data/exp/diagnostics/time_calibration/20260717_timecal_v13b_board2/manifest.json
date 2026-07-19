@@ -1,0 +1,18 @@
+{
+  "acquired_schedule_rows": 243,
+  "board_final_status": {
+    "Bias": "0.000 V",
+    "Cal": "INVALID",
+    "Lock": "NO",
+    "State": "IDLE",
+    "_raw": "State: IDLE\r\nBias:  0.000 V\r\nLock:  NO\r\nCal:   INVALID\r\n"
+  },
+  "conditioning_rows": 34,
+  "ended_unix": 1784225683.3211782,
+  "expected_schedule_rows": 243,
+  "failure": null,
+  "quality_gate_accepted": false,
+  "run_id": "20260717_timecal_v13b_board2",
+  "started_unix": 1784223841.633746,
+  "status": "complete"
+}

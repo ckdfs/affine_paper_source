@@ -1,0 +1,239 @@
+{
+  "acquired_rows": 277,
+  "analysis": {
+    "accepted": false,
+    "bias_preposition_contract_pass": true,
+    "candidates": {
+      "0.06": {
+        "accepted": false,
+        "conditioning_headroom_pass": true,
+        "conditioning_max_abs_raw_V": null,
+        "conditioning_raw_gate": null,
+        "ellipse": {
+          "A_hat": [
+            [
+              0.002968654937952873,
+              -0.0015669054502726828
+            ],
+            [
+              -0.16612978434942016,
+              -0.3970643843554986
+            ]
+          ],
+          "c0": [
+            0.00017374882639447958,
+            0.010050286612970138
+          ],
+          "components": [
+            "Q",
+            "Q"
+          ],
+          "h1_magnitude_max": 0.5015862610957361,
+          "h1_magnitude_min": 0.015188074565263367,
+          "h2_magnitude_max": 0.010654629885641266,
+          "h2_magnitude_min": 0.0006427021082896804,
+          "kappa": 128.7366274262627,
+          "static_coordinate_concurrence_mrad": {
+            "median": 242.52627763017466,
+            "p95": 1000.3790250055466,
+            "rms": 483.2859493510115
+          }
+        },
+        "ellipse_finite_pass": true,
+        "finite_pass": true,
+        "formal_points": 81,
+        "headroom_pass": false,
+        "max_abs_raw_V": 1.2,
+        "max_abs_raw_code": 8388608,
+        "raw_gate": {
+          "accepted": false,
+          "acquisition_complete_pass": true,
+          "ch0_max_code": 8388607,
+          "ch0_min_code": -8388608,
+          "contract_pass": true,
+          "count_values_nonnegative_pass": true,
+          "crc_checked_all": false,
+          "extrema_guard_pass": false,
+          "failed_point_indices": [
+            6,
+            12,
+            18,
+            60
+          ],
+          "no_near_rail_pass": false,
+          "points": 81,
+          "total_guard_hi": 230,
+          "total_guard_lo": 561,
+          "total_rail_hi": 229,
+          "total_rail_lo": 558
+        },
+        "schedule_pass": true
+      },
+      "0.08": {
+        "accepted": false,
+        "conditioning_headroom_pass": true,
+        "conditioning_max_abs_raw_V": null,
+        "conditioning_raw_gate": null,
+        "ellipse": {
+          "A_hat": [
+            [
+              0.005062774915196375,
+              -0.0032948762699380255
+            ],
+            [
+              -0.2207103631183566,
+              -0.5281539769500169
+            ]
+          ],
+          "c0": [
+            0.00021777499895304139,
+            0.013483118973847463
+          ],
+          "components": [
+            "Q",
+            "Q"
+          ],
+          "h1_magnitude_max": 0.6638798059121847,
+          "h1_magnitude_min": 0.021341300920984175,
+          "h2_magnitude_max": 0.012996177322582205,
+          "h2_magnitude_min": 0.0005771672201364176,
+          "kappa": 96.33859826650986,
+          "static_coordinate_concurrence_mrad": {
+            "median": 185.37854730612048,
+            "p95": 756.2446910645688,
+            "rms": 333.6987120032172
+          }
+        },
+        "ellipse_finite_pass": true,
+        "finite_pass": true,
+        "formal_points": 81,
+        "headroom_pass": false,
+        "max_abs_raw_V": 1.2,
+        "max_abs_raw_code": 8388608,
+        "raw_gate": {
+          "accepted": false,
+          "acquisition_complete_pass": true,
+          "ch0_max_code": 8388607,
+          "ch0_min_code": -8388608,
+          "contract_pass": true,
+          "count_values_nonnegative_pass": true,
+          "crc_checked_all": false,
+          "extrema_guard_pass": false,
+          "failed_point_indices": [
+            10,
+            16,
+            22,
+            52,
+            58
+          ],
+          "no_near_rail_pass": false,
+          "points": 81,
+          "total_guard_hi": 766,
+          "total_guard_lo": 1052,
+          "total_rail_hi": 763,
+          "total_rail_lo": 1049
+        },
+        "schedule_pass": true
+      },
+      "0.10": {
+        "accepted": false,
+        "conditioning_headroom_pass": false,
+        "conditioning_max_abs_raw_V": 1.1999998569488526,
+        "conditioning_raw_gate": {
+          "accepted": false,
+          "acquisition_complete_pass": true,
+          "ch0_max_code": 8388607,
+          "ch0_min_code": -5889931,
+          "contract_pass": true,
+          "count_values_nonnegative_pass": true,
+          "crc_checked_all": false,
+          "extrema_guard_pass": false,
+          "failed_point_indices": [
+            11,
+            14,
+            24,
+            25,
+            28,
+            29,
+            30,
+            31
+          ],
+          "no_near_rail_pass": false,
+          "points": 34,
+          "total_guard_hi": 2321,
+          "total_guard_lo": 0,
+          "total_rail_hi": 2309,
+          "total_rail_lo": 0
+        },
+        "ellipse": {
+          "A_hat": [
+            [
+              0.008252091789403712,
+              -0.004684835759845253
+            ],
+            [
+              -0.27594751188133393,
+              -0.6597715819057279
+            ]
+          ],
+          "c0": [
+            0.00035237150357288454,
+            0.016605067754551506
+          ],
+          "components": [
+            "Q",
+            "Q"
+          ],
+          "h1_magnitude_max": 0.8256202811002162,
+          "h1_magnitude_min": 0.02793689735815343,
+          "h2_magnitude_max": 0.024966248917288315,
+          "h2_magnitude_min": 0.0011391158852373186,
+          "kappa": 75.91313511834502,
+          "static_coordinate_concurrence_mrad": {
+            "median": 71.44732905618679,
+            "p95": 467.21829180977534,
+            "rms": 254.97827569120207
+          }
+        },
+        "ellipse_finite_pass": true,
+        "finite_pass": true,
+        "formal_points": 81,
+        "headroom_pass": false,
+        "max_abs_raw_V": 1.2,
+        "max_abs_raw_code": 8388608,
+        "raw_gate": {
+          "accepted": false,
+          "acquisition_complete_pass": true,
+          "ch0_max_code": 8388607,
+          "ch0_min_code": -8388608,
+          "contract_pass": true,
+          "count_values_nonnegative_pass": true,
+          "crc_checked_all": false,
+          "extrema_guard_pass": false,
+          "failed_point_indices": [
+            11,
+            20,
+            59
+          ],
+          "no_near_rail_pass": false,
+          "points": 81,
+          "total_guard_hi": 634,
+          "total_guard_lo": 1100,
+          "total_rail_hi": 632,
+          "total_rail_lo": 1098
+        },
+        "schedule_pass": true
+      }
+    },
+    "headline_promotion": false,
+    "headroom_limit_V": 0.95,
+    "headroom_limit_code": 6640981,
+    "pilot_only_aba_ready": false,
+    "protocol_version": "mzm-ch0-dynamic-range-v1.2",
+    "selected_pilot_V": null,
+    "single_pilot_configuration_verified": true,
+    "v1_4_authorization_ready": false
+  },
+  "complete": true,
+  "expected_rows": 277
+}

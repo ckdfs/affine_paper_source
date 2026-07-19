@@ -1,0 +1,78 @@
+{
+  "complete": true,
+  "epoch_metrics": [
+    {
+      "direction_split_phase_rad": 0.11177014479119889,
+      "directions": [
+        {
+          "amplitude_V": 0.7408836531075341,
+          "direction": "up",
+          "rmse_over_amplitude": 0.027171274598193434,
+          "v0_V": 1.5408785728291818
+        },
+        {
+          "amplitude_V": 0.7310991225764994,
+          "direction": "down",
+          "rmse_over_amplitude": 0.03130941537542762,
+          "v0_V": 1.3550877011664617
+        }
+      ],
+      "epoch": 0,
+      "midpoint_unix": 1784191482.3847837,
+      "v0_V": 1.4479831369978218
+    },
+    {
+      "direction_split_phase_rad": 0.10537313374449374,
+      "directions": [
+        {
+          "amplitude_V": 0.7398640886991924,
+          "direction": "up",
+          "rmse_over_amplitude": 0.032771195729140064,
+          "v0_V": 1.5013245530623833
+        },
+        {
+          "amplitude_V": 0.7289377491321297,
+          "direction": "down",
+          "rmse_over_amplitude": 0.029949908486915717,
+          "v0_V": 1.3261671672972049
+        }
+      ],
+      "epoch": 1,
+      "midpoint_unix": 1784191776.2156053,
+      "v0_V": 1.413745860179794
+    },
+    {
+      "direction_split_phase_rad": 0.09434939042382379,
+      "directions": [
+        {
+          "amplitude_V": 0.738017744677613,
+          "direction": "up",
+          "rmse_over_amplitude": 0.0290890610730183,
+          "v0_V": 1.4860771426185937
+        },
+        {
+          "amplitude_V": 0.732922411603248,
+          "direction": "down",
+          "rmse_over_amplitude": 0.0314113698230652,
+          "v0_V": 1.3292440677358919
+        }
+      ],
+      "epoch": 2,
+      "midpoint_unix": 1784192066.3482447,
+      "v0_V": 1.407660605177243
+    }
+  ],
+  "quality_gate": {
+    "accepted": false,
+    "all_direction_fits_pass": true,
+    "all_direction_splits_pass": false,
+    "epoch_v0_ptp_limit_rad": 0.05,
+    "epoch_v0_ptp_pass": true,
+    "epoch_v0_ptp_phase_rad": 0.02425767842951646,
+    "extrapolated_30min_limit_rad": 0.05,
+    "extrapolated_30min_pass": false,
+    "extrapolated_30min_phase_rad": 0.07477149529899056,
+    "theil_sen_slope_V_per_s": -6.904975142947874e-05
+  },
+  "row_count": 520
+}

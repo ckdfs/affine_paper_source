@@ -1,0 +1,24 @@
+{
+  "bias_V": 0.0,
+  "expected_samples": 2560,
+  "firmware_base_commit": "8b1b1c292dd1e06257a93a4a07f3088e96b1d2cf",
+  "firmware_elf": "/Users/ckdfs/code/biascontrol_h523/build-codex-rawadc/biascontrol.elf",
+  "firmware_elf_sha256": "a3785e95a056ea2dab278985feb34b1dbc4d8f9fe886d0be2b278e3927534db1",
+  "headline_promotion": false,
+  "n_blocks": 2,
+  "notes": "Authorized flash and preregistered 0 V, 0.15 V pilot, 2-block CH0 RAWADC smoke; no ABA.",
+  "operator": "ckdfs",
+  "pilot_Hz": 1000.0,
+  "pilot_V": 0.15,
+  "probe_uid": "066FFF505754675087091823",
+  "protocol_version": "mzm-rawadc-smoke-v1.0",
+  "purpose": "diagnostic_only",
+  "simulated": false,
+  "source_sha256": {
+    "firmware_app_main_c": "f9cf5e9304b24319d2080eda8ec3366c3b7bb95083b994e144bb1be57b7652e2",
+    "measure_bench_py": "5c5c32bdd42f0fbdb55e1c0f9c23338f0417ac59e85c88b1900779fb42debd15",
+    "mzm_time_truth_py": "00c01a4d752944885e44214795cf0c3dd02c703ab926e6fabe4cbefceaf651fb",
+    "smoke_mzm_rawadc_py": "67392a88420579659cdccea86e2960e814b056528b429e7c38d1af37fcab0822"
+  },
+  "target": "stm32h523cetx"
+}
