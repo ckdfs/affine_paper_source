@@ -247,21 +247,21 @@ def check_experiment_results(tex: str, tex_name: str, paper_key: str | None) -> 
     # -- the DPMZM tab:exp rows may legitimately still read "计划"/"待测".
     # Row keywords below must match a UNIQUE tab:exp row header in the assigned
     # manuscript; the metric's numeric value must live in that row's LAST column
-    # (_exp_cell takes parts[-1]). tab:exp is 4-col now (指标 | 条件 | 仿真值 |
-    # 实验值) and composite cells were split into one row per number, so each
-    # keyword resolves to exactly one experiment-value cell.
+    # (_exp_cell takes parts[-1]). The MZM table uses three columns
+    # (验证任务 | 协议 | 实验结果), with one row per headline number, so each
+    # keyword resolves to exactly one experiment-result cell.
     specs = [
-        ("selfcheck_median_mrad", "监督回归拟合内误差", 0.05, "mrad", "mzm"),
-        ("lock_affine_rms_mrad", "平均命令静态评价：监督式仿射", 0.1, "mrad", "mzm"),
+        ("selfcheck_median_mrad", "相位标签回归误差", 0.05, "mrad", "mzm"),
+        ("lock_affine_rms_mrad", "16 点跨目标~RMS：仿射", 0.1, "mrad", "mzm"),
         ("kappa_A", "观测各向异性", 0.01, "", "mzm"),
         ("settle_cycles", "捕获整定时间", 0.5, "cycles", "mzm"),
         ("recal_latency_cyc", "漂移检测延迟", 0.5, "cycles", "mzm"),
-        ("recal_post_rms_mrad", "重定标后尾段", 0.1, "mrad", "mzm"),
-        ("stability_recal_events_3h", "长运行诊断：重定标事件", 0.5, "events", "mzm"),
-        ("rf_lock_rms_on_mrad", "逐 RF 状态重标定后", 0.1, "mrad", "mzm"),
-        ("lock_h1match_rms_mrad", "平均命令静态评价：H1", 1.0, "mrad", "mzm"),
-        ("rf_lock_rms_off_mrad", "RF 加载：关", 0.1, "mrad", "mzm"),
-        ("stability_dmm_rms_mrad", "长运行诊断：DMM rms", 1.0, "mrad", "mzm"),
+        ("recal_post_rms_mrad", "重定标后时间~RMS", 0.1, "mrad", "mzm"),
+        ("stability_recal_events_3h", "3~h 重定标事件", 0.5, "events", "mzm"),
+        ("rf_lock_rms_on_mrad", "RF 开启跨目标~RMS：最大", 0.1, "mrad", "mzm"),
+        ("lock_h1match_rms_mrad", "16 点跨目标~RMS：H1", 1.0, "mrad", "mzm"),
+        ("rf_lock_rms_off_mrad", "RF 关闭跨目标~RMS", 0.1, "mrad", "mzm"),
+        ("stability_dmm_rms_mrad", "3~h 稀疏相位评价~RMS", 1.0, "mrad", "mzm"),
         ("cv_full_rms_mrad", None, 0.05, "mrad", "mzm"),
         ("cv_diag2d_rms_mrad", None, 0.05, "mrad", "mzm"),
         ("offdiag_frobenius_fraction_pct", None, 0.01, "%", "mzm"),

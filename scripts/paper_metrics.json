@@ -4,7 +4,7 @@
   "metrics": [
     {"name": "MZM closed-loop affine rms @phi*=1.9", "paper": "mzm", "tex": "仿射~$12.7$",
      "sim": "\\[Fig4\\][^\\n]*affine RMS=([0-9.]+)", "expect": 12.7, "tol": 0.5},
-    {"name": "MZM closed-loop H1 amplitude-match rms", "paper": "mzm", "tex": "H1 匹配~$1315$",
+    {"name": "MZM closed-loop H1 amplitude-match rms", "paper": "mzm", "tex": "H1 幅值匹配~$1315$",
      "sim": "\\[Fig4\\][^\\n]*H1 RMS=([0-9.]+)", "expect": 1315, "tol": 5},
     {"name": "MZM noisy-cal demod bias median", "paper": "mzm", "tex": "中位~$2.35$",
      "sim": "\\[MC\\][^\\n]*median=([0-9.]+)", "expect": 2.35, "tol": 0.3},
