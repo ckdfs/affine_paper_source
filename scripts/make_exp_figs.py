@@ -205,11 +205,14 @@ def _ic_dac(ax, cx, cy, s=0.30, color=CTRL):
 
 
 def _ic_coupler(ax, cx, cy, s=0.30, color=OPT):
-    """Fibre tap/coupler: small ellipse with a branch-off stub."""
-    ax.add_patch(Ellipse((cx, cy), 1.7 * s, 1.1 * s, fc="none", ec=color,
-                         lw=0.9, zorder=4))
-    ax.plot([cx + s * 0.55, cx + s * 1.05], [cy + s * 0.25, cy + s * 0.8],
-            color=color, lw=0.8, zorder=4)
+    """One-input/two-output optical splitter: lead, ring, and fork."""
+    r = 0.34 * s
+    ax.plot([cx - 1.10*s, cx - r], [cy, cy], color=color, lw=0.9, zorder=4)
+    ax.add_patch(Circle((cx, cy), r, fill=False, ec=color, lw=0.9, zorder=4))
+    ax.plot([cx + r, cx + 1.08*s], [cy + 0.10*s, cy + 0.62*s],
+            color=color, lw=0.9, zorder=4)
+    ax.plot([cx + r, cx + 1.08*s], [cy - 0.10*s, cy - 0.62*s],
+            color=color, lw=0.9, zorder=4)
 
 
 def _ic_mzm(ax, cx, cy, s=0.34, color=OPT):
@@ -306,14 +309,14 @@ def fig_setup_mzm(out):
     fig, ax = plt.subplots(figsize=(TW, 3.55))
     ax.set_xlim(0, 18); ax.set_ylim(0, 8.75); ax.axis("off")
     ax.set_aspect("equal")
-    yT, yM = 7.45, 5.05
+    yT, yM = 7.35, 4.60
     RF, AUX = "#B23A2B", "#6B7280"
 
     def cell(cx, cy, w, h, glyph, lab, fc="#F5F8F4", fs=6.2):
         _chip(ax, cx, cy, w, h, fc=fc)
         if glyph is not None:
-            glyph(ax, cx, cy + h * 0.16)
-            _label(ax, cx, cy - h * 0.34, lab, fs=fs)
+            glyph(ax, cx, cy + h * 0.21)
+            _label(ax, cx, cy - h * 0.25, lab, fs=fs)
         else:
             _label(ax, cx, cy, lab, fs=fs)
 
@@ -326,101 +329,107 @@ def fig_setup_mzm(out):
                         arrowprops=dict(arrowstyle="-|>", lw=lw, color=color,
                                         ls=ls, shrinkA=0, shrinkB=0), zorder=z+0.1)
 
+    # The layout uses three strict alignment bands: optical plant, receiver /
+    # controller, and auxiliary instruments.  Every external connection ends at
+    # a box boundary and uses its own orthogonal routing channel.
     # ---- optical plant ------------------------------------------------------
-    cell(1.00, yT, 1.55, 1.35, _ic_laser, "DFB 激光器\n1550 nm, 9 dBm",
+    cell(1.00, yT, 1.55, 1.45, _ic_laser, "DFB 激光器\n1550 nm, 9 dBm",
          fc="#EAF4FA", fs=5.8)
-    cell(3.55, yT, 1.85, 1.35, _ic_mzm, "MZM\n$V_\\pi{=}5.28$ V",
+    cell(3.55, yT, 1.85, 1.45, _ic_mzm, "MZM\n$V_\\pi{=}5.28$ V",
          fc="#EAF4FA", fs=6.0)
-    cell(5.95, yT, 1.50, 1.35, _ic_coupler, "1:9 光耦",
+    cell(5.95, yT, 1.50, 1.45, _ic_coupler, "1:9 光耦",
          fc="#EAF4FA", fs=6.0)
     path_arrow([(1.78, yT), (2.62, yT)], OPT)
     path_arrow([(4.48, yT), (5.20, yT)], OPT)
-    cell(8.65, yT, 1.90, 1.35, _ic_pp10g,
-         "PP-10G\nPIN + 前置 TIA", fc="#FAECE9", fs=5.5)
-    cell(11.25, yT, 1.95, 1.35, _ic_specan,
-         "R&S FSV30\n输出 RF 频谱", fc="#FAECE9", fs=5.5)
-    path_arrow([(6.70, yT), (7.70, yT)], OPT)
-    ax.text(7.18, yT + 0.31, "90% 光口", fontsize=6.0,
+    cell(8.65, yT, 1.90, 1.45, _ic_pp10g,
+         "光电接收机\nPIN + 前置 TIA", fc="#FAECE9", fs=5.5)
+    cell(11.25, yT, 1.95, 1.45, _ic_specan,
+         "频谱分析\n输出 RF 频谱", fc="#FAECE9", fs=5.5)
+    path_arrow([(6.70, yT + 0.18), (7.18, yT + 0.18),
+                (7.18, yT), (7.70, yT)], OPT)
+    ax.text(7.22, yT + 0.48, "90% 光口", fontsize=6.0,
             color=OPT, ha="center")
     path_arrow([(9.60, yT), (10.28, yT)], RF, lw=1.05)
     ax.text(9.94, yT + 0.31, r"50 $\Omega$ SMA", fontsize=5.5,
             color=RF, ha="center")
 
     # 10% monitor branch and realised analog receive path.
-    cell(6.95, yM, 1.20, 1.30, _ic_pd, "PD", fc="#FFF1E8", fs=6.0)
-    cell(8.40, yM, 1.10, 1.30, _ic_cap, "隔直", fc="#FFF1E8", fs=5.8)
-    cell(9.78, yM, 1.10, 1.30, _ic_opamp, "TIA", fc="#FFF1E8", fs=5.8)
-    path_arrow([(5.95, yT - 0.68), (5.95, yM + 0.80),
-                (6.35, yM + 0.10)], OPT)
-    ax.text(5.73, 6.18, "10% 监测端", fontsize=5.9, color=OPT,
-            rotation=90, ha="center", va="center")
-    path_arrow([(7.55, yM), (7.85, yM)], ELEC, lw=1.1)
-    path_arrow([(8.95, yM), (9.23, yM)], ELEC, lw=1.1)
-
-    # ---- self-developed controller board ----------------------------------
-    ax.add_patch(FancyBboxPatch((10.45, 1.75), 4.35, 4.35,
+    # ---- self-developed controller board: receive, control, and drive ------
+    ax.add_patch(FancyBboxPatch((6.05, 1.65), 8.45, 4.45,
                                boxstyle="round,pad=0.05,rounding_size=0.12",
                                fc="#F7F7FC", ec=CTRL, lw=0.9, ls="--", zorder=1))
-    ax.text(12.62, 5.86, "自研偏压控制板", ha="center", va="center",
-            fontsize=6.2, color=CTRL, zorder=5)
-    cell(11.15, yM, 1.10, 1.30, _ic_adc, "ADS131M02\nADC",
+    ax.text(10.28, 5.84, "自研偏压控制板", ha="center", va="center",
+            fontsize=6.3, color=CTRL, zorder=5)
+
+    cell(6.80, yM, 1.20, 1.35, _ic_pd, "PD", fc="#FFF1E8", fs=6.0)
+    cell(8.25, yM, 1.10, 1.35, _ic_cap, "隔直", fc="#FFF1E8", fs=5.8)
+    cell(9.60, yM, 1.10, 1.35, _ic_opamp, "TIA", fc="#FFF1E8", fs=5.8)
+    path_arrow([(6.70, yT - 0.18), (6.80, yT - 0.18),
+                (6.80, yM + 0.68)], OPT)
+    ax.text(6.55, 6.33, "10% 监测端", fontsize=5.9, color=OPT,
+            rotation=90, ha="center", va="center")
+    path_arrow([(7.40, yM), (7.70, yM)], ELEC, lw=1.1)
+    path_arrow([(8.80, yM), (9.05, yM)], ELEC, lw=1.1)
+
+    cell(10.95, yM, 1.10, 1.30, _ic_adc, "ADC\n64 kSPS",
          fc="#EEF0FA", fs=5.5)
-    cell(13.35, yM, 1.85, 1.40, _ic_mcu, "STM32H523\nGoertzel / 串口接口",
+    cell(13.15, yM, 1.95, 1.40, _ic_mcu, "偏压控制器\nGoertzel / 串口接口",
          fc="#EEF0FA", fs=5.5)
-    cell(12.35, 2.75, 1.90, 1.35, _ic_dac, "DAC8568\n×4 偏压驱动",
+    cell(12.95, 2.55, 1.90, 1.45, _ic_dac, "多通道 DAC\n偏压驱动",
          fc="#EEF0FA", fs=5.5)
-    path_arrow([(10.33, yM), (10.60, yM)], ELEC, lw=1.1)
-    path_arrow([(11.70, yM), (12.42, yM)], CTRL, lw=1.15)
-    path_arrow([(13.35, 4.35), (13.35, 3.60),
-                (12.35, 3.60), (12.35, 3.43)], CTRL, lw=1.15)
+    path_arrow([(10.15, yM), (10.40, yM)], ELEC, lw=1.1)
+    path_arrow([(11.50, yM), (12.18, yM)], CTRL, lw=1.15)
+    path_arrow([(13.15, 3.90), (13.15, 3.38),
+                (12.95, 3.38), (12.95, 3.28)], CTRL, lw=1.15)
 
     # The PC is part of the realised feedback loop, not merely a logger.
     cell(16.45, yM, 2.35, 1.55, _ic_pc,
          "PC 上位机\natan2 仿射反演 + 积分",
          fc="#F1ECFA", fs=5.3)
-    ax.annotate("", xy=(15.28, yM), xytext=(14.28, yM),
+    ax.annotate("", xy=(15.28, yM), xytext=(14.13, yM),
                 arrowprops=dict(arrowstyle="<->", lw=1.25, color=CTRL), zorder=4)
-    ax.text(14.78, yM + 0.28, "USB 串口", fontsize=5.4, color=CTRL,
-            ha="center")
+    ax.text(14.70, yM + 0.32, "USB 串口", fontsize=5.4, color=CTRL,
+            ha="center", bbox=dict(fc="white", ec="none", pad=0.35), zorder=6)
 
-    # DAC bias + pilot closes the physical loop at the MZM bias port.
-    path_arrow([(11.40, 2.75), (10.95, 2.75), (10.95, 1.48),
-                (5.00, 1.48), (5.00, 6.12), (3.95, yT - 0.68)], CTRL, lw=1.2)
-    ax.text(7.75, 1.65, "$V_b+m\\sin(\\omega t)$（偏置口）", fontsize=5.9,
-            color=CTRL, ha="center")
+    # DAC bias + pilot uses the empty lane between the DMM and board, then
+    # enters the MZM at a separate bias port.  It never crosses another box.
+    path_arrow([(12.00, 2.55), (11.65, 2.55), (11.65, 1.30),
+                (5.72, 1.30), (5.72, 6.35), (3.95, 6.35),
+                (3.95, yT - 0.73)], CTRL, lw=1.2)
+    ax.text(8.70, 1.05, "$V_b+m\\sin(\\omega t)$（偏置口）", fontsize=5.9,
+            color=CTRL, ha="center", va="center")
 
     # ---- diagnostic/truth branches ----------------------------------------
-    cell(6.95, 3.05, 1.95, 1.30, _ic_dmm, "RIGOL DM858E\nDE4 直流真值/标定",
+    cell(4.35, yM, 2.10, 1.45, _ic_dmm, "独立直流观测\n相位标签/评价",
          fc="#F7F3E8", fs=5.4)
-    path_arrow([(7.68, yM), (7.68, 4.02), (6.95, 4.02), (6.95, 3.70)],
-               AUX, lw=1.0, ls="--")
+    path_arrow([(6.20, yM), (5.40, yM)], AUX, lw=1.0, ls="--")
     # ---- RF-load-only branch ----------------------------------------------
-    cell(1.25, 4.25, 2.05, 1.35, _ic_siggen,
-         "RIGOL DG922 Pro\n50 MHz RF 源", fc="#FAECE9", fs=5.5)
-    path_arrow([(2.28, 4.25), (3.10, 4.25), (3.10, 6.42),
-                (3.15, 6.77)], RF, lw=1.05)
-    ax.text(2.77, 5.43, "仅 RF 加载试验", fontsize=5.5, color=RF,
+    cell(1.25, yM, 2.05, 1.35, _ic_siggen,
+         "RF 信号源\n50 MHz 单音", fc="#FAECE9", fs=5.5)
+    path_arrow([(2.28, yM), (3.15, yM), (3.15, yT - 0.73)], RF, lw=1.05)
+    ax.text(2.88, 5.55, "仅 RF 加载试验", fontsize=5.5, color=RF,
             rotation=90, ha="center", va="center")
-    ax.text(3.32, 6.30, "MZM 射频口", fontsize=5.2, color=RF,
-            ha="left", va="center")
+    ax.text(3.02, 6.28, "RF 口", fontsize=5.2, color=RF,
+            ha="right", va="center")
 
-    # PC-orchestrated auxiliary acquisition; one bus avoids crossing the loop.
-    bus_y = 0.58
-    ax.plot([1.25, 16.55], [bus_y, bus_y], color=AUX, lw=0.8,
+    # PC-orchestrated auxiliary acquisition runs only in the bottom margin;
+    # vertical drops are outside the bias-feedback routing channel.
+    bus_y = 0.42
+    ax.plot([1.25, 16.45], [bus_y, bus_y], color=AUX, lw=0.8,
             ls=(0, (2, 2)), zorder=1)
     aux_routes = [
-        [(1.25, bus_y), (1.25, 3.58)],
-        [(5.70, bus_y), (5.70, 2.20), (6.95, 2.20), (6.95, 2.40)],
-        [(17.25, bus_y), (17.25, 4.00), (16.45, 4.00), (16.45, 4.28)],
+        [(1.25, bus_y), (1.25, yM - 0.68)],
+        [(4.35, bus_y), (4.35, yM - 0.73)],
+        [(16.45, bus_y), (16.45, yM - 0.78)],
     ]
     for pts in aux_routes:
         xx, yy = zip(*pts)
         ax.plot(xx, yy, color=AUX, lw=0.8, ls=(0, (2, 2)), zorder=1)
     # FSV30 is controlled by the PC but its RF input comes only from PP-10G.
-    ax.plot([12.23, 17.55, 17.55, 16.95],
-            [7.95, 7.95, 5.90, 5.90], color=AUX, lw=0.8,
+    ax.plot([12.23, 17.55, 17.55, 17.00, 17.00],
+            [7.98, 7.98, 5.72, 5.72, yM + 0.78], color=AUX, lw=0.8,
             ls=(0, (2, 2)), zorder=1)
-    ax.text(8.90, 0.30, "PC 仪器控制与数据记录（USB/LAN）", fontsize=5.5,
+    ax.text(8.85, 0.15, "PC 仪器控制与数据记录（USB/LAN）", fontsize=5.5,
             color=AUX, ha="center")
 
     handles = [Line2D([0], [0], color=OPT, lw=1.2, label="光路"),
@@ -567,9 +576,8 @@ def fig_calib(data, out):
     ax.plot(us[:, 0], us[:, 1], ".", ms=1.5, color=GRN)
     ax.add_patch(Circle((0, 0), 1, fill=False, ec=INK, lw=0.8, ls="--"))
     ax.set_xlabel("$\\hat u_x$"); ax.set_ylabel("$\\hat u_y$")
-    pullback = "监督回归回拉" if fit.get("method") == "phase-ref" else "椭圆标定回拉"
-    ax.set_title(f"(b) {pullback}  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
-                 fontsize=7.5)
+    pullback = "相位标签回归回拉" if fit.get("method") == "phase-ref" else "椭圆--直流规范回拉"
+    ax.set_title(f"(b) {pullback}", fontsize=7.5)
     ax.set_aspect("equal"); ax.margins(0.22)
     fig.tight_layout(); fig.savefig(os.path.join(out, "fig_exp1.pdf"))
     plt.close(fig); print("[fig] fig_exp1.pdf")
@@ -699,8 +707,8 @@ def fig_rf(data, out):
         ax.axhline(rms_off, color=RED, ls="--", lw=1.0,
                    label=f"RF 关参考 ({rms_off:.0f} mrad)")
     ax.set_xlabel("施加 RF 功率 (dBm)")
-    ax.set_ylabel("锁定 rms (mrad)")
-    ax.set_title("(b) 任意点锁定 rms vs RF 功率", fontsize=7.5)
+    ax.set_ylabel("锁定 RMS (mrad)")
+    ax.set_title("(b) 任意点锁定 RMS vs RF 功率", fontsize=7.5)
     ax.legend(fontsize=6.3, loc="best"); ax.grid(True, alpha=0.25)
     ax.set_ylim(bottom=0)
     fig.tight_layout(); fig.savefig(os.path.join(out, "fig_exprf.pdf"))
@@ -780,7 +788,7 @@ def fig_dp_obs(data, out):
     e6 = float(d["err6"]) * 1e3; e9 = float(d["err9"]) * 1e3
     ax.bar([0, 1], [e6, e9], color=[RED, GRN], width=0.6)
     ax.set_xticks([0, 1]); ax.set_xticklabels(["6 谐波", "+IMD(9)"])
-    ax.set_ylabel("rms (mrad)")
+    ax.set_ylabel("RMS (mrad)")
     ax.set_title(f"(c) 标准点父轴可观测性\n$\\sigma_{{\\min}}$: {float(d['s6']):.1e}"
                  f"$\\to${float(d['s9']):.3f}", fontsize=7.0)
     fig.savefig(os.path.join(out, "fig_exp5.pdf"), bbox_inches="tight")
@@ -818,12 +826,12 @@ def fig_dp_lock(data, out):
 #  so these composites are ordinary new functions -- not capture-replots.     #
 # --------------------------------------------------------------------------- #
 def fig_expcal_mzm(data, out):
-    """fig_expcal_mzm — 1x4 cross-column strip: (a) DM858E bidirectional DC
-    transfer curve, (b) normalized DC-vs-fitted-phase curve (both from
-    vpi.csv, same fit as fig_exp0), (c) measured raw observable ellipse,
-    (d) affine pull-back unit circle (both from calib.npz/calib_fit.json,
-    same fit as fig_exp1). Skips (a,b) or (c,d) independently if their
-    source data is missing."""
+    """Three-panel single-column calibration evidence figure.
+
+    (a) DM858E bidirectional DC transfer; (b) the raw H2/H1 trajectory with
+    independently scaled, explicitly ticked axes; (c) affine pull-back. Reads
+    only frozen vpi/calibration files and is deterministic.
+    """
     vp = os.path.join(data, "vpi.csv")
     cnpz = os.path.join(data, "calib.npz"); cfjs = os.path.join(data, "calib_fit.json")
     have_vpi = os.path.exists(vp)
@@ -831,9 +839,11 @@ def fig_expcal_mzm(data, out):
     if not (have_vpi or have_cal):
         print("[skip] fig_expcal_mzm: vpi.csv and calib.npz/calib_fit.json not found")
         return
-    # single-column 2x2 layout (was cross-column 1x4)
-    fig, axg = plt.subplots(2, 2, figsize=(CW, 3.25))
-    axs = axg.ravel()
+    fig = plt.figure(figsize=(CW, 3.05))
+    gs = fig.add_gridspec(2, 2, height_ratios=(0.82, 1.0))
+    axs = [fig.add_subplot(gs[0, :]),
+           fig.add_subplot(gs[1, 0]),
+           fig.add_subplot(gs[1, 1])]
     c = 0
     if have_vpi:
         rows = _read_csv(vp)
@@ -870,18 +880,6 @@ def fig_expcal_mzm(data, out):
                   handlelength=1.1, handletextpad=0.3, columnspacing=0.8,
                   borderpad=0.1)
         c += 1
-        ax = axs[c]
-        ph = lambda bb: ((np.pi * (bb - v0) / vpi + np.pi) % (2 * np.pi)) - np.pi
-        ax.plot(ph(bu), du, ".", ms=1.6, color=GRN)
-        if has_dir:
-            ax.plot(ph(bd), dd, "^", ms=1.6, mew=0, color=RED)
-        pp = np.linspace(-np.pi, np.pi, 300)
-        ax.plot(pp, a + b * np.cos(pp), color=BLU, lw=1.0)
-        ax.set_xlabel("偏置相位 $\\varphi$ (rad)", fontsize=7.2, labelpad=1)
-        ax.set_ylabel("PD 直流 (V)", fontsize=7.2, labelpad=1)
-        ax.tick_params(labelsize=6.8)
-        ax.set_title("(b) 按拟合相位归一重排", fontsize=7.2, pad=2)
-        c += 1
     if have_cal:
         d = np.load(cnpz, allow_pickle=True)
         with open(cfjs) as f:
@@ -897,12 +895,20 @@ def fig_expcal_mzm(data, out):
         ax.plot(*c0, "+", color=INK, ms=6, mew=1.2)
         ax.annotate("$\\hat{\\mathbf{b}}$", c0, textcoords="offset points",
                     xytext=(4, -9), fontsize=6.5, color=INK)
-        ax.set_xlabel("$X$ (H2) ($\\times10^{-2}$)", fontsize=7.2, labelpad=1)
+        ax.set_xlabel("$X$ (H2)", fontsize=7.2, labelpad=1)
         ax.set_ylabel("$Y$ (H1)", fontsize=7.2, labelpad=1)
         ax.tick_params(labelsize=6.8)
-        ax.set_title("(c) 实测观测椭圆", fontsize=7.2, pad=2)
-        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, pos: f"{v * 1e2:.0f}"))
-        ax.margins(x=0.22, y=0.12)
+        ax.set_title("(b) H2/H1 观测椭圆", fontsize=7.2, pad=2)
+        # The weak H2 direction is about 45 times smaller than H1.  Independent
+        # axis spans keep the trajectory readable at single-column size; the
+        # numeric ticks retain the actual scale of each recorded observable.
+        xspan = 1.08 * max(np.max(np.abs(X - c0[0])),
+                           np.max(np.abs(ell[0] - c0[0])))
+        yspan = 1.08 * max(np.max(np.abs(Y - c0[1])),
+                           np.max(np.abs(ell[1] - c0[1])))
+        ax.set_xlim(c0[0] - xspan, c0[0] + xspan)
+        ax.set_ylim(c0[1] - yspan, c0[1] + yspan)
+        ax.set_aspect("auto")
         c += 1
         ax = axs[c]
         ax.plot(us[:, 0], us[:, 1], ".", ms=1.2, color=GRN)
@@ -910,11 +916,13 @@ def fig_expcal_mzm(data, out):
         ax.set_xlabel("$\\hat u_x$", fontsize=7.2, labelpad=1)
         ax.set_ylabel("$\\hat u_y$", fontsize=7.2, labelpad=1)
         ax.tick_params(labelsize=6.8)
-        pullback = "监督回归回拉" if fit.get("method") == "phase-ref" else "椭圆标定回拉"
-        ax.set_title(f"(d) {pullback}  $\\kappa(\\hat A){{=}}{fit['kappa']:.2f}$",
-                     fontsize=7.2, pad=2)
-        ax.set_aspect("equal"); ax.margins(0.22)
-    fig.tight_layout(pad=0.4, h_pad=0.8, w_pad=0.6)
+        pullback = "相位标签回归回拉" if fit.get("method") == "phase-ref" else "椭圆--直流规范回拉"
+        ax.set_title(f"(c) {pullback}", fontsize=6.9, pad=2)
+        ax.set_aspect("equal"); ax.set_xlim(-1.25, 1.25); ax.set_ylim(-1.25, 1.25)
+        c += 1
+    for ax in axs[c:]:
+        ax.set_visible(False)
+    fig.tight_layout(pad=0.4, h_pad=0.75, w_pad=0.6)
     fig.savefig(os.path.join(out, "fig_expcal_mzm.pdf"))
     plt.close(fig); print("[fig] fig_expcal_mzm.pdf")
 
@@ -964,19 +972,20 @@ def fig_expperf_mzm(data, out):
         ps = d["phi_star"]; aff = np.abs(d["affine_err"]) * 1e3
         base = np.abs(d["baseline_err"]) * 1e3
         ax = axs[c]
-        ax.semilogy(ps, base, "s-", color=RED, ms=2.5, lw=0.7, label="H1 基线")
+        ax.semilogy(ps, base, "s-", color=RED, ms=2.5, lw=0.7, label="H1 幅值匹配")
         ax.semilogy(ps, np.maximum(aff, 1e-1), "o-", color=GRN, ms=2.5, lw=0.7,
-                    label="监督式仿射")
+                    label="二维仿射反演")
         ax.set_xlabel("目标相位 $\\varphi^\\ast$ (rad)", fontsize=7.2, labelpad=1)
         ax.set_ylabel("$|\\varphi_{\\rm lock}-\\varphi^\\ast|$ (mrad)",
                       fontsize=7.2, labelpad=1)
         ax.tick_params(labelsize=6.8)
-        ax.set_title("(b) 16 目标点监督式锁定误差", fontsize=7.2, pad=2)
-        # add top headroom and float a compact horizontal legend clear of data
+        ax.set_title("(b) 16 目标点静态误差", fontsize=7.2, pad=2)
+        # Keep two long method names on separate rows inside the empty top band;
+        # a two-column legend overran the narrow single-column panel.
         ax.set_ylim(top=ax.get_ylim()[1] * 22)
-        ax.legend(fontsize=6.3, loc="upper center", ncol=2, frameon=False,
-                  handlelength=1.3, handletextpad=0.3, columnspacing=0.9,
-                  borderpad=0.1)
+        ax.legend(fontsize=6.3, loc="upper center", ncol=1, frameon=False,
+                  handlelength=1.3, handletextpad=0.3, labelspacing=0.18,
+                  borderpad=0.15)
         ax.grid(True, which="major", alpha=0.25)
         ax.grid(False, which="minor")
         c += 1
@@ -1012,16 +1021,16 @@ def fig_expperf_mzm(data, out):
         ax = axs[c]
         order = np.argsort(powers[on])
         ax.plot(powers[on][order], rms[on][order], "o-", color=GRN, ms=3.5, lw=0.8,
-                label="仿射锁定 (RF 开)")
+                label="逐态标定（RF 开）")
         rms_off = None
         if np.any(off):
             rms_off = float(np.mean(rms[off]))
             ax.axhline(rms_off, color=RED, ls="--", lw=0.9,
                        label=f"RF 关 ({rms_off:.0f} mrad)")
         ax.set_xlabel("RF 功率 (dBm)", fontsize=7.2, labelpad=1)
-        ax.set_ylabel("锁定 rms (mrad)", fontsize=7.2, labelpad=1)
+        ax.set_ylabel("锁定 RMS (mrad)", fontsize=7.2, labelpad=1)
         ax.tick_params(labelsize=6.8)
-        ax.set_title("(d) 锁定 rms vs RF 功率", fontsize=7.2, pad=2)
+        ax.set_title("(d) 锁定 RMS vs RF 功率", fontsize=7.2, pad=2)
         # top headroom + vertical legend tucked in the empty upper-right corner
         # (labels are long, so ncol=2 overran the axis width -> stack them ncol=1
         # inside the frame; rms descends left-to-right so upper-right is clear)
@@ -1084,7 +1093,7 @@ def fig_expstab_mzm(data, out):
         ax2.plot(th, err, color=GRN, lw=0.25, alpha=0.18, zorder=2,
                  label="逐周期解调误差")
         ax2.plot(dt, de, "o", mfc="none", mec=RED, mew=0.8, ms=2.8,
-                 alpha=0.9, zorder=4, label="DMM 稀疏评价")
+                 alpha=0.9, zorder=4, label="稀疏相位评价")
         ax2.set_ylabel("相位误差 (mrad)", color=GRN, fontsize=6.8, labelpad=1)
         ax2.tick_params(axis="y", labelcolor=GRN, labelsize=6.3, pad=1)
         ax2.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
@@ -1098,7 +1107,7 @@ def fig_expstab_mzm(data, out):
         ins.plot(np.arange(nshow), err[:nshow], "o-", color=GRN,
                  lw=0.45, ms=1.7)
         ins.axhline(0, color="#777777", lw=0.35)
-        ins.set_title(f"前 {nshow} 周期: rms={raw_rms:.0f} mrad\n"
+        ins.set_title(f"前 {nshow} 周期: RMS={raw_rms:.0f} mrad\n"
                       f"lag1={lag1:.3f}, 翻转={flip:.2f}", fontsize=4.8,
                       pad=1.0)
         ins.tick_params(labelsize=4.5, length=1.5, pad=0.5)
@@ -1215,23 +1224,14 @@ def fig_exprepeat_mzm(data, out):
 
 
 def fig_expdiag_mzm(data, out):
-    """Compact 2x2 evidence figure for final single-column placement."""
+    """Compact two-panel hardware-dynamics figure for one IEEE column."""
     stability_path = os.path.join(data, "stability.npz")
     drift_path = os.path.join(data, "drift.npz")
-    repeat_path = os.path.join(
-        data, "diagnostics", "static_repeats",
-        "20260717_static_v12_board2", "analysis.json")
-    if not all(os.path.exists(p) for p in
-               (stability_path, drift_path, repeat_path)):
+    if not all(os.path.exists(p) for p in (stability_path, drift_path)):
         print("[skip] fig_expdiag_mzm.pdf (missing frozen input)")
         return
-    with open(repeat_path, encoding="utf-8") as f:
-        repeat = json.load(f)
-    if not repeat.get("quality_gate", {}).get("accepted", False):
-        print("[skip] fig_expdiag_mzm.pdf (v1.2 analysis not accepted)")
-        return
 
-    fig, axs = plt.subplots(2, 2, figsize=(CW, 3.20))
+    fig, axs = plt.subplots(1, 2, figsize=(CW, 1.58))
 
     # (a) The full 3 h record is represented by its two alternating branches.
     # This preserves the period-2 evidence without overplotting 6078 samples.
@@ -1240,7 +1240,7 @@ def fig_expdiag_mzm(data, out):
     err = stable["err_mrad"]
     dmm_t_h = stable["dmm_t"] / 3600.0
     dmm_err = stable["dmm_err_mrad"]
-    ax = axs[0, 0]
+    ax = axs[0]
     smooth_n = 61
     kernel = np.ones(smooth_n) / smooth_n
     for parity, color, label in ((0, GRN, "偶周期"),
@@ -1252,7 +1252,7 @@ def fig_expdiag_mzm(data, out):
         ax.plot(branch_t[half:half + len(branch_s)], branch_s,
                 color=color, lw=0.75, label=label)
     ax.plot(dmm_t_h, dmm_err, "o", mfc="none", mec=RED, mew=0.55,
-            ms=2.0, label="DMM")
+            ms=2.0, label="稀疏评价")
     ax.axhline(0, color="#777777", lw=0.35)
     ax.set_xlim(0, 3.0)
     ax.set_ylim(-1100, 1100)
@@ -1271,7 +1271,7 @@ def fig_expdiag_mzm(data, out):
     step = int(drift["step_at"])
     recal = int(drift["recal_at"])
     threshold = float(drift["thr"])
-    ax = axs[0, 1]
+    ax = axs[1]
     ax.plot(drift_err, color=GRN, lw=0.70)
     ax.axvline(step, color=RED, ls="--", lw=0.70)
     ax.axvline(recal, color=BLU, ls=":", lw=0.75)
@@ -1291,49 +1291,12 @@ def fig_expdiag_mzm(data, out):
     ax_r.set_ylabel(r"残差 $\bar\rho$", color=INK, fontsize=6.2, labelpad=1)
     ax_r.tick_params(axis="y", labelcolor=INK, labelsize=5.4, pad=1)
 
-    blocks = list(repeat["statistics"]["blocks"].values())
-    grids = sorted({int(row["grid_index"]) for row in blocks})
-    by_key = {(int(row["grid_index"]), row["condition"]): row
-              for row in blocks}
-    conditions = ["none", "gen", "acq", "both"]
-    labels = {"none": "无重启", "gen": "发生器", "acq": "采集器",
-              "both": "两者"}
-    colors = {"none": INK, "gen": GRN, "acq": BLU, "both": RED}
-    styles = {"none": "-", "gen": "--", "acq": "-.", "both": ":"}
-    marks = {"none": "o", "gen": "s", "acq": "^", "both": "D"}
-    x = np.arange(len(grids))
-    for panel, key, title in ((axs[1, 0], "h1_phase_cstd_rad",
-                               "(c) H1 参考相位"),
-                              (axs[1, 1], "h2_phase_cstd_rad",
-                               "(d) H2 弱轴相位")):
-        for condition in conditions:
-            values = np.array([1000.0 * by_key[(g, condition)][key]
-                               for g in grids])
-            panel.plot(x, values, color=colors[condition],
-                       ls=styles[condition], marker=marks[condition],
-                       ms=2.2, lw=0.65, label=labels[condition])
-        panel.set_title(title, fontsize=6.4, pad=2)
-        panel.set_xticks(x, [r"$0$", r"$\pi/2$", r"$\pi$",
-                             r"$3\pi/2$", r"$2\pi$"])
-        panel.set_xlabel("扫描相位", fontsize=6.2, labelpad=1)
-        panel.grid(True, which="major", color="#D8DDD9", lw=0.30)
-    axs[1, 0].set_yscale("log")
-    axs[1, 0].set_ylim(0.02, 30.0)
-    axs[1, 0].axhline(20.0, color=GLD, ls="--", lw=0.65)
-    axs[1, 0].set_ylabel("圆标准差 (mrad)", fontsize=6.2, labelpad=1)
-    axs[1, 0].legend(loc="upper left", ncol=2, frameon=False, fontsize=5.0,
-                     handlelength=1.0, handletextpad=0.2,
-                     columnspacing=0.45, borderpad=0.1, labelspacing=0.15)
-    axs[1, 1].set_ylim(0, 55)
-    axs[1, 1].axhline(50.0, color=GLD, ls="--", lw=0.65)
-    axs[1, 1].set_ylabel("圆标准差 (mrad)", fontsize=6.2, labelpad=1)
-
-    for ax in axs.ravel():
+    for ax in axs:
         ax.tick_params(labelsize=5.4, pad=1, length=2)
         ax.spines[["top", "right"]].set_visible(False)
         ax.xaxis.set_major_locator(ax.xaxis.get_major_locator())
-    fig.subplots_adjust(left=0.15, right=0.89, top=0.95, bottom=0.11,
-                        hspace=0.62, wspace=0.68)
+    fig.subplots_adjust(left=0.15, right=0.89, top=0.88, bottom=0.23,
+                        wspace=0.68)
     fig.savefig(os.path.join(out, "fig_expdiag_mzm.pdf"))
     plt.close(fig); print("[fig] fig_expdiag_mzm.pdf")
 

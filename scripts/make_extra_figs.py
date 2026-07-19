@@ -405,33 +405,35 @@ ax.set_title('(b) gauge variance vs $N$', fontsize=7.5)
 ax.legend(borderpad=0.25, handlelength=1.4, fontsize=6)
 plt.tight_layout(); plt.savefig('figs/fig_gauge.pdf'); plt.close()
 
-# ------- single-column narrow variant of fig_gauge (stacked, for 2-col IEEE) -------
+# ------- single-column, two-panel variant of fig_gauge for paper_mzm_zh -------
 # Re-plots the SAME already-computed arrays (bias_reg, bias_arg, Ns, med_reg,
-# med_arg) stacked vertically instead of side-by-side, sized to a single
-# 3.45in column. No RNG draws here -- pure capture-replot.
-fig, axs = plt.subplots(2, 1, figsize=(CW, 3.5))
-with plt.rc_context({'font.size': 6.5, 'axes.labelsize': 6.5, 'legend.fontsize': 6,
-                      'xtick.labelsize': 6.5, 'ytick.labelsize': 6.5}):
+# med_arg) side-by-side inside one 3.45in IEEE column. No RNG draws here --
+# pure capture-replot. Short titles and sparse log ticks preserve readability.
+fig, axs = plt.subplots(1, 2, figsize=(CW, 1.72))
+with plt.rc_context({'font.size': 5.8, 'axes.labelsize': 5.8, 'legend.fontsize': 5.2,
+                      'xtick.labelsize': 5.6, 'ytick.labelsize': 5.6}):
     ax = axs[0]
     # Deterministic jitter (linspace, not RNG) since the original jitter draws
     # were never stored -- only the resulting scatter was plotted before.
     for i, (d, col, lab) in enumerate([(bias_reg, GRN, 'DC regression\n(proposed)'),
                                        (bias_arg, RED, 'argmin\nfiducial')]):
         xj = i + np.linspace(-0.13, 0.13, len(d))
-        ax.semilogy(xj, np.maximum(d, 0.05), 'o', color=col, ms=2.6, alpha=0.7)
-        ax.hlines(np.median(d), i-0.25, i+0.25, color=INK, lw=1.2)
-    ax.set_xticks([0,1]); ax.set_xticklabels(['直流回归\n（本文）','argmin 基准'])
-    ax.set_ylabel('$|$解调偏差$|$ (mrad)'); ax.set_xlim(-0.6,1.6)
-    ax.set_title('(a) 标定引入偏差（$N{=}360$）', fontsize=6.8)
+        ax.semilogy(xj, np.maximum(d, 0.05), 'o', color=col, ms=2.0, alpha=0.68)
+        ax.hlines(np.median(d), i-0.24, i+0.24, color=INK, lw=1.0)
+    ax.set_xticks([0,1]); ax.set_xticklabels(['直流回归','argmin'])
+    ax.set_ylabel('$|$解调偏差$|$ (mrad)', labelpad=1); ax.set_xlim(-0.55,1.55)
+    ax.set_title('(a) $N{=}360$', fontsize=6.2, pad=2)
     ax = axs[1]
-    ax.loglog(Ns, med_reg, 'o-', color=GRN, ms=3.2, label='直流回归')
-    ax.loglog(Ns, med_arg, 's-', color=RED, ms=3.2, label='argmin 基准')
+    ax.loglog(Ns, med_reg, 'o-', color=GRN, ms=2.6, label='直流回归')
+    ax.loglog(Ns, med_arg, 's-', color=RED, ms=2.6, label='argmin')
     ax.loglog(Ns, med_reg[2]*np.sqrt(360/Ns), 'k:', lw=0.8, label='$N^{-1/2}$')
-    ax.set_xlabel('扫描样本数 $N$', labelpad=1); ax.set_ylabel('中位偏差 (mrad)')
-    ax.set_xticks(Ns); ax.set_xticklabels([str(n) for n in Ns], rotation=0)
-    ax.set_title('(b) 规范偏差随样本数 $N$', fontsize=6.8)
-    ax.legend(borderpad=0.25, handlelength=1.4, labelspacing=0.3, fontsize=6)
-plt.tight_layout()
+    ax.set_xlabel('扫描样本数 $N$', labelpad=1)
+    ax.set_ylabel('中位偏差 (mrad)', labelpad=1)
+    ax.set_xticks([90,360,1440]); ax.set_xticklabels(['90','360','1440'])
+    ax.set_title('(b) 随 $N$ 的标度', fontsize=6.2, pad=2)
+    ax.legend(loc='center right', borderpad=0.18, handlelength=1.1,
+              handletextpad=0.35, labelspacing=0.18, fontsize=5.0)
+plt.subplots_adjust(left=0.13,right=0.995,bottom=0.22,top=0.91,wspace=0.50)
 plt.savefig('figs/fig_gauge_mzm.pdf', bbox_inches='tight')
 plt.close()
 print('extra figures done:', sorted(f for f in os.listdir('figs') if f.startswith('fig_')))

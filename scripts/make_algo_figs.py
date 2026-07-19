@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
-from matplotlib.patches import FancyBboxPatch
+from matplotlib.patches import FancyBboxPatch, Polygon
 import os
 rng = np.random.default_rng(20260612)
 os.makedirs('figs', exist_ok=True)
@@ -161,6 +161,13 @@ def fbox(ax,x,y,w,h,t,fs=7,fc='#FBFDFB',ec=INK,lw=0.9,rs=0.16):
                  fc=fc,ec=ec,lw=lw,mutation_scale=1,zorder=2))
     ax.text(x+w/2,y+h/2,t,ha='center',va='center',fontsize=fs,zorder=4,
             linespacing=1.25)
+def fdiamond(ax,cx,cy,w,h,t,fs=6.2,fc='#FBF3E3',ec=INK,lw=0.9):
+    """Decision node with exact vertices for clean branch attachment."""
+    ax.add_patch(Polygon([(cx,cy+h/2),(cx+w/2,cy),
+                          (cx,cy-h/2),(cx-w/2,cy)],
+                         closed=True,fc=fc,ec=ec,lw=lw,zorder=2))
+    ax.text(cx,cy,t,ha='center',va='center',fontsize=fs,zorder=4,
+            linespacing=1.18)
 def fa(ax,x0,y0,x1,y1,lbl=None,fs=6,lxy=None):
     ax.annotate('',xy=(x1,y1),xytext=(x0,y0),zorder=3,
         arrowprops=dict(arrowstyle='-|>',lw=0.9,color=INK,mutation_scale=8,
@@ -172,6 +179,10 @@ def elbow(ax,pts,lbl=None,lxy=None,fs=6,rot=0):
     fa(ax,pts[-2][0],pts[-2][1],pts[-1][0],pts[-1][1])
     if lbl: ax.text(lxy[0],lxy[1],lbl,fontsize=fs,color=INK,ha='center',
                     rotation=rot,zorder=4)
+def flabel(ax,x,y,t,fs=5.8,fc='#F7F8F7'):
+    """Place an edge label at the geometric midpoint, masking the shaft."""
+    ax.text(x,y,t,fontsize=fs,color=INK,ha='center',va='center',zorder=5,
+            bbox=dict(boxstyle='square,pad=0.10',fc=fc,ec='none'))
 AMB,RDT='#FBF3E3','#F6E8E4'
 fig,ax=plt.subplots(figsize=(2*CW,3.1)); ax.set_xlim(0,20); ax.set_ylim(0,8.4); ax.axis('off')
 # phase lanes (exact rects, light borders)
@@ -200,7 +211,7 @@ fbox(ax,16.00,1.45,3.0,0.95,'PI update\n$V \\leftarrow V - G\\,e$',6.4)
 fa(ax,11.50,1.92,12.30,1.92); fa(ax,15.30,1.92,16.00,1.92)
 fbox(ax,12.30,3.65,3.0,0.95,'residual monitor\n$\\rho_k$, EWMA',6.4,fc=AMB)
 fa(ax,13.80,2.40,13.80,3.65)
-fbox(ax,16.00,3.65,3.0,0.95,'$\\bar\\rho>\\rho_{\\rm th}$ for\n$M$ cycles?',6.4,fc=AMB)
+fbox(ax,16.00,3.65,3.0,0.95,'$\\bar\\rho>\\rho_{\\rm th}$ for\n$N_{\\rm p}$ cycles?',6.4,fc=AMB)
 fa(ax,15.30,4.12,16.00,4.12)
 fa(ax,17.50,4.60,17.50,5.85,'yes',6,(17.78,5.12))
 fbox(ax,16.00,5.85,3.0,0.95,'trigger recal\n(micro-arc sweep)',6.4,fc=RDT)
@@ -216,15 +227,11 @@ plt.tight_layout(); plt.savefig('figs/fig_flow.pdf'); plt.close()
 #      (full 2Vpi sweep instead of 4pi for DPMZM children; 2-channel lock-in
 #      instead of "2 or 9 ch."; atan2-only demod instead of atan2/2-step GN).
 #      No RNG, no new computation -- pure re-draw of the same box geometry. ----
-# ---- vertical single-column redraw for paper_mzm_zh: same boxes/arrows/labels
-#      as the wide fig_flow.pdf above, restacked top-to-bottom so it stays
-#      legible at columnwidth (3.45in). Top segment = calibration phase (a
-#      vertical chain power-up -> pre-sweep -> full 2Vpi sweep -> fit+gauge ->
-#      self-check with a fail:re-sweep back-edge); bottom segment = run phase,
-#      one per-cycle loop lock-in -> demod atan2 -> integral update -> residual
-#      monitor -> threshold test, with a yes-> trigger recal branch feeding
-#      back up into the calibration phase and a next-cycle back-edge. Pure
-#      patches/annotate, no RNG, no new computation. ----
+# ---- vertical single-column redraw for paper_mzm_zh. The two decisions use
+#      diamonds. A threshold violation returns directly to power-up along the
+#      left rail; the next-cycle branch uses the right rail. Edge labels sit at
+#      the geometric midpoint of their line segments. Pure drawing only: no RNG
+#      and no new computation. ----
 fig,ax=plt.subplots(figsize=(CW,4.6)); ax.set_xlim(0,10); ax.set_ylim(0,26); ax.axis('off')
 # two phase lanes stacked vertically
 ax.add_patch(FancyBboxPatch((0.30,14.15),9.4,11.5,
@@ -234,44 +241,42 @@ ax.add_patch(FancyBboxPatch((0.30,0.35),9.4,13.35,
              boxstyle='round,pad=0,rounding_size=0.3',
              fc='#F2F4F7',ec='#CBD2DC',lw=0.8,mutation_scale=1,zorder=1))
 ax.text(0.60,24.90,'标定阶段',fontsize=7.5,weight='bold',color=INK,zorder=4)
-# two-line top-left title mirroring the calibration lane's; kept narrow
-# (ends x~2.7) so the "pass" arrow on the column centreline (x=CXc=3.4)
-# never crosses under the title glyphs; the run chain below is shifted down
-# 0.6 units (spare space existed at the lane bottom) to clear the title
-ax.text(0.60,13.45,'运行阶段\n（每控制周期）',fontsize=7.0,weight='bold',
+# Keep the run title clear of the left recalibration rail.
+ax.text(1.30,13.45,'运行阶段\n（每控制周期）',fontsize=7.0,weight='bold',
         color=INK,zorder=4,va='top',linespacing=1.3)
-# geometry: main column centred at x=3.4, boxes 4.4 wide; right rail at x~8.6
-BW=4.4; CX=3.4; BX=CX-BW/2       # box x-origin
-CXc=BX+BW/2                       # column centreline
+# Centred main chain; branch rails run along the lane margins.
+BW=4.4; CXc=5.0; BX=CXc-BW/2
+DW=5.2; DH=1.65
 # --- calibration chain (top lane, descending) ---
 fbox(ax,BX,23.15,BW,1.30,'上电 / 重定标请求',6.8)
 fbox(ax,BX,21.05,BW,1.30,'预扫描：$V_\\pi$ 周期估计',6.8)
 fbox(ax,BX,18.95,BW,1.30,'全周期扫描 ($2V_\\pi$)',6.6)
 fbox(ax,BX,16.85,BW,1.30,'拟合与规范固定\n（椭圆/最小二乘）',6.4)
-fbox(ax,BX,14.85,BW,1.30,'自检\n径向/直流残差达标?',6.2,fc=AMB)
+fdiamond(ax,CXc,15.35,DW,DH,'自检：径向/直流\n残差达标?',6.1,fc=AMB)
 fa(ax,CXc,23.15,CXc,22.35); fa(ax,CXc,21.05,CXc,20.25)
-fa(ax,CXc,18.95,CXc,18.15); fa(ax,CXc,16.85,CXc,16.15)
-# fail: re-sweep back-edge (self-check -> full-period sweep) on the right rail
-elbow(ax,[(BX+BW,15.50),(8.95,15.50),(8.95,19.60),(BX+BW,19.60)],
-      '未通过：重扫',(8.55,17.55),fs=5.8,rot=90)
-# pass -> hands over to the run phase below
-fa(ax,CXc,14.85,CXc,11.95,'通过',6,(CXc+0.72,14.15))
+fa(ax,CXc,18.95,CXc,18.15); fa(ax,CXc,16.85,CXc,15.35+DH/2)
+# no -> re-sweep on the right rail
+elbow(ax,[(CXc+DW/2,15.35),(8.95,15.35),(8.95,19.60),(BX+BW,19.60)])
+flabel(ax,(CXc+DW/2+8.95)/2,15.35,'否',fc='#EFF4EE')
+flabel(ax,8.95,(15.35+19.60)/2,'重扫',fc='#EFF4EE')
+# yes -> hand over to the run phase
+fa(ax,CXc,15.35-DH/2,CXc,11.95)
+flabel(ax,CXc,(15.35-DH/2+11.95)/2,'是')
 # --- run phase loop (bottom lane, descending then back-edge) ---
 fbox(ax,BX,10.65,BW,1.30,'锁相读出\n$\\mathbf{z}_k$（2 通道）',6.4)
 fbox(ax,BX,8.55,BW,1.30,'解调 atan2',6.6)
 fbox(ax,BX,6.45,BW,1.30,'积分更新\n$V \\leftarrow V - G\\,e$',6.4)
 fbox(ax,BX,4.35,BW,1.30,'残差监测\n$\\rho_k$（EWMA）',6.4,fc=AMB)
-fbox(ax,BX,2.25,BW,1.30,'$\\bar\\rho>\\rho_{\\rm th}$ 持续\n$M$ 周期?',6.4,fc=AMB)
+fdiamond(ax,CXc,2.75,DW,DH,'$\\bar\\rho>\\rho_{\\rm th}$ 持续\n$N_{\\rm p}$ 周期?',6.2,fc=AMB)
 fa(ax,CXc,10.65,CXc,9.85); fa(ax,CXc,8.55,CXc,7.75)
-fa(ax,CXc,6.45,CXc,5.65); fa(ax,CXc,4.35,CXc,3.55)
-# no -> next cycle: back up to lock-in readout on the left rail
-elbow(ax,[(BX,2.90),(0.75,2.90),(0.75,11.30),(BX,11.30)],
-      '否：下一周期（$<10^3$ 乘加）',(0.55,7.10),fs=5.6,rot=90)
-# yes -> trigger recal (right rail), then feed back up into calibration phase
-fbox(ax,6.15,2.25,3.25,1.30,'触发重定标\n（满周期重扫）',6.2,fc=RDT)
-fa(ax,BX+BW,2.90,6.15,2.90,'是',6,(6.02,3.12))
-elbow(ax,[(7.775,3.55),(7.775,23.80),(BX+BW,23.80)],
-      '重定标',(7.40,14.0),rot=90)
+fa(ax,CXc,6.45,CXc,5.65); fa(ax,CXc,4.35,CXc,2.75+DH/2)
+# no -> next cycle on the right rail
+elbow(ax,[(CXc+DW/2,2.75),(9.15,2.75),(9.15,11.30),(BX+BW,11.30)])
+flabel(ax,(CXc+DW/2+9.15)/2,2.75,'否',fc='#F2F4F7')
+flabel(ax,9.15,(2.75+11.30)/2,'下一周期',fc='#F2F4F7')
+# yes -> return directly to power-up along the left rail
+elbow(ax,[(CXc-DW/2,2.75),(0.75,2.75),(0.75,23.80),(BX,23.80)])
+flabel(ax,(CXc-DW/2+0.75)/2,2.75,'是',fc='#F2F4F7')
 plt.tight_layout(); plt.savefig('figs/fig_flow_mzm.pdf'); plt.close()
 
 # ============ Fig F2: acquisition transients ============
