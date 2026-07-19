@@ -14,8 +14,8 @@ experiment reconstructs phase exactly the way the simulation does.  The ONLY
 difference is the input: here (X, Y, dc) are *measured* arrays, not generated.
 
 Data layout under data/exp/ (all git-tracked, like figs/):
-  vpi.csv          bias[V], dc_dmm[V], dc_board[V]          (stage 0)
-  calib.npz        bias, X, Y, dc, (raw I/Q per harmonic)   (stage 1)
+  vpi.csv          bias, DMM/board DC, direction, time/order (stage 0)
+  calib.npz        bias, X/Y/DC/raw I/Q, time/order/direction (stage 1)
   lock_sweep.npz   phi_star, rms/static per controller      (stage 2)
   pilot_depth.csv  Ap[V], m, kappa, resid_mrad              (stage 3)
   drift.npz        t, err_mrad, rho_bar, recal_events       (stage 4)
@@ -144,7 +144,23 @@ def self_check_mrad(X, Y, cal: dict, phase_truth) -> dict:
 # --------------------------------------------------------------------------- #
 #  DC transfer curve  ->  auxiliary phase labels  phi(V_b)                     #
 # --------------------------------------------------------------------------- #
-def fit_dc_transfer(bias, dc):
+def align_periodic_origin(v0, reference, vpi):
+    """Move an equivalent cosine maximum onto the branch nearest reference.
+
+    ``V0`` is defined only modulo the full optical period ``2*Vpi``.  Directly
+    averaging two independently fitted representatives can therefore land at
+    the intervening minimum.  Return the aligned representative and the signed
+    integer number of full periods applied.
+    """
+    period = 2.0 * abs(float(vpi))
+    if not np.isfinite(period) or period <= 0:
+        raise ValueError("vpi must be finite and positive for V0 alignment")
+    shift_periods = int(np.rint((float(reference) - float(v0)) / period))
+    return float(v0 + shift_periods * period), shift_periods
+
+
+def fit_dc_transfer(bias, dc, vpi_hint=None, v0_hint=None,
+                    vpi_rel_bound=0.15):
     """Fit P(V_b) = a + b*cos(pi*(V_b - V0)/Vpi) to the slow DC sweep.
 
     Returns (a, b, vpi, v0).  Initial guesses come from the data span and the
@@ -166,12 +182,32 @@ def fit_dc_transfer(bias, dc):
         return a + b * np.cos(np.pi * (v - v0) / vpi)
 
     try:
-        p, _ = curve_fit(model, bias, dc, p0=[a0, b0, vpi0, v00], maxfev=20000)
+        if vpi_hint is not None or v0_hint is not None:
+            if vpi_hint is None or v0_hint is None:
+                raise ValueError("vpi_hint and v0_hint must be supplied together")
+            vpi0 = abs(float(vpi_hint))
+            v00 = float(v0_hint)
+            if not (np.isfinite(vpi0) and vpi0 > 0 and
+                    0 < float(vpi_rel_bound) < 1):
+                raise ValueError("invalid constrained DC-fit hint or bound")
+            # A one-period calibration sweep is vulnerable to noisy sign-change
+            # counting.  The immediately preceding bidirectional scan supplies
+            # the physically relevant basin; b>0 keeps V0 on a maximum branch.
+            b0 = max(float(b0), np.finfo(float).eps)
+            lo = [-np.inf, 0.0, (1.0 - vpi_rel_bound) * vpi0, v00 - vpi0]
+            hi = [np.inf, np.inf, (1.0 + vpi_rel_bound) * vpi0, v00 + vpi0]
+            p, _ = curve_fit(model, bias, dc, p0=[a0, b0, vpi0, v00],
+                             bounds=(lo, hi), maxfev=50000)
+        else:
+            p, _ = curve_fit(model, bias, dc,
+                             p0=[a0, b0, vpi0, v00], maxfev=20000)
         a, b, vpi, v0 = p
         vpi = abs(vpi)
         if b < 0:                      # keep b>0: V0 marks a maximum
             b = -b; v0 = v0 + vpi
     except Exception:
+        if vpi_hint is not None or v0_hint is not None:
+            raise
         a, b, vpi, v0 = a0, b0, vpi0, v00
     return float(a), float(b), float(vpi), float(v0)
 
